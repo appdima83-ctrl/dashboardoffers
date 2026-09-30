@@ -59,4 +59,4 @@ function statsResponse(from, to, offer) {
   return { demo: !real, currency: 'USD', rows: demoSeries(from, to, offer), offers: (from === '2026-09-01' && to === '2026-09-30') ? SNAP : byOffer(demoSeries(from, to, 'all')), offersSource: (from === '2026-09-01' && to === '2026-09-30') ? 'cabinet' : 'demo', updatedAt: new Date().toISOString() };
 }
 const CONFIG = { hasKey: false, offers: OFFERS, currencies: ['USD'], timezone: 'Indian/Kerguelen' };
-module.exports = { statsResponse, CONFIG, OFFERS };
+module.exports = { statsResponse, CONFIG, OFFERS, days };

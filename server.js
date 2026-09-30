@@ -14,10 +14,71 @@ const LOGIN = err => `<!doctype html><html lang="ru"><head><meta charset="utf-8"
 const PORT = process.env.PORT || 3000;
 const KEY = process.env.AFFISE_API_KEY || '';
 
-const { statsResponse, CONFIG } = require('./demo.js');
+const { statsResponse, CONFIG, days } = require('./demo.js');
 
-// --- Реальный Affise: поля НЕ угаданы, требуется сверка с docs3.1 ---
-async function affise() { const e = new Error('Интеграция с Affise ещё не сверена с документацией'); e.code = 'NOT_IMPLEMENTED'; throw e; }
+// --- Affise API (поля сверены с кабинетом: хосты = traffic.uniq, клики = traffic.raw,
+// конверсии = actions.total.count, «Итого» = actions.total.revenue) ---
+const BASE = process.env.AFFISE_BASE || 'https://api-profitcash.affise.com';
+const TZ = process.env.TIMEZONE || 'Indian/Kerguelen';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function aget(pathname, params) {
+  const url = BASE + pathname + '?' + params.map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
+  let last;
+  for (let i = 0; i < 4; i++) {
+    try {
+      const r = await fetch(url, { headers: { 'API-Key': KEY }, signal: AbortSignal.timeout(20000) });
+      if (r.status === 401 || r.status === 403) throw Object.assign(new Error('Affise отклонил ключ (доступ запрещён)'), { code: 'access', final: true });
+      if (r.status === 429 || r.status >= 500) throw Object.assign(new Error('Affise: ошибка ' + r.status), { code: r.status === 429 ? 'rate_limit' : 'upstream' });
+      if (!r.ok) throw Object.assign(new Error('Affise: ошибка ' + r.status), { code: 'upstream', final: true });
+      return await r.json();
+    } catch (e) {
+      last = e.code ? e : Object.assign(new Error('Сетевая ошибка при обращении к Affise'), { code: 'network' });
+      if (last.final) break;
+      await sleep(400 * 2 ** i);
+    }
+  }
+  throw last;
+}
+async function allPages(pathname, params) {
+  const out = []; let page = 1;
+  for (;;) {
+    const j = await aget(pathname, [...params, ['limit', 500], ['page', page]]);
+    if (j.status !== 1) throw Object.assign(new Error('Affise вернул статус ' + j.status), { code: 'upstream' });
+    out.push(...j.stats);
+    if (out.length >= (j.pagination?.total_count ?? out.length) || !j.stats.length) return out;
+    page++;
+  }
+}
+const num = x => Number(x) || 0, r4 = x => Math.round(x * 1e4) / 1e4;
+const norm = s => ({ hosts: num(s.traffic?.uniq), clicks: num(s.traffic?.raw), conversions: num(s.actions?.total?.count), amount: r4(num(s.actions?.total?.revenue)) });
+const cache = new Map();
+async function cached(key, fn, ttl = 15000) {
+  const c = cache.get(key); if (c && Date.now() - c.t < ttl) return c.v;
+  const v = await fn(); cache.set(key, { t: Date.now(), v }); return v;
+}
+async function affise(from, to, q) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) throw Object.assign(new Error('Некорректные даты'), { code: 'bad_request' });
+  const offer = q.get('offer');
+  const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ]];
+  return cached(['s', from, to, offer].join('|'), async () => {
+    const [daily, byOff] = await Promise.all([
+      allPages('/3.0/stats/getbydate', offer && offer !== 'all' ? [...base, ['filter[offer]', offer]] : base),
+      allPages('/3.0/stats/custom', [...base, ['slice[]', 'offer']]),
+    ]);
+    const map = {};
+    for (const s of daily) { const d = s.slice; map[`${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`] = norm(s); }
+    const rows = days(from, to).map(date => ({ date, ...(map[date] || { hosts: 0, clicks: 0, conversions: 0, amount: 0 }) }));
+    const offers = byOff.map(s => ({ id: String(s.slice.offer.id), title: s.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...norm(s) }));
+    return { demo: false, currency: 'USD', rows, offers, offersSource: 'affise', updatedAt: new Date().toISOString() };
+  });
+}
+async function offersList() {
+  return cached('offers', async () => {
+    const t = new Date().toISOString().slice(0, 10);
+    const st = await allPages('/3.0/stats/custom', [['filter[date_from]', '2026-09-01'], ['filter[date_to]', t], ['timezone', TZ], ['slice[]', 'offer']]);
+    return st.map(s => ({ id: String(s.slice.offer.id), title: s.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']') }));
+  }, 600000);
+}
 
 const send = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
 
@@ -42,7 +103,10 @@ http.createServer(async (req, res) => {
     if (u.pathname.startsWith('/api/')) return send(res, 401, { error: 'auth', message: 'Требуется вход' });
     res.writeHead(303, { Location: '/login' }); return res.end();
   }
-  if (u.pathname === '/api/config') return send(res, 200, { ...CONFIG, hasKey: !!KEY });
+  if (u.pathname === '/api/config') {
+    if (!KEY) return send(res, 200, { ...CONFIG, hasKey: false });
+    try { return send(res, 200, { ...CONFIG, hasKey: true, offers: await offersList() }); } catch (e) { return send(res, 200, { ...CONFIG, hasKey: true }); }
+  }
   if (u.pathname === '/api/stats') {
     const q = u.searchParams, from = q.get('from'), to = q.get('to');
     if (q.get('fail') === 'network') return send(res, 502, { error: 'network', message: 'Сетевая ошибка при обращении к Affise API' });

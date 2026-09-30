@@ -110,7 +110,7 @@ function render(){
  if(!st.rows.length||(T.hosts+T.clicks+T.conversions===0&&false)){}
  chart();table(T);bars();
 }
-function bars(){$('#osrc').textContent=st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',L=[...st.offers].sort((a,b)=>b[k]-a[k]),mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
+function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',L=[...st.offers].sort((a,b)=>b[k]-a[k]),mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
  $('#obars').innerHTML=L.length?L.map((o,i)=>`<div class="orow"><div class="n"><b>${i+1}</b>${o.title}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`).join(''):'<div class="msg"><p>Нет данных по офферам</p></div>'}
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
 function table(T){
