@@ -35,15 +35,16 @@ function scaleInts(w, total) {
 }
 const iso = d => d.toISOString().slice(0, 10);
 function days(from, to) { const r = []; for (let d = new Date(from + 'T00:00:00Z'); iso(d) <= to; d.setUTCDate(d.getUTCDate() + 1)) r.push(iso(d)); return r; }
+// Реальная таблица по дням из кабинета за 01–30.09.2026: [дата, хосты, клики, конверсии «Все», «Итого»]. Итого: 745 / 1310 / 29 / 84,7596
+const DAILY = [
+  ['09-01',0,0,0,0],['09-02',0,0,0,0],['09-03',19,41,0,0],['09-04',13,18,0,0],['09-05',9,23,1,4.8],['09-06',5,11,0,0],
+  ['09-07',36,72,4,15.2],['09-08',27,52,2,5.1899],['09-09',35,58,1,0.8],['09-10',21,35,3,9.9899],['09-11',33,52,1,4.8],['09-12',10,18,0,0],
+  ['09-13',27,43,0,0],['09-14',17,32,1,0.3899],['09-15',35,42,0,0],['09-16',22,50,3,9.6],['09-17',36,70,1,4.8],['09-18',14,17,0,0],
+  ['09-19',22,35,0,0],['09-20',33,55,1,0.8],['09-21',40,61,0,0],['09-22',32,50,1,0.3899],['09-23',61,123,1,3.2],['09-24',38,57,3,2.4],
+  ['09-25',33,54,1,0.8],['09-26',23,43,0,0],['09-27',19,38,0,0],['09-28',33,70,1,5.2],['09-29',23,42,1,0.8],['09-30',29,48,3,15.6],
+];
 function demoSeries(from, to, offer) {
-  const sept = days('2026-09-01', '2026-09-30'), r = rnd(42);
-  const hw = sept.map(() => 0.3 + r()), cw = sept.map((_, i) => 0.3 + r() + (i > 20 ? 0.6 : 0));
-  const H = scaleInts(hw, 745), C = scaleInts(cw, 1310);
-  const cv = scaleInts(sept.map(() => (r() < 0.55 ? 0 : 0.2 + r())), 29);
-  const sw = cv.map(c => c * (0.6 + r())), sws = sw.reduce((a, b) => a + b, 0);
-  const S = sw.map(x => Math.round(x / sws * 84.7595 * 1e4) / 1e4);
-  S[S.length - 1] = Math.round((84.7595 - S.slice(0, -1).reduce((a, b) => a + b, 0)) * 1e4) / 1e4;
-  const map = {}; sept.forEach((d, i) => map[d] = { hosts: H[i], clicks: C[i], conversions: cv[i], amount: S[i] });
+  const map = {}; DAILY.forEach(r => map['2026-' + r[0]] = { hosts: r[1], clicks: r[2], conversions: r[3], amount: r[4] });
   const k = offer && offer !== 'all' ? (W[offer] || 1) : 1;
   return days(from, to).map(d => {
     let v = map[d];
@@ -54,7 +55,8 @@ function demoSeries(from, to, offer) {
 
 
 function statsResponse(from, to, offer) {
-  return { demo: true, currency: 'USD', rows: demoSeries(from, to, offer), offers: (from === '2026-09-01' && to === '2026-09-30') ? SNAP : byOffer(demoSeries(from, to, 'all')), offersSource: (from === '2026-09-01' && to === '2026-09-30') ? 'cabinet' : 'demo', updatedAt: new Date().toISOString() };
+  const real = (!offer || offer === 'all') && from >= '2026-09-01' && to <= '2026-09-30';
+  return { demo: !real, currency: 'USD', rows: demoSeries(from, to, offer), offers: (from === '2026-09-01' && to === '2026-09-30') ? SNAP : byOffer(demoSeries(from, to, 'all')), offersSource: (from === '2026-09-01' && to === '2026-09-30') ? 'cabinet' : 'demo', updatedAt: new Date().toISOString() };
 }
 const CONFIG = { hasKey: false, offers: OFFERS, currencies: ['USD'], timezone: 'Indian/Kerguelen' };
 module.exports = { statsResponse, CONFIG, OFFERS };
