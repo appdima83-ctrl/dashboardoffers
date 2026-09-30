@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: profitcash-stats
+    runtime: node
+    plan: free
+    buildCommand: "echo no build"
+    startCommand: node server.js
+    healthCheckPath: /login
+    envVars:
+      - key: DASH_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: AFFISE_API_KEY
+        sync: false

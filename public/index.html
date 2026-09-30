@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="ProfitCash">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg">
+<title>Статистика ProfitCash</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surf:#131211;--tx:#F5F1EC;--tx2:#9a918a;--cyan:#FF6A1A;--vio:#FFC48A;--grn:#FF6A1A;--line:rgba(255,255,255,.07)}
+*{box-sizing:border-box}body{margin:0;background-image:radial-gradient(900px 400px at 85% -100px,rgba(255,106,26,.12),transparent);background:var(--bg);color:var(--tx);font:14px/1.45 Inter,system-ui,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(48px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:22px}
+h1{margin:0;font-size:26px;display:flex;align-items:center;gap:12px}
+.badge{font-size:12px;font-weight:700;background:#F59E0B;color:#1a1200;padding:3px 9px;border-radius:99px}
+.panel{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:18px}.panel h2{margin:0 0 12px;font-size:15px;font-weight:600}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.filters input,.filters select{background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;color-scheme:dark}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--tx2);padding:7px 12px;border-radius:10px}
+button:hover{color:var(--tx)}button.on{background:rgba(255,106,26,.15);color:#FF8A4C;border-color:rgba(255,106,26,.45)}
+button.primary{background:linear-gradient(180deg,#FF7A2E,#F25C05);color:#1a0a00;border:0;font-weight:600}
+.upd{color:var(--tx2);font-size:12px;margin-left:auto}.upd.stale{color:#F59E0B}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.card{border-radius:16px;padding:22px;position:relative;overflow:hidden}
+.card{background:var(--surf);border:1px solid var(--line)}.card:before{content:'';position:absolute;inset:auto -40px -60px auto;width:180px;height:140px;background:radial-gradient(closest-side,rgba(255,106,26,.3),transparent)}.card.c:before{background:radial-gradient(closest-side,rgba(255,106,26,.16),transparent)}.card.b:before{background:radial-gradient(closest-side,rgba(255,106,26,.5),transparent)}
+.card .l{color:var(--tx2);font-weight:500}.card .v{color:#fff}.card .v{font-size:40px;font-weight:700;margin:6px 0 2px;font-variant-numeric:tabular-nums}.card .s{opacity:.8;font-size:13px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.legend{display:flex;gap:14px;margin-left:auto}.legend label{display:flex;gap:6px;align-items:center;cursor:pointer;color:var(--tx2)}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.chartbox{position:relative;height:320px}svg{width:100%;height:100%;display:block}
+.tip{position:absolute;pointer-events:none;background:#000;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;display:none;white-space:nowrap;z-index:2}
+.tblwrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{padding:9px 12px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}th{color:var(--tx2);font-weight:500;cursor:pointer;user-select:none;white-space:nowrap}
+tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;background:rgba(255,255,255,.03)}
+.orow{display:grid;grid-template-columns:230px 1fr 120px;gap:14px;align-items:center;padding:8px 0}.orow .n{display:flex;gap:10px;align-items:center;font-weight:500}.orow .n b{color:var(--tx2);font-weight:500;width:18px}
+.otr{height:12px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}.ofill{height:100%;border-radius:99px;background:linear-gradient(90deg,#8a3a08,#FF6A1A);box-shadow:0 0 12px rgba(255,106,26,.45);transition:width .5s}
+.orow .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}.orow .val small{display:block;color:var(--tx2);font-weight:400;font-size:11px}
+@media(max-width:700px){.orow{grid-template-columns:1fr 90px}.orow .otr{grid-column:1/-1;order:3}}
+.msg{text-align:center;padding:40px 16px}.msg h3{margin:0 0 6px}.msg p{color:var(--tx2);margin:0 0 14px}
+.sk{background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.10),rgba(255,255,255,.04));background-size:200%;animation:sh 1.2s infinite;border-radius:10px}
+@keyframes sh{to{background-position:-200%}}
+.banner{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:#FBBF24;padding:10px 14px;border-radius:12px;display:none}
+@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.cards{gap:12px}.card{padding:16px}.card .v{font-size:28px!important}.filters input,.filters select{font-size:16px}.chartbox{height:260px}button{min-height:40px}.upd{margin-left:0;width:100%}h1{font-size:22px}.card .v{font-size:34px}}
+</style></head><body><div class="wrap">
+<h1>Статистика ProfitCash <span class="badge" id="demo" hidden>Демо</span></h1>
+<div class="panel filters">
+  <input type="date" id="from"><span style="color:var(--tx2)">—</span><input type="date" id="to">
+  <div class="chips" id="quick">
+    <button data-q="today">Сегодня</button><button data-q="yest">Вчера</button><button data-q="7">7 дней</button><button data-q="30">30 дней</button><button data-q="month" class="on">Этот месяц</button>
+  </div>
+  <select id="offer"><option value="all">Все офферы</option></select>
+  <select id="cur" hidden></select>
+  <button class="primary" id="refresh">Обновить</button>
+  <label style="color:var(--tx2);display:flex;gap:6px;align-items:center"><input type="checkbox" id="demoToggle" checked>Демо-режим</label>
+  <button id="logout" title="Выйти">Выйти</button><span class="upd" id="upd">Не обновлялось</span>
+</div>
+<div class="banner" id="banner"></div>
+<div class="cards" id="cards"></div>
+<div class="panel">
+  <h2>Динамика по дням</h2>
+  <div class="tabs" id="modes"><button data-m="traffic" class="on">Трафик</button><button data-m="conv">Конверсии</button><button data-m="sum">Сумма</button><div class="legend" id="legend"></div></div>
+  <div class="chartbox" id="chartbox"></div>
+</div>
+<div class="panel"><div class="tabs"><h2 style="margin:0 12px 0 0;align-self:center">Офферы по результату</h2><div id="omodes" style="display:flex;gap:6px"><button data-o="conversions" class="on">Конверсии</button><button data-o="amount">Сумма</button><button data-o="clicks">Клики</button><button data-o="hosts">Хосты</button></div></div><div id="osrc" style="color:var(--tx2);font-size:12px;margin:-4px 0 6px"></div><div id="obars"></div></div>
+<div class="panel tblwrap" id="tbl"></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const st={rows:null,mode:'traffic',hidden:{},sort:{k:'date',d:1},ctl:null,cfg:null,error:null,stale:false,cur:'$'};
+const fmtI=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const fmtM=(n,d=4)=>{const [a,b]=n.toFixed(d).split('.');return a.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+b};
+const pad=n=>String(n).padStart(2,'0'),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const dm=s=>s.split('-').reverse().join('.');
+function quick(q){const t=new Date(),d=new Date(t);let f=t,e=t;
+ if(q==='yest'){d.setDate(d.getDate()-1);f=e=d}else if(q==='7'){d.setDate(d.getDate()-6);f=d}else if(q==='30'){d.setDate(d.getDate()-29);f=d}else if(q==='month'){f=new Date(t.getFullYear(),t.getMonth(),1)}
+ $('#from').value=ymd(f);$('#to').value=ymd(e);document.querySelectorAll('#quick button').forEach(b=>b.classList.toggle('on',b.dataset.q===q))}
+const tot=r=>r.reduce((a,x)=>({hosts:a.hosts+x.hosts,clicks:a.clicks+x.clicks,conversions:a.conversions+x.conversions,amount:a.amount+x.amount}),{hosts:0,clicks:0,conversions:0,amount:0});
+
+async function api(path,p,signal){
+ const r=await fetch(path+(p?'?'+p:''),{signal,cache:'no-store',credentials:'same-origin'});
+ if(r.status===401){location.href='/login';throw Object.assign(new Error('auth'),{name:'AbortError'})}
+ let j;try{j=await r.json()}catch{j={error:'network',message:'Некорректный ответ сервера'}}
+ return{r,j}}
+let lastLoad=0;
+async function load(){lastLoad=Date.now();
+ st.ctl&&st.ctl.abort();const ctl=st.ctl=new AbortController();
+ const p=new URLSearchParams({from:$('#from').value,to:$('#to').value,offer:$('#offer').value,currency:$('#cur').value||'USD'});
+ if($('#demoToggle').checked)p.set('demo','1');
+ if(location.search.includes('fail'))p.set('fail','network');
+ if(!st.rows)renderSkeleton();
+ try{
+  const {r,j}=await api('/api/stats',p,ctl.signal);
+  if(!r.ok)throw Object.assign(new Error(j.message),{code:j.error});
+  st.rows=j.rows;st.offers=j.offers||[];st.osrc=j.offersSource;st.error=null;st.stale=false;$('#demo').hidden=!j.demo;
+  const t=new Date(j.updatedAt);$('#upd').textContent='Обновлено: '+t.toLocaleTimeString('ru-RU');$('#upd').className='upd';
+ }catch(e){if(e.name==='AbortError')return;st.error=e;if(st.rows){st.stale=true;$('#upd').textContent='Данные не обновлены';$('#upd').className='upd stale'}}
+ render();
+}
+function renderSkeleton(){$('#cards').innerHTML='<div class="sk" style="height:130px"></div><div class="sk" style="height:130px"></div>';$('#chartbox').innerHTML='<div class="sk" style="height:100%"></div>';$('#tbl').innerHTML='<div class="sk" style="height:260px"></div>'}
+function errBox(){const e=st.error,k=e.code;const t=k==='no_key'?['Не задан API-ключ','Задайте переменную окружения AFFISE_API_KEY на сервере и перезапустите его.']:k==='network'?['Сетевая ошибка','Не удалось получить данные. Это не нулевая статистика.']:['Ошибка доступа к API',e.message];
+ return `<div class="msg"><h3>${t[0]}</h3><p>${t[1]}</p><button class="primary" onclick="load()">Повторить</button></div>`}
+function render(){
+ const b=$('#banner');
+ if(!st.rows){b.style.display='none';for(const id of['#cards','#chartbox','#tbl'])$(id).innerHTML=id==='#cards'?'':'';$('#cards').innerHTML='';$('#chartbox').innerHTML=errBox();$('#tbl').innerHTML='';$('#obars').innerHTML='';return}
+ b.style.display=st.stale?'block':'none';if(st.stale)b.textContent='Не удалось обновить данные — показаны предыдущие значения.';
+ const T=tot(st.rows);
+ $('#cards').innerHTML=`<div class="card c"><div class="l">Хосты</div><div class="v" title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</div><div class="s">Уникальные по дням</div></div>
+ <div class="card c"><div class="l">Клики</div><div class="v">${fmtI(T.clicks)}</div><div class="s">Всего за период</div></div>
+ <div class="card a"><div class="l">Кол-во офферов</div><div class="v">${fmtI(T.conversions)}</div><div class="s">Конверсии за период</div></div>
+ <div class="card b"><div class="l">Итоговая сумма</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>`;
+ if(!st.rows.length||(T.hosts+T.clicks+T.conversions===0&&false)){}
+ chart();table(T);bars();
+}
+function bars(){$('#osrc').textContent=st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',L=[...st.offers].sort((a,b)=>b[k]-a[k]),mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
+ $('#obars').innerHTML=L.length?L.map((o,i)=>`<div class="orow"><div class="n"><b>${i+1}</b>${o.title}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`).join(''):'<div class="msg"><p>Нет данных по офферам</p></div>'}
+document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
+function table(T){
+ const {k,d}=st.sort,rows=[...st.rows].sort((a,b)=>(a[k]>b[k]?1:a[k]<b[k]?-1:0)*d);
+ const H=[['date','Дата'],['hosts','Хосты','Сумма дневных уникальных посетителей — не уникальные за весь период'],['clicks','Клики'],['conversions','Кол-во офферов','Все конверсии, включая отклонённые'],['amount','Итоговая сумма']];
+ $('#tbl').innerHTML=`<table><thead><tr>${H.map(h=>`<th data-k="${h[0]}" title="${h[2]||''}">${h[1]}${k===h[0]?(d>0?' ▲':' ▼'):''}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${dm(r.date)}</td><td>${fmtI(r.hosts)}</td><td>${fmtI(r.clicks)}</td><td>${fmtI(r.conversions)}</td><td>${fmtM(r.amount)} ${st.cur}</td></tr>`).join('')}</tbody>
+ <tfoot><tr><td>Итого</td><td title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</td><td>${fmtI(T.clicks)}</td><td>${fmtI(T.conversions)}</td><td>${fmtM(T.amount)} ${st.cur}</td></tr></tfoot></table>`;
+ document.querySelectorAll('#tbl th').forEach(th=>th.onclick=()=>{const kk=th.dataset.k;st.sort={k:kk,d:st.sort.k===kk?-st.sort.d:1};table(T)})
+}
+// монотонная кубическая интерполяция (Fritsch–Carlson): без ложных пиков и отрицательных значений
+function mono(px,py){const n=px.length,dx=[],m=[],t=[];for(let i=0;i<n-1;i++){dx[i]=px[i+1]-px[i];m[i]=(py[i+1]-py[i])/dx[i]}
+ t[0]=m[0];t[n-1]=m[n-2];for(let i=1;i<n-1;i++)t[i]=m[i-1]*m[i]<=0?0:(m[i-1]+m[i])/2;
+ for(let i=0;i<n-1;i++){if(m[i]===0){t[i]=t[i+1]=0;continue}const a=t[i]/m[i],b=t[i+1]/m[i],s=a*a+b*b;if(s>9){const k=3/Math.sqrt(s);t[i]=k*a*m[i];t[i+1]=k*b*m[i]}}
+ let d=`M${px[0]},${py[0]}`;for(let i=0;i<n-1;i++)d+=` C${px[i]+dx[i]/3},${py[i]+t[i]*dx[i]/3} ${px[i+1]-dx[i]/3},${py[i+1]-t[i+1]*dx[i]/3} ${px[i+1]},${py[i+1]}`;return d}
+const SER={traffic:[['clicks','Клики','#FF6A1A',0],['hosts','Хосты','#FFC48A',0]],conv:[['conversions','Конверсии','#FF6A1A',0]],sum:[['amount','Сумма','#FF6A1A',1]]};
+function chart(){
+ const box=$('#chartbox'),W=box.clientWidth||800,Hh=320,m={l:50,r:14,t:14,b:30},rows=st.rows,ser=SER[st.mode];
+ $('#legend').innerHTML=ser.map(s=>`<label><input type="checkbox" data-s="${s[0]}" ${st.hidden[s[0]]?'':'checked'}><i style="background:${s[2]}"></i>${s[1]}</label>`).join('');
+ document.querySelectorAll('#legend input').forEach(i=>i.onchange=()=>{st.hidden[i.dataset.s]=!i.checked;chart()});
+ const vis=ser.filter(s=>!st.hidden[s[0]]);let max=Math.max(1,...vis.flatMap(s=>rows.map(r=>r[s[0]])));
+ const step=Math.pow(10,Math.floor(Math.log10(max))),ymax=Math.ceil(max/step*1.0/ (max/step>5?1:.5))*(max/step>5?1:.5)*step||1;
+ const n=rows.length,X=i=>m.l+(n<2?(W-m.l-m.r)/2:i*(W-m.l-m.r)/(n-1)),Y=v=>Hh-m.b-v/ymax*(Hh-m.t-m.b);
+ let g='<defs>'+ser.map(s=>`<linearGradient id="g${s[0]}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s[2]}" stop-opacity=".45"/><stop offset="1" stop-color="${s[2]}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
+ for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(155,170,192,.14)"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" fill="#9BAAC0" font-size="11">${st.mode==='sum'?fmtM(v,v<10?2:0):fmtI(v)}</text>`}
+ const every=Math.ceil(n/(W<600?5:10));rows.forEach((r,i)=>{if(i%every===0||i===n-1)g+=`<text x="${X(i)}" y="${Hh-8}" text-anchor="middle" fill="#9BAAC0" font-size="11">${dm(r.date).slice(0,5)}</text>`});
+ if(n>=2)vis.forEach(s=>{const px=rows.map((_,i)=>X(i)),py=rows.map(r=>Y(r[s[0]])),d=mono(px,py);
+  g+=`<path d="${d} L${px[n-1]},${Y(0)} L${px[0]},${Y(0)}Z" fill="url(#g${s[0]})"/><path d="${d}" fill="none" stroke="${s[2]}" stroke-width="2.2"/>`});
+ else vis.forEach(s=>g+=`<circle cx="${X(0)}" cy="${Y(rows[0][s[0]])}" r="4" fill="${s[2]}"/>`);
+ g+=`<line id="cur" y1="${m.t}" y2="${Hh-m.b}" stroke="#9BAAC0" stroke-dasharray="3 3" opacity="0"/><g id="dots"></g><rect id="hit" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${Hh}" fill="transparent"/>`;
+ box.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none">${g}</svg><div class="tip" id="tip"></div>`;
+ const hit=$('#hit'),tip=$('#tip');
+ hit.onmousemove=e=>{const rc=box.getBoundingClientRect(),x=(e.clientX-rc.left)*(W/rc.width);const i=Math.max(0,Math.min(n-1,Math.round((x-m.l)/((W-m.l-m.r)/Math.max(1,n-1)))));const r=rows[i];
+  $('#cur').setAttribute('x1',X(i));$('#cur').setAttribute('x2',X(i));$('#cur').setAttribute('opacity',1);
+  $('#dots').innerHTML=vis.map(s=>`<circle cx="${X(i)}" cy="${Y(r[s[0]])}" r="4.5" fill="${s[2]}" stroke="#131211" stroke-width="2"/>`).join('');
+  tip.style.display='block';tip.innerHTML=`<b>${dm(r.date)}</b><br>`+vis.map(s=>`<span style="color:${s[2]}">●</span> ${s[1]}: <b>${s[3]?fmtM(r[s[0]])+' '+st.cur:fmtI(r[s[0]])}</b>`).join('<br>');
+  const px=X(i)*(rc.width/W);tip.style.left=Math.min(px+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top='10px'};
+ hit.ontouchmove=hit.ontouchstart=e=>{const t=e.touches[0];hit.onmousemove({clientX:t.clientX})};
+ hit.onmouseleave=()=>{tip.style.display='none';$('#cur').setAttribute('opacity',0);$('#dots').innerHTML=''};
+}
+document.querySelectorAll('#quick button').forEach(b=>b.onclick=()=>{quick(b.dataset.q);load()});
+document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{st.mode=b.dataset.m;document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&chart()});
+['from','to','offer','cur','demoToggle'].forEach(id=>$('#'+id).onchange=()=>{if(id==='from'||id==='to')document.querySelectorAll('#quick button').forEach(b=>b.classList.remove('on'));load()});
+$('#refresh').onclick=load;addEventListener('resize',()=>st.rows&&chart());
+(async()=>{const c=(await api('/api/config')).j;st.cfg=c;$('#offer').innerHTML='<option value="all">Все офферы</option>'+c.offers.map(o=>`<option value="${o.id}">${o.title}</option>`).join('');
+ if(c.currencies.length>1){$('#cur').hidden=false;$('#cur').innerHTML=c.currencies.map(x=>`<option>${x}</option>`).join('')}
+ $('#demoToggle').checked=!c.hasKey;$('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('month');load()})();
+// свежие данные при возврате на вкладку/из кэша страницы
+addEventListener('pageshow',e=>{if(e.persisted&&st.cfg)load()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&st.cfg&&Date.now()-lastLoad>60000)load()});
+if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script></body></html>
