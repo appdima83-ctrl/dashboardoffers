@@ -51,7 +51,6 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;backgr
   <select id="offer"><option value="all">Все офферы</option></select>
   <select id="cur" hidden></select>
   <button class="primary" id="refresh">Обновить</button>
-  <label style="color:var(--tx2);display:flex;gap:6px;align-items:center"><input type="checkbox" id="demoToggle" checked>Демо-режим</label>
   <button id="logout" title="Выйти">Выйти</button><span class="upd" id="upd">Не обновлялось</span>
 </div>
 <div class="banner" id="banner"></div>
@@ -85,7 +84,6 @@ let lastLoad=0;
 async function load(){lastLoad=Date.now();
  st.ctl&&st.ctl.abort();const ctl=st.ctl=new AbortController();
  const p=new URLSearchParams({from:$('#from').value,to:$('#to').value,offer:$('#offer').value,currency:$('#cur').value||'USD'});
- if($('#demoToggle').checked)p.set('demo','1');
  if(location.search.includes('fail'))p.set('fail','network');
  if(!st.rows)renderSkeleton();
  try{
@@ -153,11 +151,11 @@ function chart(){
 }
 document.querySelectorAll('#quick button').forEach(b=>b.onclick=()=>{quick(b.dataset.q);load()});
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{st.mode=b.dataset.m;document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&chart()});
-['from','to','offer','cur','demoToggle'].forEach(id=>$('#'+id).onchange=()=>{if(id==='from'||id==='to')document.querySelectorAll('#quick button').forEach(b=>b.classList.remove('on'));load()});
+['from','to','offer','cur'].forEach(id=>$('#'+id).onchange=()=>{if(id==='from'||id==='to')document.querySelectorAll('#quick button').forEach(b=>b.classList.remove('on'));load()});
 $('#refresh').onclick=load;addEventListener('resize',()=>st.rows&&chart());
 (async()=>{const c=(await api('/api/config')).j;st.cfg=c;$('#offer').innerHTML='<option value="all">Все офферы</option>'+c.offers.map(o=>`<option value="${o.id}">${o.title}</option>`).join('');
  if(c.currencies.length>1){$('#cur').hidden=false;$('#cur').innerHTML=c.currencies.map(x=>`<option>${x}</option>`).join('')}
- $('#demoToggle').checked=!c.hasKey;$('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('month');load()})();
+ $('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('month');load()})();
 // свежие данные при возврате на вкладку/из кэша страницы
 addEventListener('pageshow',e=>{if(e.persisted&&st.cfg)load()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&st.cfg&&Date.now()-lastLoad>60000)load()});

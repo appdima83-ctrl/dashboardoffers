@@ -46,8 +46,7 @@ http.createServer(async (req, res) => {
   if (u.pathname === '/api/stats') {
     const q = u.searchParams, from = q.get('from'), to = q.get('to');
     if (q.get('fail') === 'network') return send(res, 502, { error: 'network', message: 'Сетевая ошибка при обращении к Affise API' });
-    if (q.get('demo') === '1') { await new Promise(r => setTimeout(r, 500)); return send(res, 200, statsResponse(from, to, q.get('offer'))); }
-    if (!KEY) return send(res, 401, { error: 'no_key', message: 'Не задан AFFISE_API_KEY' });
+    if (!KEY) { await new Promise(r => setTimeout(r, 500)); return send(res, 200, statsResponse(from, to, q.get('offer'))); }
     try { return send(res, 200, await affise(from, to, q)); } catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
   }
   const rel = u.pathname === '/' ? 'index.html' : u.pathname.slice(1), file = path.join(__dirname, 'public', path.normalize(rel));
