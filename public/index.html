@@ -46,7 +46,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;backgr
 <div class="panel filters">
   <input type="date" id="from"><span style="color:var(--tx2)">—</span><input type="date" id="to">
   <div class="chips" id="quick">
-    <button data-q="today">Сегодня</button><button data-q="yest">Вчера</button><button data-q="7">7 дней</button><button data-q="30">30 дней</button><button data-q="month" class="on">Этот месяц</button>
+    <button data-q="today">Сегодня</button><button data-q="7">7 дней</button><button data-q="all" class="on">Весь период</button>
   </div>
   <select id="offer"><option value="all">Все офферы</option></select>
   <select id="cur" hidden></select>
@@ -70,9 +70,10 @@ const fmtI=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const fmtM=(n,d=4)=>{const [a,b]=n.toFixed(d).split('.');return a.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+b};
 const pad=n=>String(n).padStart(2,'0'),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const dm=s=>s.split('-').reverse().join('.');
+const START='2026-09-01'; // начало доступных данных
 function quick(q){const t=new Date(),d=new Date(t);let f=t,e=t;
- if(q==='yest'){d.setDate(d.getDate()-1);f=e=d}else if(q==='7'){d.setDate(d.getDate()-6);f=d}else if(q==='30'){d.setDate(d.getDate()-29);f=d}else if(q==='month'){f=new Date(t.getFullYear(),t.getMonth(),1)}
- $('#from').value=ymd(f);$('#to').value=ymd(e);document.querySelectorAll('#quick button').forEach(b=>b.classList.toggle('on',b.dataset.q===q))}
+ if(q==='7'){d.setDate(d.getDate()-6);f=d}
+ $('#from').value=q==='all'?START:ymd(f);$('#to').value=ymd(e);document.querySelectorAll('#quick button').forEach(b=>b.classList.toggle('on',b.dataset.q===q))}
 const tot=r=>r.reduce((a,x)=>({hosts:a.hosts+x.hosts,clicks:a.clicks+x.clicks,conversions:a.conversions+x.conversions,amount:a.amount+x.amount}),{hosts:0,clicks:0,conversions:0,amount:0});
 
 async function api(path,p,signal){
@@ -155,7 +156,7 @@ document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{st.mode=b.d
 $('#refresh').onclick=load;addEventListener('resize',()=>st.rows&&chart());
 (async()=>{const c=(await api('/api/config')).j;st.cfg=c;$('#offer').innerHTML='<option value="all">Все офферы</option>'+c.offers.map(o=>`<option value="${o.id}">${o.title}</option>`).join('');
  if(c.currencies.length>1){$('#cur').hidden=false;$('#cur').innerHTML=c.currencies.map(x=>`<option>${x}</option>`).join('')}
- $('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('month');load()})();
+ $('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('all');load()})();
 // свежие данные при возврате на вкладку/из кэша страницы
 addEventListener('pageshow',e=>{if(e.persisted&&st.cfg)load()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&st.cfg&&Date.now()-lastLoad>60000)load()});
