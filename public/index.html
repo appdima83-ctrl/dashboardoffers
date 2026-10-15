@@ -117,9 +117,8 @@ function balCard(){
  const b=st.balance;
  if(!b)return '<div class="card d"><div class="l">Баланс</div><div class="v">—</div><div class="s">Нет данных, не удалось получить</div></div>';
  const main=b.total.USD!==undefined||!Object.keys(b.total).length?'USD':Object.keys(b.total)[0];
- const others=Object.keys(b.total).filter(c=>c!==main).map(c=>money(b.total[c],c)).join(' · ');
- const av=b.available[main]||0,hd=b.hold[main]||0;
- return `<div class="card d"><div class="l">Баланс</div><div class="v" title="Точное значение: ${fmtM(b.total[main]||0)} ${SYM[main]||main}">${money(b.total[main]||0,main)}</div><div class="s">Доступно ${money(av,main)} · холд ${money(hd,main)}${others?`<small>Также: ${others}</small>`:''}</div></div>`}
+ const others=Object.keys(b.total).filter(c=>c!==main).map(c=>`<div title="Точное значение: ${fmtM(b.total[c])} ${SYM[c]||c}">${money(b.total[c],c)}</div>`).join('');
+ return `<div class="card d"><div class="l">Баланс</div><div class="v" title="Точное значение: ${fmtM(b.total[main]||0)} ${SYM[main]||main}">${money(b.total[main]||0,main)}</div>${others?`<div class="s" style="font-size:16px;font-weight:600;opacity:.9;font-variant-numeric:tabular-nums">${others}</div>`:''}</div>`}
 function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
  $('#obars').innerHTML=(L.length?L.map((o,i)=>`<div class="orow"><div class="n"><b>${i+1}</b>${o.title}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
