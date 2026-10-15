@@ -62,7 +62,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;backgr
 </div>
 <script>
 const $=s=>document.querySelector(s);
-const st={rows:null,mode:'traffic',hidden:{},sort:{k:'date',d:1},ctl:null,cfg:null,error:null,stale:false,cur:'$'};
+const st={rows:null,mode:'traffic',hidden:{},sort:{k:'date',d:-1},ctl:null,cfg:null,error:null,stale:false,cur:'$'};
 const fmtI=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const fmtM=(n,d=4)=>{const [a,b]=n.toFixed(d).split('.');return a.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+b};
 const pad=n=>String(n).padStart(2,'0'),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
