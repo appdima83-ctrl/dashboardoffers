@@ -106,7 +106,7 @@ function render(){
  $('#cards').innerHTML=`<div class="card c"><div class="l">Хосты</div><div class="v" title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</div><div class="s">Уникальные по дням</div></div>
  <div class="card c"><div class="l">Клики</div><div class="v">${fmtI(T.clicks)}</div><div class="s">Всего за период</div></div>
  <div class="card a"><div class="l">Кол-во офферов</div><div class="v">${fmtI(T.conversions)}</div><div class="s">Конверсии за период</div></div>
- <div class="card b"><div class="l">Итоговая сумма</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>`;
+ <div class="card b"><div class="l">Заработано</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>`;
  if(!st.rows.length||(T.hosts+T.clicks+T.conversions===0&&false)){}
  chart();table(T);bars();
 }
@@ -115,7 +115,7 @@ function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из к�
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
 function table(T){
  const {k,d}=st.sort,rows=[...st.rows].sort((a,b)=>(a[k]>b[k]?1:a[k]<b[k]?-1:0)*d);
- const H=[['date','Дата'],['hosts','Хосты','Сумма дневных уникальных посетителей — не уникальные за весь период'],['clicks','Клики'],['conversions','Кол-во офферов','Все конверсии, включая отклонённые'],['amount','Итоговая сумма']];
+ const H=[['date','Дата'],['hosts','Хосты','Сумма дневных уникальных посетителей — не уникальные за весь период'],['clicks','Клики'],['conversions','Кол-во офферов','Все конверсии, включая отклонённые'],['amount','Заработано']];
  $('#tbl').innerHTML=`<table><thead><tr>${H.map(h=>`<th data-k="${h[0]}" title="${h[2]||''}">${h[1]}${k===h[0]?(d>0?' ▲':' ▼'):''}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${dm(r.date)}</td><td>${fmtI(r.hosts)}</td><td>${fmtI(r.clicks)}</td><td>${fmtI(r.conversions)}</td><td>${fmtM(r.amount)} ${st.cur}</td></tr>`).join('')}</tbody>
  <tfoot><tr><td>Итого</td><td title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</td><td>${fmtI(T.clicks)}</td><td>${fmtI(T.conversions)}</td><td>${fmtM(T.amount)} ${st.cur}</td></tr></tfoot></table>`;
  document.querySelectorAll('#tbl th').forEach(th=>th.onclick=()=>{const kk=th.dataset.k;st.sort={k:kk,d:st.sort.k===kk?-st.sort.d:1};table(T)})
