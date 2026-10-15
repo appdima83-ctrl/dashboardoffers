@@ -56,11 +56,17 @@ async function cached(key, fn, ttl = 15000) {
   const c = cache.get(key); if (c && Date.now() - c.t < ttl) return c.v;
   const v = await fn(); cache.set(key, { t: Date.now(), v }); return v;
 }
+async function fetchBalance() {
+  const j = await aget('/3.0/balance', []);
+  const b = j.balance || {}, pick = o => Object.fromEntries(Object.entries(o || {}).map(([c, v]) => [c, r4(num(v))]).filter(([c, v]) => v !== 0));
+  return { total: pick(b.balance), available: pick(b.available), hold: pick(b.hold) };
+}
 async function affise(from, to, q) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) throw Object.assign(new Error('Некорректные даты'), { code: 'bad_request' });
   const offer = q.get('offer');
   const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ]];
-  return cached(['s', from, to, offer].join('|'), async () => {
+  const balP = cached('bal', fetchBalance, 5000).catch(() => null);
+  const data = await cached(['s', from, to, offer].join('|'), async () => {
     const [daily, byOff] = await Promise.all([
       allPages('/3.0/stats/getbydate', offer && offer !== 'all' ? [...base, ['filter[offer]', offer]] : base),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'offer']]),
@@ -71,6 +77,7 @@ async function affise(from, to, q) {
     const offers = byOff.map(s => ({ id: String(s.slice.offer.id), title: s.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...norm(s) }));
     return { demo: false, currency: 'USD', rows, offers, offersSource: 'affise', updatedAt: new Date().toISOString() };
   });
+  return { ...data, balance: await balP };
 }
 async function offersList() {
   return cached('offers', async () => {
