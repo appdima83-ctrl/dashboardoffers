@@ -10,14 +10,23 @@ const APPS = {
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
 
+// Приводит ключ к корректному PEM: убирает кавычки/запятые/пробелы, понимает «\n» текстом и настоящие переносы
+function normalizePem(v) {
+  const m = String(v).replace(/\\r/g, '').replace(/\\n/g, '\n').match(/-----BEGIN ([A-Z ]*PRIVATE KEY)-----([\s\S]*?)-----END \1-----/);
+  if (!m) throw fail('ga_no_credentials', 'GA_PRIVATE_KEY: не найден блок -----BEGIN PRIVATE KEY----- … -----END PRIVATE KEY-----');
+  const body = m[2].replace(/[^A-Za-z0-9+/=]/g, '');
+  return `-----BEGIN ${m[1]}-----\n${body.match(/.{1,64}/g).join('\n')}\n-----END ${m[1]}-----\n`;
+}
+const cleanEmail = v => String(v).replace(/["',\s]/g, '');
+
 function loadCreds() {
-  if (process.env.GA_CLIENT_EMAIL && process.env.GA_PRIVATE_KEY) return { client_email: process.env.GA_CLIENT_EMAIL, private_key: process.env.GA_PRIVATE_KEY.replace(/\\n/g, '\n') };
+  if (process.env.GA_CLIENT_EMAIL && process.env.GA_PRIVATE_KEY) return { client_email: cleanEmail(process.env.GA_CLIENT_EMAIL), private_key: normalizePem(process.env.GA_PRIVATE_KEY) };
   let raw = process.env.GA_SERVICE_ACCOUNT_JSON;
   if (!raw && process.env.GA_SERVICE_ACCOUNT_FILE) {
     try { raw = fs.readFileSync(process.env.GA_SERVICE_ACCOUNT_FILE, 'utf8'); } catch { throw fail('ga_no_credentials', 'Не удалось прочитать файл ключа (GA_SERVICE_ACCOUNT_FILE)'); }
   }
   if (!raw) throw fail('ga_no_credentials', 'Не задан ключ Google (GA_SERVICE_ACCOUNT_JSON или GA_SERVICE_ACCOUNT_FILE)');
-  try { const c = JSON.parse(raw); if (!c.client_email || !c.private_key) throw 0; return c; } catch { throw fail('ga_no_credentials', 'Ключ Google повреждён: нужен JSON сервисного аккаунта'); }
+  try { const c = JSON.parse(raw); if (!c.client_email || !c.private_key) throw 0; return { client_email: cleanEmail(c.client_email), private_key: normalizePem(c.private_key) }; } catch { throw fail('ga_no_credentials', 'Ключ Google повреждён: нужен JSON сервисного аккаунта'); }
 }
 
 let tok = { v: null, exp: 0 };
