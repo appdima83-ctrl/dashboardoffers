@@ -10,7 +10,7 @@ const makeToken = () => { const exp = Date.now() + 30 * 864e5; return exp + '.' 
 const okToken = t => { const [exp, sig] = (t || '').split('.'); return !!sig && +exp > Date.now() && sig.length === 64 && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(sign('s' + exp))); };
 const cookieOf = req => Object.fromEntries((req.headers.cookie || '').split(/;\s*/).map(c => c.split(/=(.*)/s).slice(0, 2)));
 const tries = new Map(); // ip -> [время попыток]
-const LOGIN = err => `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0a0a"><title>Вход</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#16171b radial-gradient(700px 350px at 80% -80px,rgba(76,141,255,.16),transparent);color:#F2F4F8;font:15px Inter,system-ui,sans-serif}form{width:min(360px,92vw);background:#1c1d22;border:1px solid rgba(255,255,255,.07);border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:14px}h1{margin:0;font-size:20px}input{background:#0f1013;color:#F2F4F8;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px;font:inherit;font-size:16px}button{border:0;border-radius:999px;padding:12px;font:inherit;font-weight:600;color:#fff;background:linear-gradient(180deg,#5B9BFF,#2563EB);cursor:pointer}.e{color:#ff8a6a;font-size:13px;min-height:16px}</style></head><body><form method="post" action="/login"><h1>Статистика ProfitCash</h1><input type="password" name="password" placeholder="Пароль" autocomplete="current-password" autofocus required><div class="e">${err || ''}</div><button>Войти</button></form></body></html>`;
+const LOGIN = err => `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0a0a"><title>Вход</title><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#16171b radial-gradient(700px 350px at 80% -80px,rgba(76,141,255,.16),transparent);color:#F2F4F8;font:15px Inter,system-ui,sans-serif}form{width:min(360px,92vw);background:#1c1d22;border:1px solid rgba(255,255,255,.07);border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:14px}h1{margin:0;font-size:20px}input{background:#0f1013;color:#F2F4F8;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px;font:inherit;font-size:16px}button{border:0;border-radius:999px;padding:12px;font:inherit;font-weight:600;color:#fff;background:linear-gradient(180deg,#5B9BFF,#2563EB);cursor:pointer}.e{color:#ff8a6a;font-size:13px;min-height:16px}</style></head><body><form method="post" action="/login"><img src="/icon-192.png" alt="" width="64" height="64" style="align-self:center;filter:drop-shadow(0 8px 16px rgba(40,70,200,.45))"><h1 style="text-align:center">Статистика ProfitCash</h1><input type="password" name="password" placeholder="Пароль" autocomplete="current-password" autofocus required><div class="e">${err || ''}</div><button>Войти</button></form></body></html>`;
 const PORT = process.env.PORT || 3000;
 const KEY = process.env.AFFISE_API_KEY || '';
 
@@ -109,7 +109,7 @@ http.createServer(async (req, res) => {
   }
   if (u.pathname === '/logout') { res.writeHead(204, { 'Set-Cookie': 'pc_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0' }); return res.end(); }
   if (u.pathname === '/login') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(LOGIN()); }
-  const PUBLIC = ['/manifest.webmanifest', '/icon.svg', '/sw.js'];
+  const PUBLIC = ['/manifest.webmanifest', '/sw.js', '/favicon-32.png', '/favicon-64.png', '/apple-touch-icon.png', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png'];
   if (!authed && !PUBLIC.includes(u.pathname)) {
     if (u.pathname.startsWith('/api/')) return send(res, 401, { error: 'auth', message: 'Требуется вход' });
     res.writeHead(303, { Location: '/login' }); return res.end();
@@ -130,6 +130,6 @@ http.createServer(async (req, res) => {
   }
   const rel = u.pathname === '/' ? 'index.html' : u.pathname.slice(1), file = path.join(__dirname, 'public', path.normalize(rel));
   if (!file.startsWith(path.join(__dirname, 'public')) || !fs.existsSync(file)) { res.writeHead(404); return res.end('Not found'); }
-  const T = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+  const T = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
   res.writeHead(200, { 'Content-Type': (T[path.extname(file)] || 'application/octet-stream') + '; charset=utf-8' }); fs.createReadStream(file).pipe(res);
 }).listen(PORT, () => console.log('http://localhost:' + PORT));

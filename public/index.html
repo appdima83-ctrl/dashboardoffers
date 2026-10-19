@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0a0a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="ProfitCash">
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Статистика ProfitCash</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -122,6 +122,7 @@ tfoot td{background:rgba(255,255,255,.04)}th,td{border-bottom-color:rgba(255,255
 .up{margin-left:10px;font-size:11px;font-weight:700;color:#34D399;background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.35);border-radius:999px;padding:2px 8px;white-space:nowrap;animation:pulse 2.4s ease-in-out infinite}
 @keyframes pulse{50%{box-shadow:0 0 0 4px rgba(52,211,153,.14)}}
 .orow .n{flex-wrap:wrap}
+.logo{background:none!important;box-shadow:none!important;overflow:visible}.logo img{width:38px;height:38px;display:block;filter:drop-shadow(0 6px 12px rgba(40,70,200,.45))}
 /* ===== Стекло (liquid glass) ===== */
 body{background:#121316;background-image:radial-gradient(900px 600px at 85% -8%,rgba(76,141,255,.34),transparent 62%),radial-gradient(800px 600px at -8% 100%,rgba(155,123,255,.30),transparent 60%),radial-gradient(700px 500px at 55% 108%,rgba(45,212,191,.16),transparent 62%),radial-gradient(500px 400px at 30% 30%,rgba(244,114,182,.06),transparent 60%);background-attachment:fixed}
 .side,.panel,.card{background:linear-gradient(145deg,rgba(255,255,255,.105) 0%,rgba(255,255,255,.04) 42%,rgba(255,255,255,.065) 100%)!important;-webkit-backdrop-filter:blur(26px) saturate(165%);backdrop-filter:blur(26px) saturate(165%);border:1px solid rgba(255,255,255,.06)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(0,0,0,.28),inset 0 0 30px rgba(255,255,255,.03),0 20px 44px rgba(0,0,0,.45)!important}
@@ -181,7 +182,7 @@ nav#nav a:focus,button:focus{outline:none}nav#nav a:focus-visible,button:focus-v
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.ln{stroke-dashoffset:0}.ar{opacity:1}}
 </style></head><body><div class="wrap">
 <aside class="side">
-  <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V11M12 19V5M19 19v-5"/></svg></span><b>ProfitCash</b></div>
+  <div class="brand"><span class="logo"><img src="icon-192.png" alt="" width="38" height="38"></span><b>ProfitCash</b></div>
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a></nav>
   <div class="sidefoot"><button id="logout" title="Выйти">Выйти</button></div>
 </aside>
