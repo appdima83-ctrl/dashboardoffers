@@ -281,9 +281,30 @@ button.fsbtn{width:44px;padding:0;justify-content:center}
  .wrap{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
  .side{height:auto!important;top:auto!important;position:relative!important}
 }
+
+/* ===== Карта стран ===== */
+.geo{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:1199px){.geo{grid-template-columns:minmax(0,1fr)}}
+.mapbox{position:relative;border-radius:14px;background:#0e0e0f;border:1px solid #1d1d1d;overflow:hidden;touch-action:pan-y}
+.mapbox svg{width:100%;height:auto;display:block;cursor:grab}.mapbox svg:active{cursor:grabbing}
+.ct{fill:#262628;stroke:#0e0e0f;stroke-width:.6;transition:fill .2s,stroke .2s}.ct:hover{stroke:#fff;stroke-width:1}.ct.on{stroke:#0e0e0f}
+.mz{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px}
+.mz button{width:34px;height:34px;padding:0;font-size:20px;line-height:1;border-radius:10px!important;display:grid;place-items:center}
+.clist .brow{grid-template-columns:minmax(0,1.3fr) 1.4fr 56px}
+
+/* без логотипа: меню начинается сразу с пунктов */
+.side{padding-top:14px}
+nav#nav{margin-top:0}
+@media(max-width:900px){
+ .side nav#nav{grid-column:1!important;grid-row:1!important}
+ .side .sidefoot{grid-column:2!important;grid-row:1!important}
+}
+.geo{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)!important}
+.clist .brow{grid-template-columns:minmax(0,1.7fr) 1fr 46px!important}
+@media(max-width:900px){nav#nav{flex-direction:row!important;flex-wrap:wrap;gap:6px!important}}
+@media(max-width:1199px){.geo{grid-template-columns:minmax(0,1fr)!important}.clist .brow{grid-template-columns:minmax(0,1.3fr) 1.4fr 56px!important}}
 </style></head><body><div class="wrap">
 <aside class="side">
-  <div class="brand"><span class="logo"><img src="logo-glyph.png" alt="" width="38" height="38"></span><b>ProfitCash</b></div>
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a></nav>
   <div class="sidefoot"><div class="sync"><i></i><span>Данные обновлены</span><b id="sync">—</b></div><button id="logout" title="Выйти">Выйти</button></div>
 </aside>
@@ -442,6 +463,51 @@ document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{st.mode=b.d
 $('#refresh').onclick=reload;addEventListener('resize',()=>st.rows&&chart());
 
 
+
+// ---------- Карта мира ----------
+let WORLD=null;
+const ALIAS={'united states':'united states of america','türkiye':'turkey','turkiye':'turkey','congo kinshasa':'dem rep congo','congo democratic republic':'dem rep congo','congo brazzaville':'congo','myanmar burma':'myanmar','bosnia herzegovina':'bosnia and herz','eswatini':'eswatini','south sudan':'s sudan','dominican republic':'dominican rep','central african republic':'central african rep','equatorial guinea':'eq guinea','western sahara':'w sahara','solomon islands':'solomon is','north macedonia':'macedonia','côte divoire':'côte divoire','cote divoire':'côte divoire','czech republic':'czechia','russian federation':'russia','korea south':'south korea','korea north':'north korea','palestinian territories':'palestine','falkland islands':'falkland is','french southern territories':'fr s antarctic lands'};
+const nk=s=>String(s).toLowerCase().replace(/[’'.,()&\-]/g,' ').replace(/\s+/g,' ').trim();
+async function loadWorld(){
+ if(WORLD)return WORLD;
+ const t=await (await fetch('world-110m.json',{credentials:'same-origin'})).json();
+ const {scale:[sx,sy],translate:[tx,ty]}=t.transform;
+ const arcs=t.arcs.map(a=>{let x=0,y=0;return a.map(([dx,dy])=>{x+=dx;y+=dy;return [x*sx+tx,y*sy+ty]})});
+ const ring=idx=>{const pts=[];idx.forEach((i,k)=>{const a=i<0?[...arcs[~i]].reverse():arcs[i];pts.push(...(k?a.slice(1):a))});return pts};
+ // Меркатор, широта обрезана до [-58; 80]
+ const W=1000,mer=l=>Math.log(Math.tan(Math.PI/4+Math.min(Math.max(l,-58),80)*Math.PI/360)),y0=mer(80),y1=mer(-58),H=W*(y0-y1)/(2*Math.PI);
+ const P=([lo,la])=>[((lo+180)/360*W),((y0-mer(la))/(y0-y1)*H)];
+ // развернуть долготу, чтобы контур не «перескакивал» через линию перемены дат
+ const unwrap=pts=>{let off=0,prev=pts[0][0];return pts.map(([lo,la],i)=>{let l=lo+off;if(i){while(l-prev>180){off-=360;l-=360}while(l-prev<-180){off+=360;l+=360}}prev=l;return [l,la]})};
+ const draw=(pts,sh)=>'M'+pts.map(q=>{const [x,y]=P([q[0]+sh,q[1]]);return x.toFixed(1)+' '+y.toFixed(1)}).join('L')+'Z';
+ const path=g=>{const polys=g.type==='Polygon'?[g.arcs]:g.arcs;let d='';polys.forEach(p=>p.forEach(r=>{const raw=ring(r);if(raw.every(q=>q[1]<-58))return;const pts=unwrap(raw),lons=pts.map(q=>q[0]),mn=Math.min(...lons),mx=Math.max(...lons);d+=draw(pts,0);if(mx>180)d+=draw(pts,-360);if(mn<-180)d+=draw(pts,360)}));return d};
+ WORLD={W,H,items:t.objects.countries.geometries.map(g=>({name:g.properties.name,key:nk(g.properties.name),d:path(g)})).filter(c=>c.d)};
+ return WORLD}
+async function drawMap(box,countries){
+ if(!box)return;
+ let w;try{w=await loadWorld()}catch{box.innerHTML='<p style="color:var(--tx2);padding:12px">Не удалось загрузить карту</p>';return}
+ if(!box.isConnected)return;
+ const val={};countries.forEach(c=>{const k=nk(c.name);val[ALIAS[k]||k]=(val[ALIAS[k]||k]||0)+c.value});
+ const mx=Math.max(1,...Object.values(val)),lg=v=>Math.log(1+v)/Math.log(1+mx);
+ box.innerHTML=`<svg viewBox="0 0 ${w.W} ${w.H}" preserveAspectRatio="xMidYMid meet"><g id="mg">${w.items.map(c=>{const v=val[c.key]||0;return `<path class="ct${v?' on':''}" data-n="${c.name}" data-v="${v}" d="${c.d}"${v?` style="fill:rgba(255,106,26,${(.28+.72*lg(v)).toFixed(2)})"`:''}/>`}).join('')}</g></svg>
+ <div class="mz"><button data-z="1" aria-label="Приблизить">+</button><button data-z="-1" aria-label="Отдалить">−</button></div><div class="tip" id="mtip"></div>`;
+ const svg=box.querySelector('svg'),g=box.querySelector('#mg'),tip=box.querySelector('#mtip');
+ let k=1,x=0,y=0;const clamp=()=>{x=Math.min(0,Math.max(w.W*(1-k),x));y=Math.min(0,Math.max(w.H*(1-k),y))};
+ const apply=(smooth)=>{clamp();g.style.transition=smooth?'transform .35s cubic-bezier(.2,.8,.2,1)':'none';g.style.transform=`translate(${x}px,${y}px) scale(${k})`};
+ g.style.transformOrigin='0 0';
+ // масштаб в единицах viewBox → пиксели SVG
+ const zoomAt=(f,cx,cy)=>{const nk2=Math.min(8,Math.max(1,k*f)),r=nk2/k;x=cx-(cx-x)*r;y=cy-(cy-y)*r;k=nk2;apply(true)};
+ const vb=e=>{const r=svg.getBoundingClientRect(),s=Math.min(r.width/w.W,r.height/w.H),ox=(r.width-w.W*s)/2,oy=(r.height-w.H*s)/2;return [(e.clientX-r.left-ox)/s,(e.clientY-r.top-oy)/s]};
+ box.querySelectorAll('.mz button').forEach(b=>b.onclick=()=>zoomAt(+b.dataset.z>0?1.6:1/1.6,w.W/2,w.H/2));
+ box.addEventListener('wheel',e=>{e.preventDefault();const [cx,cy]=vb(e);zoomAt(e.deltaY<0?1.25:.8,cx,cy)},{passive:false});
+ let drag=null;
+ svg.onpointerdown=e=>{if(k<=1)return;drag={px:e.clientX,py:e.clientY,x,y};svg.setPointerCapture(e.pointerId)};
+ svg.onpointermove=e=>{if(drag){const r=svg.getBoundingClientRect(),s=w.W/r.width;x=drag.x+(e.clientX-drag.px)*s;y=drag.y+(e.clientY-drag.py)*s;apply(false);tip.style.display='none';return}
+  const p=e.target.closest&&e.target.closest('.ct');if(!p){tip.style.display='none';return}
+  const v=+p.dataset.v,rc=box.getBoundingClientRect();tip.innerHTML=`<b>${p.dataset.n}</b><br>${v?`Активных пользователей: <b>${fmtI(v)}</b>`:'Нет данных'}`;tip.style.display='block';
+  tip.style.left=Math.min(e.clientX-rc.left+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top=Math.max(4,e.clientY-rc.top-tip.offsetHeight-10)+'px'};
+ svg.onpointerup=svg.onpointercancel=()=>{drag=null};svg.onpointerleave=()=>{tip.style.display='none'};
+}
 // ---------- Движение ----------
 function moveInd(){const nav=$('#nav'),a=nav&&nav.querySelector('a.on'),i=nav&&nav.querySelector('.ind');if(!a||!i)return;
  i.style.width=a.offsetWidth+'px';i.style.height=a.offsetHeight+'px';i.style.transform=`translate(${a.offsetLeft}px,${a.offsetTop}px)`;
@@ -523,9 +589,10 @@ function appRender(){
    <div class="legend2">${d.versions.series.map((s,i)=>`<span><i style="background:${PAL[i]}"></i>${s.name}</span>`).join('')}</div></div>
  </div>
  <div class="g2">
-  <div class="panel w"><h2>Активные пользователи по странам</h2>${barList(d.countries)}</div>
+  <div class="panel w"><h2>Активные пользователи по странам</h2><div class="geo"><div class="mapbox" id="gMap"></div><div class="clist">${barList(d.countries)}</div></div></div>
   <div class="panel w"><h2>События по названию</h2>${barList(d.events)}</div>
  </div>`;
+ drawMap($('#gMap'),d.countries);
  drawLines($('#gAct'),d.activity.dates,[{name:'28 дней',color:'#FF6A1A',values:d.activity.d28},{name:'7 дней',color:'#FFC48A',values:d.activity.d7},{name:'1 день',color:'#F2F4F8',values:d.activity.d1}]);
  drawLines($('#gVer'),d.versions.dates,d.versions.series.map((s,i)=>({...s,color:PAL[i]})));
 }
