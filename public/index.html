@@ -243,6 +243,24 @@ button.act .ico{color:#a3a3a1}button.act:hover .ico{color:#fff}
 button.act.busy .ico{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 .upd:not(.stale){display:none}.upd.stale{color:#F59E0B;font-size:12px}
 @media(max-width:700px){.head{flex-direction:column;align-items:stretch}.hact{justify-content:flex-start}.range{flex:1 1 auto;min-width:0}.range input[type=date]{width:100px}}
+
+/* ===== Телефон: без горизонтального переполнения, заголовок над меню ===== */
+.panel,.card,.view,.g2o>*,.g3>*,.g2>*{min-width:0}
+@media(max-width:1000px){.g2o,.g3,.g2{grid-template-columns:minmax(0,1fr)!important}}
+#omodes,#modes .seg{max-width:100%;overflow-x:auto;scrollbar-width:none}#omodes::-webkit-scrollbar,#modes .seg::-webkit-scrollbar{display:none}
+.orow .n{min-width:0}.dl .nm{min-width:0}
+@media(max-width:900px){
+ .wrap{align-items:stretch}
+ .main,.head{display:contents}
+ .head .ht{order:-2}.side{order:-1}.head .hact{order:0}.view{order:1}
+ .head .ht{padding:2px 2px 0}
+}
+@media(max-width:900px){
+ .side{display:grid!important;grid-template-columns:1fr auto;align-items:center;gap:10px 8px;padding:12px 14px}
+ .side .brand{grid-column:1;grid-row:1}.side .sidefoot{grid-column:2;grid-row:1;margin:0!important}.side nav#nav{grid-column:1/-1;grid-row:2}
+ .sidefoot button{padding:7px 14px;height:auto}
+}
+.orow .n{flex-wrap:nowrap!important}.orow .tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.orow .up{flex:none}
 </style></head><body><div class="wrap">
 <aside class="side">
   <div class="brand"><span class="logo"><img src="logo-glyph.png" alt="" width="38" height="38"></span><b>ProfitCash</b></div>
@@ -352,7 +370,7 @@ function donut(L,k,tt){
  el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div>`+
  items.map((it,i)=>`<div class="dl"><i style="background:${DPAL[i]}"></i><div class="nm" title="${it.n}">${it.n}</div><div class="vl">${fv(it.v)}</div><div class="pc">${(it.v/tt*100).toFixed(0)}%</div></div>`).join('')}
 function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период · ▲ — прирост за сегодня':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
- donut(L,k,tt);$('#obars').innerHTML=(L.length?L.map((o,i)=>{const tv=st.offToday&&st.offToday[o.id]?st.offToday[o.id][k]:0,hot=tv>0;return `<div class="orow${hot?' hot':''}"><div class="n"><b>${i+1}</b>${o.title}${hot?`<span class="up" title="Прирост за сегодня">▲ +${k==='amount'?fmtM(tv,2)+' '+st.cur:fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%;opacity:${hot?1:(1-i/Math.max(L.length,1)*.55).toFixed(2)}"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`}).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
+ donut(L,k,tt);$('#obars').innerHTML=(L.length?L.map((o,i)=>{const tv=st.offToday&&st.offToday[o.id]?st.offToday[o.id][k]:0,hot=tv>0;return `<div class="orow${hot?' hot':''}"><div class="n"><b>${i+1}</b><span class="tt">${o.title}</span>${hot?`<span class="up" title="Прирост за сегодня">▲ +${k==='amount'?fmtM(tv,2)+' '+st.cur:fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%;opacity:${hot?1:(1-i/Math.max(L.length,1)*.55).toFixed(2)}"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`}).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
 const PER=7;
 function table(T){
