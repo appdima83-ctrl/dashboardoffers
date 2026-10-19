@@ -488,7 +488,7 @@ function mono(px,py){const n=px.length,dx=[],m=[],t=[];for(let i=0;i<n-1;i++){dx
  let d=`M${px[0]},${py[0]}`;for(let i=0;i<n-1;i++)d+=` C${px[i]+dx[i]/3},${py[i]+t[i]*dx[i]/3} ${px[i+1]-dx[i]/3},${py[i+1]-t[i+1]*dx[i]/3} ${px[i+1]},${py[i+1]}`;return d}
 const SER={traffic:[['clicks','Клики','#FF6A1A',0],['hosts','Хосты','#FFC48A',0]],conv:[['conversions','Конверсии','#FF6A1A',0]],sum:[['amount','Сумма','#FF6A1A',1]]};
 function chart(){
- const box=$('#chartbox'),W=box.clientWidth||800,Hh=320,m={l:50,r:14,t:14,b:30},rows=st.rows,ser=SER[st.mode];
+ const box=$('#chartbox'),W=box.clientWidth||800,Hh=box.clientHeight||320,m={l:50,r:14,t:14,b:30},rows=st.rows,ser=SER[st.mode];
  $('#legend').innerHTML=ser.map(s=>`<label><input type="checkbox" data-s="${s[0]}" ${st.hidden[s[0]]?'':'checked'}><i style="background:${s[2]}"></i>${s[1]}</label>`).join('');
  document.querySelectorAll('#legend input').forEach(i=>i.onchange=()=>{st.hidden[i.dataset.s]=!i.checked;chart()});
  const vis=ser.filter(s=>!st.hidden[s[0]]);let max=Math.max(1,...vis.flatMap(s=>rows.map(r=>r[s[0]])));
