@@ -453,7 +453,7 @@ function render(){
  <div class="card c"><div class="l">Хосты</div><div class="v" title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</div><div class="s">Уникальные по дням</div></div>
  <div class="card c"><div class="l">Клики</div><div class="v">${fmtI(T.clicks)}</div><div class="s">Всего за период</div></div>
  <div class="card a"><div class="l">Кол-во офферов</div><div class="v">${fmtI(T.conversions)}</div><div class="s">Конверсии за период</div></div>
- <div class="card b"><div class="l">Заработано</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>`;
+ <div class="card b"><div class="l">Заработано</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}. Все валюты уже в долларах: Affise пересчитывает выплаты по курсу на день конверсии, как «Итого» в кабинете.">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>`;
  if(!st.rows.length||(T.hosts+T.clicks+T.conversions===0&&false)){}
  chart();table(T);bars();countUp();
 }
