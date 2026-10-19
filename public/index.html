@@ -469,8 +469,8 @@ function balCard(){
  const tot=b.total.USD||0,parts=b.parts||[];
  const nm=c=>{try{const n=new Intl.DisplayNames(['ru'],{type:'currency'}).of(c);return n.charAt(0).toUpperCase()+n.slice(1)}catch{return c}};
  const rows=parts.length>1||(parts[0]&&parts[0].code!=='USD')?parts.map(p=>p.code==='USD'
-  ?`<div class="br"><span>${nm('USD').replace('Доллар США','Доллары')}</span><b>${money(p.amount,'USD')}</b></div>`
-  :`<div class="br" title="Курс Affise: 1 ${p.code} = ${fmtM(p.rate,4)} $"><span>${nm(p.code)}</span><b>${money(p.amount,p.code)} × ${fmtM(p.rate,4)} = ${money(p.usd,'USD')}</b></div>`).join(''):'';
+  ?`<div class="br"><span>${nm('USD').replace('Доллар США','Доллары')}:</span><b>${money(p.amount,'USD')}</b></div>`
+  :`<div class="br" title="Курс Affise: 1 ${p.code} = ${fmtM(p.rate,4)} $"><span>${nm(p.code)}:</span><b>${money(p.amount,p.code)} × ${fmtM(p.rate,4)} = ${money(p.usd,'USD')}</b></div>`).join(''):'';
  return `<div class="card d"><div class="l">Баланс</div><div class="v" title="Точное значение: ${fmtM(tot)} $">${money(tot,'USD')}</div>${rows?`<div class="bparts">${rows}</div>`:''}</div>`}
 
 const DPAL=['#FF6A1A','#FFA05C','#E04B00','#FFD0A8','#9A3412','#34D399','#6B7280'];
