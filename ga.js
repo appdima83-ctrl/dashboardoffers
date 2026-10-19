@@ -6,6 +6,8 @@ const crypto = require('crypto'), fs = require('fs');
 
 const APPS = {
   wonga: { title: 'Wonga', propertyId: process.env.GA_PROPERTY_WONGA || '546879836' },
+  // Mpopwa — Firebase-проект in-emergency-loan-guide (Android: com.emergencyloanguide.app). ID свойства GA4 задаётся в GA_PROPERTY_MPOPWA
+  mpopwa: { title: 'Mpopwa', propertyId: process.env.GA_PROPERTY_MPOPWA || '' },
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
@@ -19,30 +21,36 @@ function normalizePem(v) {
 }
 const cleanEmail = v => String(v).replace(/["',\s]/g, '');
 
-function loadCreds() {
-  if (process.env.GA_CLIENT_EMAIL && process.env.GA_PRIVATE_KEY) return { client_email: cleanEmail(process.env.GA_CLIENT_EMAIL), private_key: normalizePem(process.env.GA_PRIVATE_KEY) };
-  let raw = process.env.GA_SERVICE_ACCOUNT_JSON;
-  if (!raw && process.env.GA_SERVICE_ACCOUNT_FILE) {
-    try { raw = fs.readFileSync(process.env.GA_SERVICE_ACCOUNT_FILE, 'utf8'); } catch { throw fail('ga_no_credentials', 'Не удалось прочитать файл ключа (GA_SERVICE_ACCOUNT_FILE)'); }
+function loadCreds(app) {
+  const sfx = app ? '_' + String(app).toUpperCase() : '';
+  if (app && (process.env['GA_CLIENT_EMAIL' + sfx] || process.env['GA_SERVICE_ACCOUNT_JSON' + sfx] || process.env['GA_SERVICE_ACCOUNT_FILE' + sfx])) return loadCredsFrom(sfx);
+  return loadCredsFrom('');
+}
+function loadCredsFrom(sfx) {
+  if (process.env['GA_CLIENT_EMAIL' + sfx] && process.env['GA_PRIVATE_KEY' + sfx]) return { client_email: cleanEmail(process.env['GA_CLIENT_EMAIL' + sfx]), private_key: normalizePem(process.env['GA_PRIVATE_KEY' + sfx]) };
+  let raw = process.env['GA_SERVICE_ACCOUNT_JSON' + sfx];
+  if (!raw && process.env['GA_SERVICE_ACCOUNT_FILE' + sfx]) {
+    try { raw = fs.readFileSync(process.env['GA_SERVICE_ACCOUNT_FILE' + sfx], 'utf8'); } catch { throw fail('ga_no_credentials', 'Не удалось прочитать файл ключа (GA_SERVICE_ACCOUNT_FILE)'); }
   }
   if (!raw) throw fail('ga_no_credentials', 'Не задан ключ Google (GA_SERVICE_ACCOUNT_JSON или GA_SERVICE_ACCOUNT_FILE)');
   try { const c = JSON.parse(raw); if (!c.client_email || !c.private_key) throw 0; return { client_email: cleanEmail(c.client_email), private_key: normalizePem(c.private_key) }; } catch { throw fail('ga_no_credentials', 'Ключ Google повреждён: нужен JSON сервисного аккаунта'); }
 }
 
-let tok = { v: null, exp: 0 };
-async function accessToken() {
-  if (tok.v && Date.now() < tok.exp) return tok.v;
-  const c = loadCreds(), now = Math.floor(Date.now() / 1000), b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
+const toks = new Map();
+async function accessToken(app) {
+  const c = loadCreds(app), hit = toks.get(c.client_email);
+  if (hit && Date.now() < hit.exp) return hit.v;
+  const now = Math.floor(Date.now() / 1000), b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
   const unsigned = b64({ alg: 'RS256', typ: 'JWT' }) + '.' + b64({ iss: c.client_email, scope: 'https://www.googleapis.com/auth/analytics.readonly', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 });
   const sig = crypto.createSign('RSA-SHA256').update(unsigned).sign(c.private_key, 'base64url');
   const r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: unsigned + '.' + sig }), signal: AbortSignal.timeout(15000) });
   if (!r.ok) throw fail('ga_auth', 'Google отклонил ключ сервисного аккаунта (' + r.status + ')');
-  const j = await r.json(); tok = { v: j.access_token, exp: Date.now() + (j.expires_in - 120) * 1000 };
-  return tok.v;
+  const j = await r.json(); toks.set(c.client_email, { v: j.access_token, exp: Date.now() + (j.expires_in - 120) * 1000 });
+  return j.access_token;
 }
 
-async function gpost(propertyId, method, body) {
-  const t = await accessToken();
+async function gpost(propertyId, method, body, app) {
+  const t = await accessToken(app);
   let last;
   for (let i = 0; i < 3; i++) {
     try {
@@ -58,15 +66,15 @@ async function gpost(propertyId, method, body) {
 const rows = j => (j.rows || []).map(r => ({ d: r.dimensionValues.map(x => x.value), m: r.metricValues.map(x => Number(x.value)) }));
 const isoDate = s => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
 
-async function report(propertyId, days) {
+async function report(propertyId, days, app) {
   const range = [{ startDate: days - 1 + 'daysAgo', endDate: 'today' }];
   const [act, ver, cty, evt, rt, rtc] = await Promise.all([
-    gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'date' }], metrics: [{ name: 'active1DayUsers' }, { name: 'active7DayUsers' }, { name: 'active28DayUsers' }], orderBys: [{ dimension: { dimensionName: 'date' } }], limit: 400 }),
-    gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'date' }, { name: 'appVersion' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ dimension: { dimensionName: 'date' } }], limit: 10000 }),
-    gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'country' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 15 }),
-    gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'eventName' }], metrics: [{ name: 'eventCount' }], orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }], limit: 15 }),
-    gpost(propertyId, 'runRealtimeReport', { dimensions: [{ name: 'minutesAgo' }], metrics: [{ name: 'activeUsers' }], limit: 40 }),
-    gpost(propertyId, 'runRealtimeReport', { dimensions: [{ name: 'country' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 5 }),
+    gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'date' }], metrics: [{ name: 'active1DayUsers' }, { name: 'active7DayUsers' }, { name: 'active28DayUsers' }], orderBys: [{ dimension: { dimensionName: 'date' } }], limit: 400 }, app),
+    gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'date' }, { name: 'appVersion' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ dimension: { dimensionName: 'date' } }], limit: 10000 }, app),
+    gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'country' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 15 }, app),
+    gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'eventName' }], metrics: [{ name: 'eventCount' }], orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }], limit: 15 }, app),
+    gpost(propertyId, 'runRealtimeReport', { dimensions: [{ name: 'minutesAgo' }], metrics: [{ name: 'activeUsers' }], limit: 40 }, app),
+    gpost(propertyId, 'runRealtimeReport', { dimensions: [{ name: 'country' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 5 }, app),
   ]);
   const dates = rows(act).map(r => isoDate(r.d[0]));
   const activity = { dates, d1: rows(act).map(r => r.m[0]), d7: rows(act).map(r => r.m[1]), d28: rows(act).map(r => r.m[2]) };
@@ -92,13 +100,22 @@ function mock(days) {
     updatedAt: new Date().toISOString() };
 }
 
+// Какие GA4-свойства видит сервисный аккаунт (для подбора ID: node -e "require('./ga.js').listProperties().then(console.log)")
+async function listProperties(app) {
+  const t = await accessToken(app);
+  const r = await fetch('https://analyticsadmin.googleapis.com/v1beta/accountSummaries?pageSize=200', { headers: { Authorization: 'Bearer ' + t }, signal: AbortSignal.timeout(20000) });
+  if (!r.ok) throw fail('ga_upstream', 'Admin API: ' + r.status + ' ' + (await r.text()).slice(0, 300));
+  const j = await r.json();
+  return (j.accountSummaries || []).flatMap(a => (a.propertySummaries || []).map(p => ({ account: a.displayName, property: p.property.replace('properties/', ''), name: p.displayName })));
+}
 const cache = new Map();
 async function getApp(app, days) {
   const a = APPS[app]; if (!a) throw fail('not_found', 'Неизвестное приложение');
   days = [7, 30, 90].includes(days) ? days : 30;
   if (process.env.GA_MOCK === '1') return mock(days);
+  if (!a.propertyId) throw fail('ga_no_property', 'Для приложения ' + a.title + ' не задан ID свойства GA4 (переменная GA_PROPERTY_' + app.toUpperCase() + ')');
   const k = app + days, c = cache.get(k);
   if (c && Date.now() - c.t < 20000) return c.v;
-  const v = await report(a.propertyId, days); cache.set(k, { t: Date.now(), v }); return v;
+  const v = await report(a.propertyId, days, app); cache.set(k, { t: Date.now(), v }); return v;
 }
-module.exports = { getApp, APPS };
+module.exports = { getApp, APPS, listProperties };
