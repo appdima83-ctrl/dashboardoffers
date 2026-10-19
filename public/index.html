@@ -519,7 +519,7 @@ const niceMax=(v,half=.5)=>{if(v<=0)return 1;const st0=Math.pow(10,Math.floor(Ma
 function chart(){
  const box=$('#chartbox'),W=box.clientWidth||800,Hh=box.clientHeight||320,rows=st.rows,n=rows.length;
  const on=s=>!st.hidden[s.k],vis=SERIES.filter(on),showR=on(SERIES[2]);
- const narrow=W<560,m={l:narrow?38:50,r:showR?(narrow?44:58):14,t:showR?26:14,b:30},pw=W-m.l-m.r,ph=Hh-m.t-m.b,PASS=passesFor(pw,n),FS=narrow?10:11;
+ const narrow=W<560,m={l:narrow?34:50,r:showR?(narrow?30:58):(narrow?10:14),t:showR?26:14,b:30},pw=W-m.l-m.r,ph=Hh-m.t-m.b,PASS=passesFor(pw,n),FS=narrow?10:11;
  $('#legend').innerHTML=SERIES.map(s=>`<label><input type="checkbox" data-s="${s.k}" ${on(s)?'checked':''}><i style="background:${s.color}"></i>${s.name}${s.axis==='C'?' <small>(своя шкала)</small>':''}${s.money?' <small>($)</small>':''}</label>`).join('');
  document.querySelectorAll('#legend input').forEach(i=>i.onchange=()=>{st.hidden[i.dataset.s]=!i.checked;chart()});
  const lMax=niceMax(Math.max(1,...SERIES.filter(s=>s.axis==='L'&&on(s)).flatMap(s=>rows.map(r=>r[s.k])))),
@@ -527,8 +527,8 @@ function chart(){
  const X=i=>m.l+(n<2?pw/2:i*pw/(n-1)),Y=v=>m.t+ph-v/lMax*ph,YR=v=>m.t+ph-v/rMax*ph,YC=v=>m.t+ph-v/cMax*ph,F=s=>s.axis==='R'?YR:s.axis==='C'?YC:Y;
  let g='<defs>'+SERIES.map(s=>`<linearGradient id="g${s.k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity="${s.k==='clicks'?.62:s.k==='hosts'?.46:.34}"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
  for(let i=0;i<=4;i++){const y=m.t+ph-i*ph/4;g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.10)" stroke-dasharray="2 6"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" fill="#9BAAC0" font-size="${FS}">${fmtI(lMax*i/4)}</text>`;
-  if(showR)g+=`<text x="${W-m.r+8}" y="${y+4}" text-anchor="start" fill="#FFA21F" fill-opacity=".95" font-size="${FS}">${rMax<10?fmtM(rMax*i/4,2):fmtI(rMax*i/4)}</text>`}
- if(showR)g+=`<text x="${W-m.r+8}" y="${m.t-14}" fill="#FFA21F" fill-opacity=".95" font-size="${FS}">${st.cur}</text>`;
+  if(showR)g+=`<text x="${W-m.r+(narrow?5:8)}" y="${y+4}" text-anchor="start" fill="#FFA21F" fill-opacity=".95" font-size="${FS}">${rMax<10?fmtM(rMax*i/4,2):fmtI(rMax*i/4)}</text>`}
+ if(showR)g+=`<text x="${W-m.r+(narrow?5:8)}" y="${m.t-14}" fill="#FFA21F" fill-opacity=".95" font-size="${FS}">${st.cur}</text>`;
  const every=Math.ceil(n/(W<600?5:10));rows.forEach((r,i)=>{if(i%every===0||i===n-1)g+=`<text x="${X(i)}" y="${Hh-8}" text-anchor="middle" fill="#9BAAC0" font-size="${FS}">${dm(r.date).slice(0,5)}</text>`});
  const lines=vis;
  const SM={};SERIES.forEach(s=>SM[s.k]=smooth(rows.map(r=>r[s.k]),PASS));
