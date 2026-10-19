@@ -58,6 +58,14 @@ nav#nav a:hover{color:var(--tx)}nav#nav a.on{background:rgba(76,141,255,.15);col
 @media(max-width:700px){.cards{gap:12px}.card{padding:16px}.card .v{font-size:28px!important}.filters input,.filters select{font-size:16px}.chartbox{height:260px}button{min-height:40px}.upd{margin-left:0;width:100%}h1{font-size:22px}.card .v{font-size:34px}}
 
 nav#nav svg{width:18px!important;height:18px!important;flex:none}.logo svg{width:20px!important;height:20px!important}
+
+.g2o{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:1000px){.g2o{grid-template-columns:1fr}}
+.dn{position:relative;width:min(220px,70%);margin:6px auto 14px}.dn svg{width:100%;height:auto;display:block}
+.dn .ct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
+.dn .ct b{font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}.dn .ct span{color:var(--tx2);font-size:12px;margin-top:2px}
+.dl{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.dl i{width:10px;height:10px;border-radius:3px;display:block}.dl .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.dl .vl{font-weight:700}.dl .pc{color:var(--tx2);min-width:46px;text-align:right}
 /* ===== Тема «Pane»: стекло, синий акцент ===== */
 :root{--bg:#16171b;--tx:#F2F4F8;--tx2:#9aa3b2;--line:rgba(255,255,255,.08)}
 body{background:#16171b radial-gradient(900px 500px at 78% -120px,rgba(76,141,255,.10),transparent),radial-gradient(700px 500px at -10% 110%,rgba(155,123,255,.08),transparent);background-attachment:fixed;font-feature-settings:"tnum"}
@@ -123,7 +131,10 @@ tfoot td{background:rgba(255,255,255,.04)}th,td{border-bottom-color:rgba(255,255
   <div class="tabs" id="modes"><button data-m="traffic" class="on">Трафик</button><button data-m="conv">Конверсии</button><button data-m="sum">Сумма</button><div class="legend" id="legend"></div></div>
   <div class="chartbox" id="chartbox"></div>
 </div>
+<div class="g2o">
 <div class="panel"><div class="tabs"><h2 style="margin:0 12px 0 0;align-self:center">Офферы по результату</h2><div id="omodes" style="display:flex;gap:6px"><button data-o="conversions" class="on">Конверсии</button><button data-o="amount">Сумма</button><button data-o="clicks">Клики</button><button data-o="hosts">Хосты</button></div></div><div id="osrc" style="color:var(--tx2);font-size:12px;margin:-4px 0 6px"></div><div id="obars"></div></div>
+<div class="panel w" id="dpanel"><h2>Доля по офферам</h2><div id="donut"></div></div>
+</div>
 <div class="panel tblwrap" id="tbl"></div>
 </div>
 <div id="viewApp" class="view" hidden>
@@ -171,7 +182,7 @@ function errBox(){const e=st.error,k=e.code;const t=k==='no_key'?['Не зада
  return `<div class="msg"><h3>${t[0]}</h3><p>${t[1]}</p><button class="primary" onclick="load()">Повторить</button></div>`}
 function render(){
  const b=$('#banner');
- if(!st.rows){b.style.display='none';for(const id of['#cards','#chartbox','#tbl'])$(id).innerHTML=id==='#cards'?'':'';$('#cards').innerHTML='';$('#chartbox').innerHTML=errBox();$('#tbl').innerHTML='';$('#obars').innerHTML='';return}
+ if(!st.rows){b.style.display='none';for(const id of['#cards','#chartbox','#tbl'])$(id).innerHTML=id==='#cards'?'':'';$('#cards').innerHTML='';$('#chartbox').innerHTML=errBox();$('#tbl').innerHTML='';$('#obars').innerHTML='';$('#donut').innerHTML='';return}
  b.style.display=st.stale?'block':'none';if(st.stale)b.textContent='Не удалось обновить данные — показаны предыдущие значения.';
  const T=tot(st.rows);
  $('#cards').innerHTML=`<div class="card c"><div class="l">Хосты</div><div class="v" title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</div><div class="s">Уникальные по дням</div></div>
@@ -190,8 +201,20 @@ function balCard(){
  const main=b.total.USD!==undefined||!Object.keys(b.total).length?'USD':Object.keys(b.total)[0];
  const others=Object.keys(b.total).filter(c=>c!==main).map(c=>`<span class="o" title="Точное значение: ${fmtM(b.total[c])} ${SYM[c]||c}">${money(b.total[c],c)}</span>`).join('');
  return `<div class="card d"><div class="l">Баланс</div><div class="v bal" title="Точное значение: ${fmtM(b.total[main]||0)} ${SYM[main]||main}"><span>${money(b.total[main]||0,main)}</span>${others}</div></div>`}
+
+const DPAL=['#4C8DFF','#9B7BFF','#2DD4BF','#F472B6','#34D399','#FBBF24','#9aa3b2'];
+function donut(L,k,tt){
+ const el=$('#donut');if(!el)return;
+ if(!L.length){el.innerHTML='<p style="color:var(--tx2)">Нет данных за период</p>';return}
+ const cut=L.length<=7?7:6,top=L.slice(0,cut),rest=L.slice(cut).reduce((a,o)=>a+o[k],0);
+ const items=top.map(o=>({n:o.title,v:o[k]}));if(rest>0)items.push({n:'Остальные ('+(L.length-cut)+')',v:rest});
+ const fv=v=>k==='amount'?fmtM(v,2)+' '+st.cur:fmtI(v),R=70,C=2*Math.PI*R,gap=items.length>1?3:0;let cum=0;
+ const seg=items.map((it,i)=>{const f=it.v/tt,len=Math.max(0,f*C-gap),o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke="${DPAL[i]}" stroke-width="22" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-cum*C}" transform="rotate(-90 100 100)"><title>${it.n}: ${fv(it.v)} (${(f*100).toFixed(1).replace('.',',')}%)</title></circle>`;cum+=f;return o}).join('');
+ const unit={conversions:'конверсий',amount:'заработано',clicks:'кликов',hosts:'хостов'}[k];
+ el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="22"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div>`+
+ items.map((it,i)=>`<div class="dl"><i style="background:${DPAL[i]}"></i><div class="nm" title="${it.n}">${it.n}</div><div class="vl">${fv(it.v)}</div><div class="pc">${(it.v/tt*100).toFixed(0)}%</div></div>`).join('')}
 function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
- $('#obars').innerHTML=(L.length?L.map((o,i)=>`<div class="orow"><div class="n"><b>${i+1}</b>${o.title}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
+ donut(L,k,tt);$('#obars').innerHTML=(L.length?L.map((o,i)=>`<div class="orow"><div class="n"><b>${i+1}</b>${o.title}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
 function table(T){
  const {k,d}=st.sort,rows=[...st.rows].sort((a,b)=>(a[k]>b[k]?1:a[k]<b[k]?-1:0)*d);
