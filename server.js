@@ -83,7 +83,7 @@ async function affise(from, to, q) {
     return { demo: false, currency: 'USD', rows, offers, offersSource: 'affise', updatedAt: new Date().toISOString() };
   });
   const cat = await catP;
-  return { ...data, offers: data.offers.map(o => ({ ...o, countries: cat[o.id] || [] })), balance: await balP, today, offersToday: await todayP };
+  return { ...data, offers: data.offers.map(o => ({ ...o, countries: (cat[o.id] || {}).countries || [], payouts: (cat[o.id] || {}).payouts || [] })), balance: await balP, today, offersToday: await todayP };
 }
 // Каталог офферов: страны оффера = страны из тарифов (payments) + двухбуквенные категории (ZA, IN, PH…)
 async function offersCatalog() {
@@ -95,7 +95,13 @@ async function offersCatalog() {
         const set = new Set();
         (o.payments || []).forEach(p => { if (!p.country_exclude) (p.countries || []).forEach(c => /^[A-Za-z]{2}$/.test(c) && set.add(c.toUpperCase())); });
         (o.categories || []).forEach(c => /^[A-Z]{2}$/.test(c) && set.add(c));
-        map[String(o.id)] = [...set];
+        const seen = new Set(), payouts = [];
+        (o.payments || []).forEach(p => {
+          if (p.country_exclude) return;
+          const r = Number(p.revenue) || 0, goal = String(p.title || p.goal || '').toUpperCase(), cur = String(p.currency || 'usd').toUpperCase(), k = [goal, r, cur, p.type].join('|');
+          if (!seen.has(k)) { seen.add(k); payouts.push({ goal, revenue: r, currency: cur, type: p.type === 'percent' ? 'percent' : 'fixed' }); }
+        });
+        map[String(o.id)] = { countries: [...set], payouts };
       }
       if (!j.pagination || !j.pagination.next_page || !(j.offers || []).length) break;
       page = j.pagination.next_page;

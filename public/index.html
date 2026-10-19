@@ -342,6 +342,21 @@ nav#nav{margin-top:0}
 .orow.hot .ofill{background:linear-gradient(90deg,rgba(52,211,153,.10),rgba(52,211,153,.55) 55%,#34D399)!important;box-shadow:0 0 14px rgba(52,211,153,.30)!important}
 .orow.hot .otr{background:rgba(52,211,153,.06)!important}
 .up{background:rgba(52,211,153,.10)!important;border-color:rgba(52,211,153,.28)!important}
+
+/* колонка «К выплате» */
+.orow,.ohead{grid-template-columns:minmax(0,300px) 1fr 116px 112px}
+.ohead{display:grid;gap:14px;align-items:end;padding:0 0 6px;color:var(--tx2);font-size:12px;border-bottom:1px solid #1d1d1d;margin-bottom:2px}
+.ohead span:nth-child(3){text-align:left}.ohead span:nth-child(4){text-align:right}
+.pay{display:flex;flex-direction:column;gap:2px;min-width:0}.pay .pl{display:none}
+.pay .pr{display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums}.pay .pr b{font-size:14px;font-weight:700;color:#f0f0ee}
+.pay small{color:var(--tx2);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.03em}.pay .pn{color:#6f6f6d;font-weight:500}
+@media(max-width:899px){
+ .ohead{display:none}
+ .orow{grid-template-columns:minmax(0,1fr) auto!important}
+ .orow .otr{grid-column:1/-1;order:3}
+ .orow .pay{grid-column:1/-1;order:4;flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+ .pay .pl{display:inline;color:var(--tx2);font-size:12px}
+}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a></nav>
@@ -450,7 +465,7 @@ function donut(L,k,tt){
  el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div>`+
  items.map((it,i)=>`<div class="dl"><i style="background:${DPAL[i]}"></i><div class="nm" title="${it.n}">${it.n}</div><div class="vl">${fv(it.v)}</div><div class="pc">${(it.v/tt*100).toFixed(0)}%</div></div>`).join('')}
 function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период · ▲ — прирост за сегодня':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
- donut(L,k,tt);$('#obars').innerHTML=(L.length?L.map((o,i)=>{const tv=st.offToday&&st.offToday[o.id]?st.offToday[o.id][k]:0,hot=tv>0;return `<div class="orow${hot?' hot':''}"><div class="n"><b>${i+1}</b><span class="tt">${o.title}</span>${flagsHtml(o)}${hot?`<span class="up" title="Прирост за сегодня">▲ +${k==='amount'?fmtM(tv,2)+' '+st.cur:fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%;opacity:${hot?1:(1-i/Math.max(L.length,1)*.55).toFixed(2)}"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`}).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
+ donut(L,k,tt);$('#obars').innerHTML=(L.length?`<div class="ohead"><span>Оффер</span><span></span><span>К выплате</span><span>${METRIC_LBL[k]}</span></div>`:'')+(L.length?L.map((o,i)=>{const tv=st.offToday&&st.offToday[o.id]?st.offToday[o.id][k]:0,hot=tv>0;return `<div class="orow${hot?' hot':''}"><div class="n"><b>${i+1}</b><span class="tt">${o.title}</span>${flagsHtml(o)}${hot?`<span class="up" title="Прирост за сегодня">▲ +${k==='amount'?fmtM(tv,2)+' '+st.cur:fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%;opacity:${hot?1:(1-i/Math.max(L.length,1)*.55).toFixed(2)}"></div></div>${payHtml(o)}<div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`}).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
 const PER=7;
 function table(T){
@@ -504,6 +519,17 @@ $('#refresh').onclick=reload;addEventListener('resize',()=>st.rows&&chart());
 
 
 
+
+// ---------- «К выплате» ----------
+const CS={USD:'$',EUR:'€',ZAR:'R',RUB:'₽',GBP:'£',INR:'₹',PHP:'₱',MXN:'$'};
+function payHtml(o){
+ const ps=(o.payouts||[]).filter(p=>p.revenue>0);
+ if(!ps.length)return '<div class="pay"><span class="pl">К выплате</span><b class="pn">—</b></div>';
+ const f=p=>p.type==='percent'?fmtM(p.revenue,2).replace(/,00$/,'')+'%':fmtM(p.revenue,2).replace(/,00$/,'')+' '+(CS[p.currency]||p.currency);
+ const show=ps.slice(0,2).map(p=>`<div class="pr"><b>${f(p)}</b>${ps.length>1||p.goal?`<small>${p.goal}</small>`:''}</div>`).join('');
+ const more=ps.length>2?`<small class="pm" title="${ps.slice(2).map(p=>p.goal+' '+f(p)).join(', ')}">ещё ${ps.length-2}</small>`:'';
+ return `<div class="pay"><span class="pl">К выплате</span>${show}${more}</div>`}
+const METRIC_LBL={conversions:'Конверсии',amount:'Заработано',clicks:'Клики',hosts:'Хосты'};
 // ---------- Флаги стран оффера ----------
 const RN=(()=>{try{return new Intl.DisplayNames(['ru'],{type:'region'})}catch{return null}})();
 const flagEmoji=c=>String.fromCodePoint(...[...c.toUpperCase()].map(ch=>0x1F1E6+ch.charCodeAt(0)-65));
