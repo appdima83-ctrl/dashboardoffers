@@ -131,10 +131,52 @@ tfoot td{background:rgba(255,255,255,.05)}
 .otr{box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
 @media(max-width:900px){.side{position:relative!important}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.side,.panel,.card{background:#1d1f26!important}}
+
+/* ===== Pane v2: нейтральный фон, яркая кромка, движение ===== */
+html{scroll-behavior:smooth}
+body{background:#212225!important;background-image:radial-gradient(1100px 650px at 84% -12%,rgba(120,160,255,.14),transparent 62%),radial-gradient(900px 650px at -6% 108%,rgba(160,140,255,.10),transparent 62%)!important;background-attachment:fixed}
+.side,.panel,.card{background:linear-gradient(150deg,rgba(255,255,255,.085) 0%,rgba(255,255,255,.03) 45%,rgba(255,255,255,.05) 100%)!important}
+.side::after,.panel::after,.card::after{padding:1.5px;background:linear-gradient(150deg,rgba(255,255,255,.58),rgba(255,255,255,.09) 24%,rgba(255,255,255,.03) 62%,rgba(255,255,255,.30))}
+.panel{border-radius:32px}.side{border-radius:34px}.card{border-radius:28px}
+.tbl-note,.sub{color:var(--tx2)}
+/* плавающая подсветка пункта меню */
+nav#nav{position:relative}
+nav#nav .ind{position:absolute;left:0;top:0;width:0;height:0;border-radius:16px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.10));box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 8px 20px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+nav#nav.ready .ind{transition:transform .5s cubic-bezier(.3,1.1,.3,1),width .5s cubic-bezier(.3,1.1,.3,1),height .5s}
+nav#nav a{position:relative;z-index:1}
+nav#nav a.on{background:none!important;box-shadow:none!important;border-color:transparent!important}
+/* сегментные переключатели */
+.seg,#omodes{display:inline-flex!important;gap:2px;padding:4px;border-radius:999px;background:rgba(0,0,0,.26);box-shadow:inset 0 2px 5px rgba(0,0,0,.5),inset 0 -1px 0 rgba(255,255,255,.07)}
+.seg button,#omodes button{background:transparent!important;border:0!important;box-shadow:none!important;padding:7px 16px}
+.seg button.on,#omodes button.on{background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.12))!important;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 4px 12px rgba(0,0,0,.3)!important}
+#modes{align-items:center;gap:12px}
+.pager .pb{display:flex;gap:6px}
+/* плавное нажатие и наведение */
+button,.card,nav#nav a,.filters input,.filters select{transition:transform .28s cubic-bezier(.2,.8,.2,1),background .28s,box-shadow .28s,filter .28s,border-color .28s,color .2s}
+button:active,nav#nav a:active{transform:scale(.95)}
+button.primary:active{transform:scale(.94);filter:brightness(.95)}
+.card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.26),inset 0 -1px 0 rgba(0,0,0,.28),0 26px 50px rgba(0,0,0,.5)!important}
+.panel{transition:box-shadow .3s}
+tbody tr{transition:background .2s}tbody tr:hover{background:rgba(255,255,255,.04)}
+.orow,.dl{transition:background .2s,transform .25s}.orow:hover{transform:translateX(3px)}
+.ofill{transition:width .7s cubic-bezier(.2,.8,.2,1)}
+nav#nav a:focus,button:focus{outline:none}nav#nav a:focus-visible,button:focus-visible{outline:2px solid rgba(255,255,255,.35);outline-offset:2px}
+/* появление блоков */
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fadein{to{opacity:1}}
+.view:not([hidden])>*{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+.view:not([hidden])>*:nth-child(2){animation-delay:.06s}.view:not([hidden])>*:nth-child(3){animation-delay:.12s}.view:not([hidden])>*:nth-child(4){animation-delay:.18s}.view:not([hidden])>*:nth-child(5){animation-delay:.24s}.view:not([hidden])>*:nth-child(6){animation-delay:.30s}
+#appBody>*{animation:none!important}
+.head{animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+.ln{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.2s cubic-bezier(.4,0,.2,1) .05s forwards}
+.ar{opacity:0;animation:fadein .9s .35s ease forwards}
+.dn svg circle:not(:first-child){animation:fadein .8s ease both}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.ln{stroke-dashoffset:0}.ar{opacity:1}}
 </style></head><body><div class="wrap">
 <aside class="side">
   <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V11M12 19V5M19 19v-5"/></svg></span><b>ProfitCash</b></div>
-  <nav id="nav"><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a></nav>
+  <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a></nav>
   <div class="sidefoot"><button id="logout" title="Выйти">Выйти</button></div>
 </aside>
 <main class="main">
@@ -151,7 +193,7 @@ tfoot td{background:rgba(255,255,255,.05)}
 <div class="cards" id="cards"></div>
 <div class="panel">
   <h2>Динамика по дням</h2>
-  <div class="tabs" id="modes"><button data-m="traffic" class="on">Трафик</button><button data-m="conv">Конверсии</button><button data-m="sum">Сумма</button><div class="legend" id="legend"></div></div>
+  <div class="tabs" id="modes"><div class="seg"><button data-m="traffic" class="on">Трафик</button><button data-m="conv">Конверсии</button><button data-m="sum">Сумма</button></div><div class="legend" id="legend"></div></div>
   <div class="chartbox" id="chartbox"></div>
 </div>
 <div class="g2o">
@@ -214,7 +256,7 @@ function render(){
  <div class="card b"><div class="l">Заработано</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>
  ${balCard()}`;
  if(!st.rows.length||(T.hosts+T.clicks+T.conversions===0&&false)){}
- chart();table(T);bars();
+ chart();table(T);bars();countUp();
 }
 const SYM={USD:'$',EUR:'€',ZAR:'R'};
 const money=(v,c)=>fmtM(v,2)+' '+(SYM[c]||c);
@@ -231,10 +273,10 @@ function donut(L,k,tt){
  if(!L.length){el.innerHTML='<p style="color:var(--tx2)">Нет данных за период</p>';return}
  const cut=L.length<=7?7:6,top=L.slice(0,cut),rest=L.slice(cut).reduce((a,o)=>a+o[k],0);
  const items=top.map(o=>({n:o.title,v:o[k]}));if(rest>0)items.push({n:'Остальные ('+(L.length-cut)+')',v:rest});
- const fv=v=>k==='amount'?fmtM(v,2)+' '+st.cur:fmtI(v),R=70,C=2*Math.PI*R,gap=items.length>1?3:0;let cum=0;
- const seg=items.map((it,i)=>{const f=it.v/tt,len=Math.max(0,f*C-gap),o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke="${DPAL[i]}" stroke-width="22" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-cum*C}" transform="rotate(-90 100 100)"><title>${it.n}: ${fv(it.v)} (${(f*100).toFixed(1).replace('.',',')}%)</title></circle>`;cum+=f;return o}).join('');
+ const fv=v=>k==='amount'?fmtM(v,2)+' '+st.cur:fmtI(v),R=70,C=2*Math.PI*R,gap=items.length>1?4:0;let cum=0;
+ const seg=items.map((it,i)=>{const f=it.v/tt,len=Math.max(.01,f*C-gap-16),o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke="${DPAL[i]}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${len} ${C}" stroke-dashoffset="${-(cum*C+gap/2+8)}" transform="rotate(-90 100 100)"><title>${it.n}: ${fv(it.v)} (${(f*100).toFixed(1).replace('.',',')}%)</title></circle>`;cum+=f;return o}).join('');
  const unit={conversions:'конверсий',amount:'заработано',clicks:'кликов',hosts:'хостов'}[k];
- el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="22"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div>`+
+ el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div>`+
  items.map((it,i)=>`<div class="dl"><i style="background:${DPAL[i]}"></i><div class="nm" title="${it.n}">${it.n}</div><div class="vl">${fv(it.v)}</div><div class="pc">${(it.v/tt*100).toFixed(0)}%</div></div>`).join('')}
 function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
  donut(L,k,tt);$('#obars').innerHTML=(L.length?L.map((o,i)=>`<div class="orow"><div class="n"><b>${i+1}</b>${o.title}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
@@ -267,10 +309,10 @@ function chart(){
  const step=Math.pow(10,Math.floor(Math.log10(max))),ymax=Math.ceil(max/step*1.0/ (max/step>5?1:.5))*(max/step>5?1:.5)*step||1;
  const n=rows.length,X=i=>m.l+(n<2?(W-m.l-m.r)/2:i*(W-m.l-m.r)/(n-1)),Y=v=>Hh-m.b-v/ymax*(Hh-m.t-m.b);
  let g='<defs>'+ser.map(s=>`<linearGradient id="g${s[0]}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s[2]}" stop-opacity=".45"/><stop offset="1" stop-color="${s[2]}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
- for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(155,170,192,.14)"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" fill="#9BAAC0" font-size="11">${st.mode==='sum'?fmtM(v,v<10?2:0):fmtI(v)}</text>`}
+ for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.10)" stroke-dasharray="2 6"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" fill="#9BAAC0" font-size="11">${st.mode==='sum'?fmtM(v,v<10?2:0):fmtI(v)}</text>`}
  const every=Math.ceil(n/(W<600?5:10));rows.forEach((r,i)=>{if(i%every===0||i===n-1)g+=`<text x="${X(i)}" y="${Hh-8}" text-anchor="middle" fill="#9BAAC0" font-size="11">${dm(r.date).slice(0,5)}</text>`});
  if(n>=2)vis.forEach(s=>{const px=rows.map((_,i)=>X(i)),py=rows.map(r=>Y(r[s[0]])),d=mono(px,py);
-  g+=`<path d="${d} L${px[n-1]},${Y(0)} L${px[0]},${Y(0)}Z" fill="url(#g${s[0]})"/><path d="${d}" fill="none" stroke="${s[2]}" stroke-width="2.2"/>`});
+  g+=`<path class="ar" d="${d} L${px[n-1]},${Y(0)} L${px[0]},${Y(0)}Z" fill="url(#g${s[0]})"/><path class="ln" pathLength="1" d="${d}" fill="none" stroke="${s[2]}" stroke-width="1.9" stroke-linecap="round"/>`});
  else vis.forEach(s=>g+=`<circle cx="${X(0)}" cy="${Y(rows[0][s[0]])}" r="4" fill="${s[2]}"/>`);
  g+=`<line id="cur" y1="${m.t}" y2="${Hh-m.b}" stroke="#9BAAC0" stroke-dasharray="3 3" opacity="0"/><g id="dots"></g><rect id="hit" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${Hh}" fill="transparent"/>`;
  box.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none">${g}</svg><div class="tip" id="tip"></div>`;
@@ -288,6 +330,20 @@ document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{st.mode=b.d
 ['from','to','offer','cur'].forEach(id=>$('#'+id).onchange=()=>{if(id==='from'||id==='to')document.querySelectorAll('#quick button').forEach(b=>b.classList.remove('on'));load()});
 $('#refresh').onclick=reload;addEventListener('resize',()=>st.rows&&chart());
 
+
+// ---------- Движение ----------
+function moveInd(){const nav=$('#nav'),a=nav&&nav.querySelector('a.on'),i=nav&&nav.querySelector('.ind');if(!a||!i)return;
+ i.style.width=a.offsetWidth+'px';i.style.height=a.offsetHeight+'px';i.style.transform=`translate(${a.offsetLeft}px,${a.offsetTop}px)`;
+ if(!nav.classList.contains('ready'))requestAnimationFrame(()=>requestAnimationFrame(()=>nav.classList.add('ready')))}
+addEventListener('resize',moveInd);addEventListener('load',moveInd);document.fonts&&document.fonts.ready.then(moveInd);
+const ease=t=>1-Math.pow(1-t,3);
+function countUp(){
+ if(st.counted||matchMedia('(prefers-reduced-motion: reduce)').matches)return;st.counted=true;
+ document.querySelectorAll('#cards .card:not(.d) .v').forEach(el=>{
+  const txt=el.textContent,m=txt.match(/^([\d\s\u00A0]+(?:,\d+)?)(.*)$/);if(!m)return;
+  const to=parseFloat(m[1].replace(/[\s\u00A0]/g,'').replace(',','.')),dec=(m[1].split(',')[1]||'').length,suf=m[2],t0=performance.now();
+  const f=v=>dec?fmtM(v,dec):fmtI(v);
+  (function tick(t){const p=Math.min(1,(t-t0)/900);el.textContent=f(to*ease(p))+suf;if(p<1)requestAnimationFrame(tick);else el.textContent=txt})(t0)})}
 // ---------- Приложения (Firebase / GA4) ----------
 const APPN={wonga:'Wonga'};
 const st2={days:30,data:null,error:null,ctl:null};
@@ -300,6 +356,7 @@ function route(){
  document.title=on?APPN[app]+' — аналитика':'Статистика ProfitCash';
  $('#pageTitle').firstChild.textContent=on?APPN[app]+' ':'Статистика ';
  $('#pageSub').textContent=on?'Аналитика приложения — Firebase / Google Analytics 4':'Партнёрская программа LeadCash — данные Affise';
+ moveInd();
  if(on){$('#appTitle').textContent=APPN[app];loadApp()}else load()}
 async function loadApp(){lastLoad=Date.now();
  const app=location.hash.slice(1);if(!APPN[app])return;
@@ -321,18 +378,18 @@ function drawLines(box,dates,series){
  const max=Math.max(1,...series.flatMap(s=>s.values)),step=Math.pow(10,Math.floor(Math.log10(max))),f=max/step,ymax=Math.ceil(f*2)/2*step||1;
  const X=i=>m.l+(n<2?(W-m.l-m.r)/2:i*(W-m.l-m.r)/(n-1)),Y=v=>H-m.b-v/ymax*(H-m.t-m.b);
  let g='<defs>'+series.map((s,i)=>`<linearGradient id="lg${box.id}${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".3"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
- for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(155,170,192,.14)"/><text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9aa3b2" font-size="10">${fmtI(v)}</text>`}
+ for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.10)" stroke-dasharray="2 6"/><text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9aa3b2" font-size="10">${fmtI(v)}</text>`}
  const ev=Math.ceil(n/(W<420?4:7));dates.forEach((d,i)=>{if(i%ev===0||i===n-1)g+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle" fill="#9aa3b2" font-size="10">${dm(d).slice(0,5)}</text>`});
- if(n>=2)series.forEach((s,i)=>{const px=dates.map((_,k)=>X(k)),py=s.values.map(Y),d=mono(px,py);g+=`<path d="${d} L${px[n-1]},${Y(0)} L${px[0]},${Y(0)}Z" fill="url(#lg${box.id}${i})"/><path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>`});
- g+=`<line id="${box.id}c" y1="${m.t}" y2="${H-m.b}" stroke="#9aa3b2" stroke-dasharray="3 3" opacity="0"/><rect id="${box.id}h" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent"/>`;
+ if(n>=2)series.forEach((s,i)=>{const px=dates.map((_,k)=>X(k)),py=s.values.map(Y),d=mono(px,py);g+=`<path class="ar" d="${d} L${px[n-1]},${Y(0)} L${px[0]},${Y(0)}Z" fill="url(#lg${box.id}${i})"/><path class="ln" pathLength="1" d="${d}" fill="none" stroke="${s.color}" stroke-width="1.8" stroke-linecap="round"/>`});
+ g+=`<line id="${box.id}c" y1="${m.t}" y2="${H-m.b}" stroke="#9aa3b2" stroke-dasharray="3 3" opacity="0"/><g id="${box.id}d"></g><rect id="${box.id}h" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent"/>`;
  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg><div class="tip" id="${box.id}t"></div>`;
- const hit=$('#'+box.id+'h'),tip=$('#'+box.id+'t'),cur=$('#'+box.id+'c');
+ const hit=$('#'+box.id+'h'),tip=$('#'+box.id+'t'),cur=$('#'+box.id+'c'),dots=$('#'+box.id+'d');
  const mv=cx=>{const rc=box.getBoundingClientRect(),x=(cx-rc.left)*(W/rc.width),i=Math.max(0,Math.min(n-1,Math.round((x-m.l)/((W-m.l-m.r)/Math.max(1,n-1)))));
-  cur.setAttribute('x1',X(i));cur.setAttribute('x2',X(i));cur.setAttribute('opacity',1);tip.style.display='block';
+  cur.setAttribute('x1',X(i));cur.setAttribute('x2',X(i));cur.setAttribute('opacity',1);tip.style.display='block';dots.innerHTML=series.map(s=>`<circle cx="${X(i)}" cy="${Y(s.values[i])}" r="4.5" fill="${s.color}" stroke="#26272b" stroke-width="2"/>`).join('');
   tip.innerHTML=`<b>${dm(dates[i])}</b><br>`+series.map(s=>`<span style="color:${s.color}">●</span> ${s.name}: <b>${fmtI(s.values[i])}</b>`).join('<br>');
   tip.style.left=Math.min(X(i)*(rc.width/W)+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top='6px'};
  hit.onmousemove=e=>mv(e.clientX);hit.ontouchstart=hit.ontouchmove=e=>mv(e.touches[0].clientX);
- hit.onmouseleave=()=>{tip.style.display='none';cur.setAttribute('opacity',0)}}
+ hit.onmouseleave=()=>{tip.style.display='none';cur.setAttribute('opacity',0);dots.innerHTML=''}}
 function barList(items,fmt=fmtI){const mx=Math.max(1,...items.map(i=>i.value));
  return items.length?items.map(i=>`<div class="brow"><div class="nm" title="${i.name}">${i.name}</div><div class="otr"><div class="ofill" style="width:${i.value/mx*100}%"></div></div><div class="vl">${fmt(i.value)}</div></div>`).join(''):'<p style="color:var(--tx2)">Нет данных за период</p>'}
 function appRender(){
