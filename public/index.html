@@ -5,8 +5,8 @@
 <title>Статистика ProfitCash</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0a0a;--surf:#131211;--tx:#F5F1EC;--tx2:#9a918a;--cyan:#FF6A1A;--vio:#FFC48A;--grn:#FF6A1A;--line:rgba(255,255,255,.07)}
-*{box-sizing:border-box}body{margin:0;background-image:radial-gradient(900px 400px at 85% -100px,rgba(255,106,26,.12),transparent);background:var(--bg);color:var(--tx);font:14px/1.45 Inter,system-ui,sans-serif}
+:root{--bg:#0a0a0a;--surf:#1c1d22;--tx:#F2F4F8;--tx2:#9aa3b2;--cyan:#4C8DFF;--vio:#9B7BFF;--grn:#4C8DFF;--line:rgba(255,255,255,.07)}
+*{box-sizing:border-box}body{margin:0;background-image:radial-gradient(900px 400px at 85% -100px,rgba(76,141,255,.12),transparent);background:var(--bg);color:var(--tx);font:14px/1.45 Inter,system-ui,sans-serif}
 .wrap{max-width:1120px;margin:0 auto;padding:max(24px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(48px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:22px}
 h1{margin:0;font-size:26px;display:flex;align-items:center;gap:12px}
 .badge{font-size:12px;font-weight:700;background:#F59E0B;color:#1a1200;padding:3px 9px;border-radius:99px}
@@ -15,12 +15,12 @@ h1{margin:0;font-size:26px;display:flex;align-items:center;gap:12px}
 .filters input,.filters select{background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;color-scheme:dark}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 button{font:inherit;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--tx2);padding:7px 12px;border-radius:10px}
-button:hover{color:var(--tx)}button.on{background:rgba(255,106,26,.15);color:#FF8A4C;border-color:rgba(255,106,26,.45)}
-button.primary{background:linear-gradient(180deg,#FF7A2E,#F25C05);color:#1a0a00;border:0;font-weight:600}
+button:hover{color:var(--tx)}button.on{background:rgba(76,141,255,.15);color:#8DB6FF;border-color:rgba(76,141,255,.45)}
+button.primary{background:linear-gradient(180deg,#5B9BFF,#2F6FE8);color:#ffffff;border:0;font-weight:600}
 .upd{color:var(--tx2);font-size:12px;margin-left:auto}.upd.stale{color:#F59E0B}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.7fr);gap:16px}.card.d{border-color:rgba(255,106,26,.35)}.card.d:before{background:radial-gradient(closest-side,rgba(255,106,26,.4),transparent)}.card .v{font-size:clamp(22px,2.2vw,32px)!important;white-space:nowrap}.v.bal{white-space:normal}.card .s small{display:block;opacity:.85}.v.bal{display:flex;align-items:center;flex-wrap:wrap;column-gap:14px;row-gap:4px}.v.bal .o{font-size:inherit;border-left:2px solid rgba(255,106,26,.85);padding-left:14px;line-height:1.1}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.7fr);gap:16px}.card.d{border-color:rgba(76,141,255,.35)}.card.d:before{background:radial-gradient(closest-side,rgba(76,141,255,.4),transparent)}.card .v{font-size:clamp(22px,2.2vw,32px)!important;white-space:nowrap}.v.bal{white-space:normal}.card .s small{display:block;opacity:.85}.v.bal{display:flex;align-items:center;flex-wrap:wrap;column-gap:14px;row-gap:4px}.v.bal .o{font-size:inherit;border-left:2px solid rgba(76,141,255,.85);padding-left:14px;line-height:1.1}
 .card{border-radius:16px;padding:22px;position:relative;overflow:hidden}
-.card{background:var(--surf);border:1px solid var(--line)}.card:before{content:'';position:absolute;inset:auto -40px -60px auto;width:180px;height:140px;background:radial-gradient(closest-side,rgba(255,106,26,.3),transparent)}.card.c:before{background:radial-gradient(closest-side,rgba(255,106,26,.16),transparent)}.card.b:before{background:radial-gradient(closest-side,rgba(255,106,26,.5),transparent)}
+.card{background:var(--surf);border:1px solid var(--line)}.card:before{content:'';position:absolute;inset:auto -40px -60px auto;width:180px;height:140px;background:radial-gradient(closest-side,rgba(76,141,255,.3),transparent)}.card.c:before{background:radial-gradient(closest-side,rgba(76,141,255,.16),transparent)}.card.b:before{background:radial-gradient(closest-side,rgba(76,141,255,.5),transparent)}
 .card .l{color:var(--tx2);font-weight:500}.card .v{color:#fff}.card .v{font-size:40px;font-weight:700;margin:6px 0 2px;font-variant-numeric:tabular-nums}.card .s{opacity:.8;font-size:13px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .legend{display:flex;gap:14px;margin-left:auto}.legend label{display:flex;gap:6px;align-items:center;cursor:pointer;color:var(--tx2)}
@@ -32,7 +32,7 @@ th,td{padding:9px 12px;text-align:right;font-variant-numeric:tabular-nums;border
 th:first-child,td:first-child{text-align:left}th{color:var(--tx2);font-weight:500;cursor:pointer;user-select:none;white-space:nowrap}
 tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;background:rgba(255,255,255,.03)}
 .orow{display:grid;grid-template-columns:230px 1fr 120px;gap:14px;align-items:center;padding:8px 0}.orow .n{display:flex;gap:10px;align-items:center;font-weight:500}.orow .n b{color:var(--tx2);font-weight:500;width:18px}
-.otr{height:12px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}.ofill{height:100%;border-radius:99px;background:linear-gradient(90deg,#8a3a08,#FF6A1A);box-shadow:0 0 12px rgba(255,106,26,.45);transition:width .5s}
+.otr{height:12px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}.ofill{height:100%;border-radius:99px;background:linear-gradient(90deg,#1E3A8A,#4C8DFF);box-shadow:0 0 12px rgba(76,141,255,.45);transition:width .5s}
 .orow .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}.orow .val small{display:block;color:var(--tx2);font-weight:400;font-size:11px}
 @media(max-width:700px){.orow{grid-template-columns:1fr 90px}.orow .otr{grid-column:1/-1;order:3}}
 .msg{text-align:center;padding:40px 16px}.msg h3{margin:0 0 6px}.msg p{color:var(--tx2);margin:0 0 14px}
@@ -45,27 +45,76 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;backgr
 .view{display:flex;flex-direction:column;gap:22px}
 nav#nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:-6px}
 nav#nav a{color:var(--tx2);text-decoration:none;padding:8px 14px;border-radius:10px;border:1px solid var(--line);font-weight:500}
-nav#nav a:hover{color:var(--tx)}nav#nav a.on{background:rgba(255,106,26,.15);color:#FF8A4C;border-color:rgba(255,106,26,.45)}
+nav#nav a:hover{color:var(--tx)}nav#nav a.on{background:rgba(76,141,255,.15);color:#8DB6FF;border-color:rgba(76,141,255,.45)}
 .g3{display:grid;grid-template-columns:1.5fr 1fr 1.3fr;gap:16px}.g2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
 @media(max-width:1000px){.g3,.g2{grid-template-columns:1fr}}
 .w h2{font-size:13px;color:var(--tx2);font-weight:600;letter-spacing:.02em;margin:0 0 10px;text-transform:none}
 .kp{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 4px}.kp div{font-variant-numeric:tabular-nums}.kp small{display:flex;gap:6px;align-items:center;color:var(--tx2);font-size:12px}.kp i{width:9px;height:9px;border-radius:3px;display:inline-block}.kp b{font-size:26px;font-weight:700;display:block}
 .big{font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-.mini{display:flex;align-items:flex-end;gap:3px;height:56px;margin:8px 0 12px}.mini i{flex:1;background:linear-gradient(#FF6A1A,#8a3a08);border-radius:2px;min-height:2px}.mini i.z{background:rgba(255,255,255,.08)}
+.mini{display:flex;align-items:flex-end;gap:3px;height:56px;margin:8px 0 12px}.mini i{flex:1;background:linear-gradient(#4C8DFF,#1E3A8A);border-radius:2px;min-height:2px}.mini i.z{background:rgba(255,255,255,.08)}
 .lst{width:100%;border-collapse:collapse}.lst td{padding:6px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}.lst td:last-child{text-align:right;font-weight:600}
 .cb{position:relative;height:230px}.legend2{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;color:var(--tx2);font-size:12px}.legend2 i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px}
 .brow{display:grid;grid-template-columns:minmax(0,1.2fr) 2fr 70px;gap:12px;align-items:center;padding:6px 0}.brow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.brow .vl{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
 @media(max-width:700px){.cards{gap:12px}.card{padding:16px}.card .v{font-size:28px!important}.filters input,.filters select{font-size:16px}.chartbox{height:260px}button{min-height:40px}.upd{margin-left:0;width:100%}h1{font-size:22px}.card .v{font-size:34px}}
+
+nav#nav svg{width:18px!important;height:18px!important;flex:none}.logo svg{width:20px!important;height:20px!important}
+/* ===== Тема «Pane»: стекло, синий акцент ===== */
+:root{--bg:#16171b;--tx:#F2F4F8;--tx2:#9aa3b2;--line:rgba(255,255,255,.08)}
+body{background:#16171b radial-gradient(900px 500px at 78% -120px,rgba(76,141,255,.10),transparent),radial-gradient(700px 500px at -10% 110%,rgba(155,123,255,.08),transparent);background-attachment:fixed;font-feature-settings:"tnum"}
+.wrap{max-width:1480px;display:grid!important;grid-template-columns:248px minmax(0,1fr);gap:24px;align-items:start;padding:20px}
+.main{display:flex;flex-direction:column;gap:22px;min-width:0}
+.head h1{font-size:34px;letter-spacing:-.02em;margin:0}.head .sub{margin:4px 0 0;color:var(--tx2);font-size:15px}
+.side,.panel,.card{background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.022));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 14px 34px rgba(0,0,0,.35)}
+.side{position:sticky;top:20px;height:calc(100vh - 40px);border-radius:30px;padding:18px 14px;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px;font-size:17px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(160deg,#5B9BFF,#2F6FE8);display:grid;place-items:center;box-shadow:0 6px 16px rgba(47,111,232,.5)}
+nav#nav{display:flex!important;flex-direction:column;gap:4px;margin:0!important}
+nav#nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:16px;border:1px solid transparent;font-size:15px;font-weight:600;color:var(--tx2)}
+nav#nav a:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+nav#nav a.on{color:#fff;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.08));border-color:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 16px rgba(0,0,0,.3)}
+.sidefoot{margin-top:auto}.sidefoot button{width:100%}
+.panel{border-radius:28px;padding:22px}.card{border-radius:26px;padding:20px 22px}
+.card .l{font-size:13px;font-weight:600}.card.d{border-color:rgba(255,255,255,.08)}
+.card:before{background:radial-gradient(closest-side,rgba(76,141,255,.22),transparent)!important}
+.card.b:before,.card.d:before{background:radial-gradient(closest-side,rgba(155,123,255,.28),transparent)!important}
+.card .v{color:#fff;letter-spacing:-.02em}.v.bal .o{border-left-color:rgba(155,123,255,.9)}
+.filters input,.filters select{background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.09);border-radius:999px;padding:9px 14px;box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
+button{border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:var(--tx2);font-weight:600;padding:8px 16px}
+button:hover{color:#fff;background:rgba(255,255,255,.09)}
+button.primary{background:linear-gradient(180deg,#5B9BFF,#2563EB);color:#fff;border:0;box-shadow:0 6px 18px rgba(37,99,235,.5),inset 0 1px 0 rgba(255,255,255,.3)}
+button.primary:hover{filter:brightness(1.08)}
+button.on{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));color:#fff;border-color:rgba(255,255,255,.14)}
+.tabs button{padding:7px 16px}
+.panel h2{font-size:17px;color:#fff;font-weight:700;letter-spacing:-.01em}.w h2{font-size:15px;color:#fff}
+.ofill{background:linear-gradient(90deg,#2F6FE8,#4C8DFF)!important;box-shadow:0 0 14px rgba(76,141,255,.45)!important}
+.otr{background:rgba(255,255,255,.06)!important;height:10px!important}
+.mini i{background:linear-gradient(#5B9BFF,#2F6FE8)!important}.mini i.z{background:rgba(255,255,255,.09)!important}
+tfoot td{background:rgba(255,255,255,.04)}th,td{border-bottom-color:rgba(255,255,255,.06)}
+.banner{border-radius:18px}.tip{background:rgba(12,13,16,.92)!important;border-radius:14px!important;border-color:rgba(255,255,255,.12)!important;backdrop-filter:blur(8px)}
+.sk{background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.09),rgba(255,255,255,.04));background-size:200%;border-radius:22px}
+@media(max-width:900px){
+ .filters select,.filters input{max-width:100%;min-width:0}.filters select{flex:1 1 100%}
+ .wrap{grid-template-columns:1fr!important;gap:16px;padding:14px}
+ .side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-radius:24px;padding:12px 14px;gap:10px}
+ .brand{padding:0}nav#nav{flex-direction:row!important;gap:6px}nav#nav a{padding:9px 13px}
+ .sidefoot{margin:0 0 0 auto}.sidefoot button{width:auto;padding:7px 14px}
+ .head h1{font-size:26px}.panel{border-radius:24px;padding:18px}
+}
 </style></head><body><div class="wrap">
-<h1>Статистика ProfitCash <span class="badge" id="demo" hidden>Демо</span></h1>
-<nav id="nav"><a href="#" class="on">Партнёрка ProfitCash</a><a href="#wonga">Wonga</a></nav>
+<aside class="side">
+  <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V11M12 19V5M19 19v-5"/></svg></span><b>ProfitCash</b></div>
+  <nav id="nav"><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a></nav>
+  <div class="sidefoot"><button id="logout" title="Выйти">Выйти</button></div>
+</aside>
+<main class="main">
+<header class="head"><h1 id="pageTitle">Статистика <span class="badge" id="demo" hidden>Демо</span></h1><p class="sub" id="pageSub">Партнёрская программа LeadCash — данные Affise</p></header>
 <div id="viewMain" class="view">
 <div class="panel filters">
   <input type="date" id="from"><span style="color:var(--tx2)">—</span><input type="date" id="to">
   <select id="offer"><option value="all">Все офферы</option></select>
   <select id="cur" hidden></select>
   <button class="primary" id="refresh">Обновить</button>
-  <button id="logout" title="Выйти">Выйти</button><span class="upd" id="upd">Не обновлялось</span>
+  <span class="upd" id="upd">Не обновлялось</span>
 </div>
 <div class="banner" id="banner"></div>
 <div class="cards" id="cards"></div>
@@ -83,6 +132,7 @@ nav#nav a:hover{color:var(--tx)}nav#nav a.on{background:rgba(255,106,26,.15);col
     <button class="primary" id="appRefresh">Обновить</button><span class="upd" id="appUpd">Не обновлялось</span></div>
   <div id="appBody" class="view"></div>
 </div>
+</main>
 </div>
 <script>
 const $=s=>document.querySelector(s);
@@ -155,7 +205,7 @@ function mono(px,py){const n=px.length,dx=[],m=[],t=[];for(let i=0;i<n-1;i++){dx
  t[0]=m[0];t[n-1]=m[n-2];for(let i=1;i<n-1;i++)t[i]=m[i-1]*m[i]<=0?0:(m[i-1]+m[i])/2;
  for(let i=0;i<n-1;i++){if(m[i]===0){t[i]=t[i+1]=0;continue}const a=t[i]/m[i],b=t[i+1]/m[i],s=a*a+b*b;if(s>9){const k=3/Math.sqrt(s);t[i]=k*a*m[i];t[i+1]=k*b*m[i]}}
  let d=`M${px[0]},${py[0]}`;for(let i=0;i<n-1;i++)d+=` C${px[i]+dx[i]/3},${py[i]+t[i]*dx[i]/3} ${px[i+1]-dx[i]/3},${py[i+1]-t[i+1]*dx[i]/3} ${px[i+1]},${py[i+1]}`;return d}
-const SER={traffic:[['clicks','Клики','#FF6A1A',0],['hosts','Хосты','#FFC48A',0]],conv:[['conversions','Конверсии','#FF6A1A',0]],sum:[['amount','Сумма','#FF6A1A',1]]};
+const SER={traffic:[['clicks','Клики','#4C8DFF',0],['hosts','Хосты','#9B7BFF',0]],conv:[['conversions','Конверсии','#4C8DFF',0]],sum:[['amount','Сумма','#4C8DFF',1]]};
 function chart(){
  const box=$('#chartbox'),W=box.clientWidth||800,Hh=320,m={l:50,r:14,t:14,b:30},rows=st.rows,ser=SER[st.mode];
  $('#legend').innerHTML=ser.map(s=>`<label><input type="checkbox" data-s="${s[0]}" ${st.hidden[s[0]]?'':'checked'}><i style="background:${s[2]}"></i>${s[1]}</label>`).join('');
@@ -174,7 +224,7 @@ function chart(){
  const hit=$('#hit'),tip=$('#tip');
  hit.onmousemove=e=>{const rc=box.getBoundingClientRect(),x=(e.clientX-rc.left)*(W/rc.width);const i=Math.max(0,Math.min(n-1,Math.round((x-m.l)/((W-m.l-m.r)/Math.max(1,n-1)))));const r=rows[i];
   $('#cur').setAttribute('x1',X(i));$('#cur').setAttribute('x2',X(i));$('#cur').setAttribute('opacity',1);
-  $('#dots').innerHTML=vis.map(s=>`<circle cx="${X(i)}" cy="${Y(r[s[0]])}" r="4.5" fill="${s[2]}" stroke="#131211" stroke-width="2"/>`).join('');
+  $('#dots').innerHTML=vis.map(s=>`<circle cx="${X(i)}" cy="${Y(r[s[0]])}" r="4.5" fill="${s[2]}" stroke="#1c1d22" stroke-width="2"/>`).join('');
   tip.style.display='block';tip.innerHTML=`<b>${dm(r.date)}</b><br>`+vis.map(s=>`<span style="color:${s[2]}">●</span> ${s[1]}: <b>${s[3]?fmtM(r[s[0]])+' '+st.cur:fmtI(r[s[0]])}</b>`).join('<br>');
   const px=X(i)*(rc.width/W);tip.style.left=Math.min(px+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top='10px'};
  hit.ontouchmove=hit.ontouchstart=e=>{const t=e.touches[0];hit.onmousemove({clientX:t.clientX})};
@@ -195,6 +245,8 @@ function route(){
  $('#viewMain').hidden=on;$('#viewApp').hidden=!on;
  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',on?a.getAttribute('href')==='#'+app:a.getAttribute('href')==='#'));
  document.title=on?APPN[app]+' — аналитика':'Статистика ProfitCash';
+ $('#pageTitle').firstChild.textContent=on?APPN[app]+' ':'Статистика ';
+ $('#pageSub').textContent=on?'Аналитика приложения — Firebase / Google Analytics 4':'Партнёрская программа LeadCash — данные Affise';
  if(on){$('#appTitle').textContent=APPN[app];loadApp()}else load()}
 async function loadApp(){lastLoad=Date.now();
  const app=location.hash.slice(1);if(!APPN[app])return;
@@ -210,16 +262,16 @@ async function loadApp(){lastLoad=Date.now();
  appRender()}
 function appErr(){const e=st2.error,hint={ga_no_credentials:['Не подключён ключ Google',(e.message||'')+'. Нужны GA_CLIENT_EMAIL + GA_PRIVATE_KEY (или GA_SERVICE_ACCOUNT_JSON) на сервере, а сервисному аккаунту — роль «Читатель» в GA4.'],ga_access:['Нет доступа к GA4',e.message],ga_auth:['Ключ Google не принят',e.message],network:['Сетевая ошибка','Не удалось получить данные. Это не нулевая статистика.']}[e.code]||['Ошибка Google Analytics',e.message];
  return `<div class="panel msg"><h3>${hint[0]}</h3><p>${hint[1]}</p><button class="primary" onclick="loadApp()">Повторить</button></div>`}
-const PAL=['#FF6A1A','#FFC48A','#B8541A','#9a918a'];
+const PAL=['#4C8DFF','#9B7BFF','#2DD4BF','#F472B6'];
 function drawLines(box,dates,series){
  const W=box.clientWidth||400,H=box.clientHeight||230,m={l:38,r:10,t:10,b:24},n=dates.length;
  const max=Math.max(1,...series.flatMap(s=>s.values)),step=Math.pow(10,Math.floor(Math.log10(max))),f=max/step,ymax=Math.ceil(f*2)/2*step||1;
  const X=i=>m.l+(n<2?(W-m.l-m.r)/2:i*(W-m.l-m.r)/(n-1)),Y=v=>H-m.b-v/ymax*(H-m.t-m.b);
  let g='<defs>'+series.map((s,i)=>`<linearGradient id="lg${box.id}${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".3"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
- for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(155,170,192,.14)"/><text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9a918a" font-size="10">${fmtI(v)}</text>`}
- const ev=Math.ceil(n/(W<420?4:7));dates.forEach((d,i)=>{if(i%ev===0||i===n-1)g+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle" fill="#9a918a" font-size="10">${dm(d).slice(0,5)}</text>`});
+ for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(155,170,192,.14)"/><text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9aa3b2" font-size="10">${fmtI(v)}</text>`}
+ const ev=Math.ceil(n/(W<420?4:7));dates.forEach((d,i)=>{if(i%ev===0||i===n-1)g+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle" fill="#9aa3b2" font-size="10">${dm(d).slice(0,5)}</text>`});
  if(n>=2)series.forEach((s,i)=>{const px=dates.map((_,k)=>X(k)),py=s.values.map(Y),d=mono(px,py);g+=`<path d="${d} L${px[n-1]},${Y(0)} L${px[0]},${Y(0)}Z" fill="url(#lg${box.id}${i})"/><path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>`});
- g+=`<line id="${box.id}c" y1="${m.t}" y2="${H-m.b}" stroke="#9a918a" stroke-dasharray="3 3" opacity="0"/><rect id="${box.id}h" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent"/>`;
+ g+=`<line id="${box.id}c" y1="${m.t}" y2="${H-m.b}" stroke="#9aa3b2" stroke-dasharray="3 3" opacity="0"/><rect id="${box.id}h" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent"/>`;
  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg><div class="tip" id="${box.id}t"></div>`;
  const hit=$('#'+box.id+'h'),tip=$('#'+box.id+'t'),cur=$('#'+box.id+'c');
  const mv=cx=>{const rc=box.getBoundingClientRect(),x=(cx-rc.left)*(W/rc.width),i=Math.max(0,Math.min(n-1,Math.round((x-m.l)/((W-m.l-m.r)/Math.max(1,n-1)))));
@@ -238,7 +290,7 @@ function appRender(){
  b.innerHTML=`${st2.error?'<div class="banner" style="display:block">Не удалось обновить данные — показаны предыдущие значения.</div>':''}
  <div class="g3">
   <div class="panel w"><h2>Активность пользователей по времени</h2>
-   <div class="kp"><div><small><i style="background:#FF6A1A"></i>28 дней</small><b>${fmtI(last(d.activity.d28))}</b></div><div><small><i style="background:#FFC48A"></i>7 дней</small><b>${fmtI(last(d.activity.d7))}</b></div><div><small><i style="background:#F5F1EC"></i>1 день</small><b>${fmtI(last(d.activity.d1))}</b></div></div>
+   <div class="kp"><div><small><i style="background:#4C8DFF"></i>28 дней</small><b>${fmtI(last(d.activity.d28))}</b></div><div><small><i style="background:#9B7BFF"></i>7 дней</small><b>${fmtI(last(d.activity.d7))}</b></div><div><small><i style="background:#F2F4F8"></i>1 день</small><b>${fmtI(last(d.activity.d1))}</b></div></div>
    <div class="cb" id="gAct"></div></div>
   <div class="panel w"><h2>Активные пользователи за последние 30 минут</h2>
    <div class="big">${fmtI(d.realtime.total)}</div>
@@ -253,7 +305,7 @@ function appRender(){
   <div class="panel w"><h2>Активные пользователи по странам</h2>${barList(d.countries)}</div>
   <div class="panel w"><h2>События по названию</h2>${barList(d.events)}</div>
  </div>`;
- drawLines($('#gAct'),d.activity.dates,[{name:'28 дней',color:'#FF6A1A',values:d.activity.d28},{name:'7 дней',color:'#FFC48A',values:d.activity.d7},{name:'1 день',color:'#F5F1EC',values:d.activity.d1}]);
+ drawLines($('#gAct'),d.activity.dates,[{name:'28 дней',color:'#4C8DFF',values:d.activity.d28},{name:'7 дней',color:'#9B7BFF',values:d.activity.d7},{name:'1 день',color:'#F2F4F8',values:d.activity.d1}]);
  drawLines($('#gVer'),d.versions.dates,d.versions.series.map((s,i)=>({...s,color:PAL[i]})));
 }
 addEventListener('hashchange',()=>{st.cfg&&route()});
