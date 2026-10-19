@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 const KEY = process.env.AFFISE_API_KEY || '';
 
 const { statsResponse, CONFIG, days } = require('./demo.js');
+const ga = require('./ga.js');
 
 // --- Affise API (поля сверены с кабинетом: хосты = traffic.uniq, клики = traffic.raw,
 // конверсии = actions.total.count, «Итого» = actions.total.revenue) ---
@@ -113,6 +114,10 @@ http.createServer(async (req, res) => {
   if (u.pathname === '/api/config') {
     if (!KEY) return send(res, 200, { ...CONFIG, hasKey: false });
     try { return send(res, 200, { ...CONFIG, hasKey: true, offers: await offersList() }); } catch (e) { return send(res, 200, { ...CONFIG, hasKey: true }); }
+  }
+  if (u.pathname.startsWith('/api/ga/')) {
+    try { return send(res, 200, await ga.getApp(u.pathname.slice(8), +u.searchParams.get('days'))); }
+    catch (e) { return send(res, e.code === 'not_found' ? 404 : 502, { error: e.code || 'upstream', message: e.message }); }
   }
   if (u.pathname === '/api/stats') {
     const q = u.searchParams, from = q.get('from'), to = q.get('to');

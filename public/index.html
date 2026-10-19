@@ -40,9 +40,26 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;backgr
 @keyframes sh{to{background-position:-200%}}
 .banner{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:#FBBF24;padding:10px 14px;border-radius:12px;display:none}
 @media(max-width:1000px){.cards{grid-template-columns:1fr 1fr}.card:last-child:nth-child(odd){grid-column:1/-1}}
+
+[hidden]{display:none!important}
+.view{display:flex;flex-direction:column;gap:22px}
+nav#nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:-6px}
+nav#nav a{color:var(--tx2);text-decoration:none;padding:8px 14px;border-radius:10px;border:1px solid var(--line);font-weight:500}
+nav#nav a:hover{color:var(--tx)}nav#nav a.on{background:rgba(255,106,26,.15);color:#FF8A4C;border-color:rgba(255,106,26,.45)}
+.g3{display:grid;grid-template-columns:1.5fr 1fr 1.3fr;gap:16px}.g2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+@media(max-width:1000px){.g3,.g2{grid-template-columns:1fr}}
+.w h2{font-size:13px;color:var(--tx2);font-weight:600;letter-spacing:.02em;margin:0 0 10px;text-transform:none}
+.kp{display:flex;gap:18px;flex-wrap:wrap;margin:6px 0 4px}.kp div{font-variant-numeric:tabular-nums}.kp small{display:flex;gap:6px;align-items:center;color:var(--tx2);font-size:12px}.kp i{width:9px;height:9px;border-radius:3px;display:inline-block}.kp b{font-size:26px;font-weight:700;display:block}
+.big{font-size:44px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.mini{display:flex;align-items:flex-end;gap:3px;height:56px;margin:8px 0 12px}.mini i{flex:1;background:linear-gradient(#FF6A1A,#8a3a08);border-radius:2px;min-height:2px}.mini i.z{background:rgba(255,255,255,.08)}
+.lst{width:100%;border-collapse:collapse}.lst td{padding:6px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}.lst td:last-child{text-align:right;font-weight:600}
+.cb{position:relative;height:230px}.legend2{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;color:var(--tx2);font-size:12px}.legend2 i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px}
+.brow{display:grid;grid-template-columns:minmax(0,1.2fr) 2fr 70px;gap:12px;align-items:center;padding:6px 0}.brow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.brow .vl{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
 @media(max-width:700px){.cards{gap:12px}.card{padding:16px}.card .v{font-size:28px!important}.filters input,.filters select{font-size:16px}.chartbox{height:260px}button{min-height:40px}.upd{margin-left:0;width:100%}h1{font-size:22px}.card .v{font-size:34px}}
 </style></head><body><div class="wrap">
 <h1>Статистика ProfitCash <span class="badge" id="demo" hidden>Демо</span></h1>
+<nav id="nav"><a href="#" class="on">Партнёрка ProfitCash</a><a href="#wonga">Wonga</a></nav>
+<div id="viewMain" class="view">
 <div class="panel filters">
   <input type="date" id="from"><span style="color:var(--tx2)">—</span><input type="date" id="to">
   <select id="offer"><option value="all">Все офферы</option></select>
@@ -59,6 +76,13 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;backgr
 </div>
 <div class="panel"><div class="tabs"><h2 style="margin:0 12px 0 0;align-self:center">Офферы по результату</h2><div id="omodes" style="display:flex;gap:6px"><button data-o="conversions" class="on">Конверсии</button><button data-o="amount">Сумма</button><button data-o="clicks">Клики</button><button data-o="hosts">Хосты</button></div></div><div id="osrc" style="color:var(--tx2);font-size:12px;margin:-4px 0 6px"></div><div id="obars"></div></div>
 <div class="panel tblwrap" id="tbl"></div>
+</div>
+<div id="viewApp" class="view" hidden>
+  <div class="panel filters"><b id="appTitle">Wonga</b><span class="badge" id="appDemo" hidden>Демо</span>
+    <select id="appDays"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select>
+    <button class="primary" id="appRefresh">Обновить</button><span class="upd" id="appUpd">Не обновлялось</span></div>
+  <div id="appBody" class="view"></div>
+</div>
 </div>
 <script>
 const $=s=>document.querySelector(s);
@@ -159,12 +183,87 @@ function chart(){
 document.querySelectorAll('#quick button').forEach(b=>b.onclick=()=>{quick(b.dataset.q);load()});
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{st.mode=b.dataset.m;document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&chart()});
 ['from','to','offer','cur'].forEach(id=>$('#'+id).onchange=()=>{if(id==='from'||id==='to')document.querySelectorAll('#quick button').forEach(b=>b.classList.remove('on'));load()});
-$('#refresh').onclick=load;addEventListener('resize',()=>st.rows&&chart());
+$('#refresh').onclick=reload;addEventListener('resize',()=>st.rows&&chart());
+
+// ---------- Приложения (Firebase / GA4) ----------
+const APPN={wonga:'Wonga'};
+const st2={days:30,data:null,error:null,ctl:null};
+function isApp(){return !!APPN[location.hash.slice(1)]}
+function reload(){isApp()?loadApp():load()}
+function route(){
+ const app=location.hash.slice(1),on=!!APPN[app];
+ $('#viewMain').hidden=on;$('#viewApp').hidden=!on;
+ document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',on?a.getAttribute('href')==='#'+app:a.getAttribute('href')==='#'));
+ document.title=on?APPN[app]+' — аналитика':'Статистика ProfitCash';
+ if(on){$('#appTitle').textContent=APPN[app];loadApp()}else load()}
+async function loadApp(){lastLoad=Date.now();
+ const app=location.hash.slice(1);if(!APPN[app])return;
+ st2.ctl&&st2.ctl.abort();const ctl=st2.ctl=new AbortController();
+ st2.days=+$('#appDays').value;
+ if(!st2.data)$('#appBody').innerHTML='<div class="g3"><div class="sk" style="height:300px"></div><div class="sk" style="height:300px"></div><div class="sk" style="height:300px"></div></div>';
+ try{
+  const {r,j}=await api('/api/ga/'+app,new URLSearchParams({days:st2.days}),ctl.signal);
+  if(!r.ok)throw Object.assign(new Error(j.message),{code:j.error});
+  st2.data=j;st2.error=null;$('#appDemo').hidden=!j.demo;
+  $('#appUpd').textContent='Обновлено: '+new Date(j.updatedAt).toLocaleTimeString('ru-RU');$('#appUpd').className='upd';
+ }catch(e){if(e.name==='AbortError')return;st2.error=e;if(st2.data){$('#appUpd').textContent='Данные не обновлены';$('#appUpd').className='upd stale'}}
+ appRender()}
+function appErr(){const e=st2.error,hint={ga_no_credentials:['Не подключён ключ Google','Задайте на сервере GA_SERVICE_ACCOUNT_JSON (или GA_SERVICE_ACCOUNT_FILE) и GA_PROPERTY_WONGA. Сервисному аккаунту нужна роль «Читатель» в GA4.'],ga_access:['Нет доступа к GA4',e.message],ga_auth:['Ключ Google не принят',e.message],network:['Сетевая ошибка','Не удалось получить данные. Это не нулевая статистика.']}[e.code]||['Ошибка Google Analytics',e.message];
+ return `<div class="panel msg"><h3>${hint[0]}</h3><p>${hint[1]}</p><button class="primary" onclick="loadApp()">Повторить</button></div>`}
+const PAL=['#FF6A1A','#FFC48A','#B8541A','#9a918a'];
+function drawLines(box,dates,series){
+ const W=box.clientWidth||400,H=box.clientHeight||230,m={l:38,r:10,t:10,b:24},n=dates.length;
+ const max=Math.max(1,...series.flatMap(s=>s.values)),step=Math.pow(10,Math.floor(Math.log10(max))),f=max/step,ymax=Math.ceil(f*2)/2*step||1;
+ const X=i=>m.l+(n<2?(W-m.l-m.r)/2:i*(W-m.l-m.r)/(n-1)),Y=v=>H-m.b-v/ymax*(H-m.t-m.b);
+ let g='<defs>'+series.map((s,i)=>`<linearGradient id="lg${box.id}${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".3"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
+ for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(155,170,192,.14)"/><text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9a918a" font-size="10">${fmtI(v)}</text>`}
+ const ev=Math.ceil(n/(W<420?4:7));dates.forEach((d,i)=>{if(i%ev===0||i===n-1)g+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle" fill="#9a918a" font-size="10">${dm(d).slice(0,5)}</text>`});
+ if(n>=2)series.forEach((s,i)=>{const px=dates.map((_,k)=>X(k)),py=s.values.map(Y),d=mono(px,py);g+=`<path d="${d} L${px[n-1]},${Y(0)} L${px[0]},${Y(0)}Z" fill="url(#lg${box.id}${i})"/><path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>`});
+ g+=`<line id="${box.id}c" y1="${m.t}" y2="${H-m.b}" stroke="#9a918a" stroke-dasharray="3 3" opacity="0"/><rect id="${box.id}h" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent"/>`;
+ box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg><div class="tip" id="${box.id}t"></div>`;
+ const hit=$('#'+box.id+'h'),tip=$('#'+box.id+'t'),cur=$('#'+box.id+'c');
+ const mv=cx=>{const rc=box.getBoundingClientRect(),x=(cx-rc.left)*(W/rc.width),i=Math.max(0,Math.min(n-1,Math.round((x-m.l)/((W-m.l-m.r)/Math.max(1,n-1)))));
+  cur.setAttribute('x1',X(i));cur.setAttribute('x2',X(i));cur.setAttribute('opacity',1);tip.style.display='block';
+  tip.innerHTML=`<b>${dm(dates[i])}</b><br>`+series.map(s=>`<span style="color:${s.color}">●</span> ${s.name}: <b>${fmtI(s.values[i])}</b>`).join('<br>');
+  tip.style.left=Math.min(X(i)*(rc.width/W)+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top='6px'};
+ hit.onmousemove=e=>mv(e.clientX);hit.ontouchstart=hit.ontouchmove=e=>mv(e.touches[0].clientX);
+ hit.onmouseleave=()=>{tip.style.display='none';cur.setAttribute('opacity',0)}}
+function barList(items,fmt=fmtI){const mx=Math.max(1,...items.map(i=>i.value));
+ return items.length?items.map(i=>`<div class="brow"><div class="nm" title="${i.name}">${i.name}</div><div class="otr"><div class="ofill" style="width:${i.value/mx*100}%"></div></div><div class="vl">${fmt(i.value)}</div></div>`).join(''):'<p style="color:var(--tx2)">Нет данных за период</p>'}
+function appRender(){
+ const d=st2.data,b=$('#appBody');
+ if(!d){b.innerHTML=st2.error?appErr():'';return}
+ const last=a=>a.length?a[a.length-1]:0;
+ const bn=$('#appUpd');
+ b.innerHTML=`${st2.error?'<div class="banner" style="display:block">Не удалось обновить данные — показаны предыдущие значения.</div>':''}
+ <div class="g3">
+  <div class="panel w"><h2>Активность пользователей по времени</h2>
+   <div class="kp"><div><small><i style="background:#FF6A1A"></i>28 дней</small><b>${fmtI(last(d.activity.d28))}</b></div><div><small><i style="background:#FFC48A"></i>7 дней</small><b>${fmtI(last(d.activity.d7))}</b></div><div><small><i style="background:#F5F1EC"></i>1 день</small><b>${fmtI(last(d.activity.d1))}</b></div></div>
+   <div class="cb" id="gAct"></div></div>
+  <div class="panel w"><h2>Активные пользователи за последние 30 минут</h2>
+   <div class="big">${fmtI(d.realtime.total)}</div>
+   <div style="color:var(--tx2);font-size:12px;margin-top:10px">Активные пользователи по минутам</div>
+   <div class="mini">${[...d.realtime.perMinute].reverse().map(v=>`<i class="${v?'':'z'}" style="height:${v?Math.max(12,v/Math.max(...d.realtime.perMinute)*100):4}%"></i>`).join('')}</div>
+   <table class="lst"><tr><td style="color:var(--tx2)">Страны</td><td style="color:var(--tx2);font-weight:400">Активные</td></tr>${d.realtime.countries.map(c=>`<tr><td>${c.name}</td><td>${fmtI(c.value)}</td></tr>`).join('')||'<tr><td colspan=2 style="color:var(--tx2)">Сейчас никого нет</td></tr>'}</table></div>
+  <div class="panel w"><h2>Активные пользователи по версии приложения</h2>
+   <div class="cb" id="gVer"></div>
+   <div class="legend2">${d.versions.series.map((s,i)=>`<span><i style="background:${PAL[i]}"></i>${s.name}</span>`).join('')}</div></div>
+ </div>
+ <div class="g2">
+  <div class="panel w"><h2>Активные пользователи по странам</h2>${barList(d.countries)}</div>
+  <div class="panel w"><h2>События по названию</h2>${barList(d.events)}</div>
+ </div>`;
+ drawLines($('#gAct'),d.activity.dates,[{name:'28 дней',color:'#FF6A1A',values:d.activity.d28},{name:'7 дней',color:'#FFC48A',values:d.activity.d7},{name:'1 день',color:'#F5F1EC',values:d.activity.d1}]);
+ drawLines($('#gVer'),d.versions.dates,d.versions.series.map((s,i)=>({...s,color:PAL[i]})));
+}
+addEventListener('hashchange',()=>{st.cfg&&route()});
+$('#appRefresh').onclick=loadApp;$('#appDays').onchange=loadApp;
+addEventListener('resize',()=>{isApp()&&st2.data&&appRender()});
 (async()=>{const c=(await api('/api/config')).j;st.cfg=c;$('#offer').innerHTML='<option value="all">Все офферы</option>'+c.offers.map(o=>`<option value="${o.id}">${o.title}</option>`).join('');
  if(c.currencies.length>1){$('#cur').hidden=false;$('#cur').innerHTML=c.currencies.map(x=>`<option>${x}</option>`).join('')}
- $('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('all');load()})();
+ $('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('all');route()})();
 // свежие данные при возврате на вкладку/из кэша страницы
-addEventListener('pageshow',e=>{if(e.persisted&&st.cfg)load()});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&st.cfg&&Date.now()-lastLoad>60000)load()});
+addEventListener('pageshow',e=>{if(e.persisted&&st.cfg)reload()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&st.cfg&&Date.now()-lastLoad>60000)reload()});
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
