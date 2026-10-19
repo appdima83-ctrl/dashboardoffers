@@ -362,6 +362,13 @@ nav#nav{margin-top:0}
 #modes .legend label{display:flex;align-items:center;gap:7px;color:var(--tx2);font-size:13px;cursor:pointer}
 #modes .legend small{color:#6f6f6d;font-size:11px}
 .cvb{transition:fill-opacity .2s}
+
+/* Телефон: графики шире — меньше полей вокруг блоков и внутри них */
+@media(max-width:700px){
+ .wrap{padding-left:calc(env(safe-area-inset-left,0px) + 10px)!important;padding-right:calc(env(safe-area-inset-right,0px) + 10px)!important}
+ .panel{padding:16px 14px!important}
+ .chartbox,.cb{margin-left:-10px;margin-right:-10px}
+}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a></nav>
