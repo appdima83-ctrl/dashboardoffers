@@ -369,6 +369,7 @@ nav#nav{margin-top:0}
  .panel{padding:16px 14px!important}
  .chartbox,.cb{margin-left:-10px;margin-right:-10px}
 }
+.bnote{font-size:12.5px;opacity:.9;line-height:1.35}.bnote span{white-space:nowrap}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a></nav>
@@ -461,9 +462,9 @@ const money=(v,c)=>fmtM(v,2)+' '+(SYM[c]||c);
 function balCard(){
  const b=st.balance;
  if(!b)return '<div class="card d"><div class="l">Баланс</div><div class="v">—</div><div class="s">Нет данных, не удалось получить</div></div>';
- const main=b.total.USD!==undefined||!Object.keys(b.total).length?'USD':Object.keys(b.total)[0];
- const others=Object.keys(b.total).filter(c=>c!==main).map(c=>`<span class="o" title="Точное значение: ${fmtM(b.total[c])} ${SYM[c]||c}">${money(b.total[c],c)}</span>`).join('');
- return `<div class="card d"><div class="l">Баланс</div><div class="v bal" title="Точное значение: ${fmtM(b.total[main]||0)} ${SYM[main]||main}"><span>${money(b.total[main]||0,main)}</span>${others}</div></div>`}
+ const tot=b.total.USD||0,foreign=(b.parts||[]).filter(p=>p.code!=='USD'),usdOnly=(b.parts||[]).find(p=>p.code==='USD');
+ const note=foreign.length?`${usdOnly?money(usdOnly.amount,'USD')+' + ':''}${foreign.map(p=>`${money(p.amount,p.code)} <span title="по курсу Affise: 1 ${p.code} = ${fmtM(p.rate,4)} $">≈ ${money(p.usd,'USD')}</span>`).join(' + ')}`:'';
+ return `<div class="card d"><div class="l">Баланс</div><div class="v" title="Точное значение: ${fmtM(tot)} $">${money(tot,'USD')}</div>${note?`<div class="s bnote">${note}</div>`:''}</div>`}
 
 const DPAL=['#FF6A1A','#FFA05C','#E04B00','#FFD0A8','#9A3412','#34D399','#6B7280'];
 function donut(L,k,tt){
@@ -553,8 +554,9 @@ const CS={USD:'$',EUR:'€',ZAR:'R',RUB:'₽',GBP:'£',INR:'₹',PHP:'₱',MXN:'
 function payHtml(o){
  const ps=(o.payouts||[]).filter(p=>p.revenue>0);
  if(!ps.length)return '<div class="pay"><span class="pl">К выплате</span><b class="pn">—</b></div>';
- const f=p=>p.type==='percent'?fmtM(p.revenue,2).replace(/,00$/,'')+'%':fmtM(p.revenue,2).replace(/,00$/,'')+' '+(CS[p.currency]||p.currency);
- const show=ps.slice(0,2).map(p=>`<div class="pr"><b>${f(p)}</b>${ps.length>1||p.goal?`<small>${p.goal}</small>`:''}</div>`).join('');
+ const f=p=>p.type==='percent'?fmtM(p.revenue,2).replace(/,00$/,'')+'%':(p.usd!==undefined?fmtM(p.usd,2)+' $':fmtM(p.revenue,2).replace(/,00$/,'')+' '+(CS[p.currency]||p.currency));
+ const tt=p=>p.usd!==undefined?` title="${fmtM(p.revenue,2)} ${p.currency} по курсу Affise (1 ${p.currency} = ${fmtM(p.rate,4)} $)"`:'';
+ const show=ps.slice(0,2).map(p=>`<div class="pr"${tt(p)}><b>${f(p)}</b>${ps.length>1||p.goal?`<small>${p.goal}</small>`:''}</div>`).join('');
  const more=ps.length>2?`<small class="pm" title="${ps.slice(2).map(p=>p.goal+' '+f(p)).join(', ')}">ещё ${ps.length-2}</small>`:'';
  return `<div class="pay"><span class="pl">К выплате</span>${show}${more}</div>`}
 const METRIC_LBL={conversions:'Конверсии',amount:'Заработано',clicks:'Клики',hosts:'Хосты'};

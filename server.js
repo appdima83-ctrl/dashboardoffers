@@ -57,10 +57,27 @@ async function cached(key, fn, ttl = 15000) {
   const c = cache.get(key); if (c && Date.now() - c.t < ttl) return c.v;
   const v = await fn(); cache.set(key, { t: Date.now(), v }); return v;
 }
+// Курсы валют Affise: rate = единиц валюты за 1 USD (USD = 1)
+async function getRates() {
+  return cached('rates', async () => {
+    const out = { USD: 1 };
+    try {
+      const j = await aget('/3.0/currencies', []);
+      for (const c of Object.values(j.currencies || {})) if (c && c.code && c.rate) out[String(c.code).toUpperCase()] = Number(c.rate);
+    } catch (e) {
+      const j = await aget('/3.0/admin/currency', []);
+      for (const [k, v] of Object.entries(j.quotes || {})) out[k.toUpperCase()] = Number(v);
+    }
+    return out;
+  }, 3600000);
+}
+const toUsd = (amount, code, rates) => { const r = rates[String(code).toUpperCase()]; return r ? amount / r : null; };
 async function fetchBalance() {
-  const j = await aget('/3.0/balance', []);
-  const b = j.balance || {}, pick = o => Object.fromEntries(Object.entries(o || {}).map(([c, v]) => [c, r4(num(v))]).filter(([c, v]) => v !== 0));
-  return { total: pick(b.balance), available: pick(b.available), hold: pick(b.hold) };
+  const [j, rates] = await Promise.all([aget('/3.0/balance', []), getRates()]);
+  const b = j.balance || {};
+  const conv = o => { let usd = 0; const parts = []; for (const [c, v] of Object.entries(o || {})) { const n = num(v); if (!n) continue; const u = toUsd(n, c, rates); if (u === null) continue; usd += u; parts.push({ code: c.toUpperCase(), amount: r4(n), usd: r4(u), rate: c.toUpperCase() === 'USD' ? 1 : r4(u / n) }); } return { usd: r4(usd), parts }; };
+  const t = conv(b.balance), a = conv(b.available), h = conv(b.hold);
+  return { total: { USD: t.usd }, available: { USD: a.usd }, hold: h.usd ? { USD: h.usd } : {}, parts: t.parts };
 }
 async function affise(from, to, q) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) throw Object.assign(new Error('Некорректные даты'), { code: 'bad_request' });
@@ -68,6 +85,7 @@ async function affise(from, to, q) {
   const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ]];
   const balP = cached('bal', fetchBalance, 5000).catch(() => null);
   const catP = offersCatalog().catch(() => ({}));
+  const ratesP = getRates().catch(() => ({ USD: 1 }));
   const today = new Date().toLocaleDateString('en-CA', { timeZone: TZ }); // сегодняшняя дата в часовом поясе кабинета
   const todayP = cached('today|' + today, () => allPages('/3.0/stats/custom', [['filter[date_from]', today], ['filter[date_to]', today], ['timezone', TZ], ['slice[]', 'offer']]), 15000)
     .then(st => Object.fromEntries(st.map(x => [String(x.slice.offer.id), norm(x)]))).catch(() => null);
@@ -82,8 +100,8 @@ async function affise(from, to, q) {
     const offers = byOff.map(s => ({ id: String(s.slice.offer.id), title: s.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...norm(s) }));
     return { demo: false, currency: 'USD', rows, offers, offersSource: 'affise', updatedAt: new Date().toISOString() };
   });
-  const cat = await catP;
-  return { ...data, offers: data.offers.map(o => ({ ...o, countries: (cat[o.id] || {}).countries || [], payouts: (cat[o.id] || {}).payouts || [] })), balance: await balP, today, offersToday: await todayP };
+  const cat = await catP, rates = await ratesP;
+  return { ...data, offers: data.offers.map(o => ({ ...o, countries: (cat[o.id] || {}).countries || [], payouts: ((cat[o.id] || {}).payouts || []).map(p => { if (p.type === 'percent' || p.currency === 'USD') return p; const u = toUsd(p.revenue, p.currency, rates); return u === null ? p : { ...p, usd: r4(u), rate: r4(u / p.revenue) }; }) })), balance: await balP, today, offersToday: await todayP };
 }
 // Каталог офферов: страны оффера = страны из тарифов (payments) + двухбуквенные категории (ZA, IN, PH…)
 async function offersCatalog() {
