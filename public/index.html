@@ -208,7 +208,7 @@ async function loadApp(){lastLoad=Date.now();
   $('#appUpd').textContent='Обновлено: '+new Date(j.updatedAt).toLocaleTimeString('ru-RU');$('#appUpd').className='upd';
  }catch(e){if(e.name==='AbortError')return;st2.error=e;if(st2.data){$('#appUpd').textContent='Данные не обновлены';$('#appUpd').className='upd stale'}}
  appRender()}
-function appErr(){const e=st2.error,hint={ga_no_credentials:['Не подключён ключ Google','Задайте на сервере GA_SERVICE_ACCOUNT_JSON (или GA_SERVICE_ACCOUNT_FILE) и GA_PROPERTY_WONGA. Сервисному аккаунту нужна роль «Читатель» в GA4.'],ga_access:['Нет доступа к GA4',e.message],ga_auth:['Ключ Google не принят',e.message],network:['Сетевая ошибка','Не удалось получить данные. Это не нулевая статистика.']}[e.code]||['Ошибка Google Analytics',e.message];
+function appErr(){const e=st2.error,hint={ga_no_credentials:['Не подключён ключ Google',(e.message||'')+'. Нужны GA_CLIENT_EMAIL + GA_PRIVATE_KEY (или GA_SERVICE_ACCOUNT_JSON) на сервере, а сервисному аккаунту — роль «Читатель» в GA4.'],ga_access:['Нет доступа к GA4',e.message],ga_auth:['Ключ Google не принят',e.message],network:['Сетевая ошибка','Не удалось получить данные. Это не нулевая статистика.']}[e.code]||['Ошибка Google Analytics',e.message];
  return `<div class="panel msg"><h3>${hint[0]}</h3><p>${hint[1]}</p><button class="primary" onclick="loadApp()">Повторить</button></div>`}
 const PAL=['#FF6A1A','#FFC48A','#B8541A','#9a918a'];
 function drawLines(box,dates,series){
