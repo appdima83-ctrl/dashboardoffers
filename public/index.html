@@ -497,6 +497,7 @@ const SERIES=[
  {k:'hosts',name:'Хосты',color:'#FFB27A',axis:'L'},
  {k:'amount',name:'Заработано',color:'#FFA21F',axis:'R',money:1},
  {k:'conversions',name:'Конверсии',color:'#FFE0C2',axis:'C'}];
+const smooth=a=>a.length<3?a:a.map((v,i)=>i===0||i===a.length-1?v:(a[i-1]+2*v+a[i+1])/4); // 1-2-1: убирает «зубцы», не уходит ниже 0
 const niceMax=(v,half=.5)=>{if(v<=0)return 1;const st0=Math.pow(10,Math.floor(Math.log10(v))),f=v/st0,u=f>5?1:half;return Math.ceil(f/u)*u*st0};
 function chart(){
  const box=$('#chartbox'),W=box.clientWidth||800,Hh=box.clientHeight||320,rows=st.rows,n=rows.length;
@@ -507,21 +508,23 @@ function chart(){
  const lMax=niceMax(Math.max(1,...SERIES.filter(s=>s.axis==='L'&&on(s)).flatMap(s=>rows.map(r=>r[s.k])))),
   rMax=niceMax(Math.max(.01,...rows.map(r=>r.amount))),cMax=Math.max(1,...rows.map(r=>r.conversions));
  const X=i=>m.l+(n<2?pw/2:i*pw/(n-1)),Y=v=>m.t+ph-v/lMax*ph,YR=v=>m.t+ph-v/rMax*ph,YC=v=>m.t+ph-v/cMax*ph,F=s=>s.axis==='R'?YR:s.axis==='C'?YC:Y;
- let g='<defs>'+SERIES.map(s=>`<linearGradient id="g${s.k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity="${s.k==='clicks'?.40:.22}"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
+ let g='<defs>'+SERIES.map(s=>`<linearGradient id="g${s.k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity="${s.k==='clicks'?.62:s.k==='hosts'?.46:.34}"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
  for(let i=0;i<=4;i++){const y=m.t+ph-i*ph/4;g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.10)" stroke-dasharray="2 6"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" fill="#9BAAC0" font-size="11">${fmtI(lMax*i/4)}</text>`;
   if(showR)g+=`<text x="${W-m.r+8}" y="${y+4}" text-anchor="start" fill="#FFA21F" fill-opacity=".95" font-size="11">${rMax<10?fmtM(rMax*i/4,2):fmtI(rMax*i/4)}</text>`}
  if(showR)g+=`<text x="${W-m.r+8}" y="${m.t-3}" fill="#FFA21F" fill-opacity=".95" font-size="10">${st.cur}</text>`;
  const every=Math.ceil(n/(W<600?5:10));rows.forEach((r,i)=>{if(i%every===0||i===n-1)g+=`<text x="${X(i)}" y="${Hh-8}" text-anchor="middle" fill="#9BAAC0" font-size="11">${dm(r.date).slice(0,5)}</text>`});
  const lines=vis;
- if(n>=2)lines.forEach(s=>{const f=F(s),px=rows.map((_,i)=>X(i)),py=rows.map(r=>f(r[s.k])),d=mono(px,py);
-  g+=`<path class="ar" d="${d} L${px[n-1]},${f(0)} L${px[0]},${f(0)}Z" fill="url(#g${s.k})"/><path class="ln" pathLength="1" d="${d}" fill="none" stroke="${s.color}" stroke-width="2.1" stroke-linecap="round" style="filter:drop-shadow(0 0 5px ${s.color}99)"/>`});
+ const SM={};SERIES.forEach(s=>SM[s.k]=smooth(rows.map(r=>r[s.k])));
+ if(n>=2){const P=lines.map(s=>{const f=F(s),px=rows.map((_,i)=>X(i)),py=SM[s.k].map(f);return {s,f,px,py,d:mono(px,py)}});
+  P.forEach(o=>{g+=`<path class="ar" d="${o.d} L${o.px[n-1]},${o.f(0)} L${o.px[0]},${o.f(0)}Z" fill="url(#g${o.s.k})"/>`});
+  P.forEach(o=>{g+=`<path class="ln" pathLength="1" d="${o.d}" fill="none" stroke="${o.s.color}" stroke-width="1.8" stroke-linecap="round" style="filter:drop-shadow(0 0 3px ${o.s.color}66)"/>`})}
  else lines.forEach(s=>g+=`<circle cx="${X(0)}" cy="${F(s)(rows[0][s.k])}" r="4" fill="${s.color}"/>`);
- g+=`<line id="cur" y1="${m.t}" y2="${m.t+ph}" stroke="#FF6A1A" stroke-opacity=".7" opacity="0"/><g id="dots"></g><rect id="hit" x="${m.l}" y="0" width="${pw}" height="${Hh}" fill="transparent"/>`;
+ g+=`<line id="cur" y1="${m.t}" y2="${m.t+ph}" stroke="#fff" stroke-opacity=".35" opacity="0"/><g id="dots"></g><rect id="hit" x="${m.l}" y="0" width="${pw}" height="${Hh}" fill="transparent"/>`;
  box.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none">${g}</svg><div class="tip" id="tip"></div>`;
  const hit=$('#hit'),tip=$('#tip');
  hit.onmousemove=e=>{const rc=box.getBoundingClientRect(),x=(e.clientX-rc.left)*(W/rc.width);const i=Math.max(0,Math.min(n-1,Math.round((x-m.l)/(pw/Math.max(1,n-1)))));const r=rows[i];
   $('#cur').setAttribute('x1',X(i));$('#cur').setAttribute('x2',X(i));$('#cur').setAttribute('opacity',1);
-  $('#dots').innerHTML=lines.map(s=>`<circle cx="${X(i)}" cy="${F(s)(r[s.k])}" r="4.5" fill="${s.color}" stroke="#141414" stroke-width="2"/>`).join('');
+  $('#dots').innerHTML=lines.map(s=>`<circle cx="${X(i)}" cy="${F(s)(SM[s.k][i])}" r="5" fill="#fff" stroke="${s.color}" stroke-width="2.6"/>`).join('');
   tip.style.display='block';tip.innerHTML=`<b>${dm(r.date)}</b><br>`+vis.map(s=>`<span style="color:${s.color}">●</span> ${s.name}: <b>${s.money?fmtM(r[s.k])+' '+st.cur:fmtI(r[s.k])}</b>`).join('<br>');
   const px=X(i)*(rc.width/W);tip.style.left=Math.min(px+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top='10px'};
  hit.ontouchmove=hit.ontouchstart=e=>{const t=e.touches[0];hit.onmousemove({clientX:t.clientX})};
@@ -648,15 +651,18 @@ function drawLines(box,dates,series){
  const W=box.clientWidth||400,H=box.clientHeight||230,m={l:38,r:10,t:10,b:24},n=dates.length;
  const max=Math.max(1,...series.flatMap(s=>s.values)),step=Math.pow(10,Math.floor(Math.log10(max))),f=max/step,ymax=Math.ceil(f*2)/2*step||1;
  const X=i=>m.l+(n<2?(W-m.l-m.r)/2:i*(W-m.l-m.r)/(n-1)),Y=v=>H-m.b-v/ymax*(H-m.t-m.b);
- let g='<defs>'+series.map((s,i)=>`<linearGradient id="lg${box.id}${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".3"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
+ let g='<defs>'+series.map((s,i)=>`<linearGradient id="lg${box.id}${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".55"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
  for(let i=0;i<=4;i++){const v=ymax*i/4,y=Y(v);g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.10)" stroke-dasharray="2 6"/><text x="${m.l-6}" y="${y+4}" text-anchor="end" fill="#9aa3b2" font-size="10">${fmtI(v)}</text>`}
  const ev=Math.ceil(n/(W<420?4:7));dates.forEach((d,i)=>{if(i%ev===0||i===n-1)g+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle" fill="#9aa3b2" font-size="10">${dm(d).slice(0,5)}</text>`});
- if(n>=2)series.forEach((s,i)=>{const px=dates.map((_,k)=>X(k)),py=s.values.map(Y),d=mono(px,py);g+=`<path class="ar" d="${d} L${px[n-1]},${Y(0)} L${px[0]},${Y(0)}Z" fill="url(#lg${box.id}${i})"/><path class="ln" pathLength="1" d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linecap="round" style="filter:drop-shadow(0 0 4px ${s.color}88)"/>`});
- g+=`<line id="${box.id}c" y1="${m.t}" y2="${H-m.b}" stroke="#FF6A1A" stroke-opacity=".7" opacity="0"/><g id="${box.id}d"></g><rect id="${box.id}h" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent"/>`;
+ const SMS=series.map(s=>smooth(s.values));
+ if(n>=2){const P=series.map((s,i)=>{const px=dates.map((_,k)=>X(k)),py=SMS[i].map(Y);return {s,i,px,py,d:mono(px,py)}});
+  P.forEach(o=>{g+=`<path class="ar" d="${o.d} L${o.px[n-1]},${Y(0)} L${o.px[0]},${Y(0)}Z" fill="url(#lg${box.id}${o.i})"/>`});
+  P.forEach(o=>{g+=`<path class="ln" pathLength="1" d="${o.d}" fill="none" stroke="${o.s.color}" stroke-width="1.8" stroke-linecap="round" style="filter:drop-shadow(0 0 3px ${o.s.color}66)"/>`})}
+ g+=`<line id="${box.id}c" y1="${m.t}" y2="${H-m.b}" stroke="#fff" stroke-opacity=".35" opacity="0"/><g id="${box.id}d"></g><rect id="${box.id}h" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent"/>`;
  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}</svg><div class="tip" id="${box.id}t"></div>`;
  const hit=$('#'+box.id+'h'),tip=$('#'+box.id+'t'),cur=$('#'+box.id+'c'),dots=$('#'+box.id+'d');
  const mv=cx=>{const rc=box.getBoundingClientRect(),x=(cx-rc.left)*(W/rc.width),i=Math.max(0,Math.min(n-1,Math.round((x-m.l)/((W-m.l-m.r)/Math.max(1,n-1)))));
-  cur.setAttribute('x1',X(i));cur.setAttribute('x2',X(i));cur.setAttribute('opacity',1);tip.style.display='block';dots.innerHTML=series.map(s=>`<circle cx="${X(i)}" cy="${Y(s.values[i])}" r="4.5" fill="${s.color}" stroke="#141414" stroke-width="2"/>`).join('');
+  cur.setAttribute('x1',X(i));cur.setAttribute('x2',X(i));cur.setAttribute('opacity',1);tip.style.display='block';dots.innerHTML=series.map((s,si)=>`<circle cx="${X(i)}" cy="${Y(SMS[si][i])}" r="5" fill="#fff" stroke="${s.color}" stroke-width="2.6"/>`).join('');
   tip.innerHTML=`<b>${dm(dates[i])}</b><br>`+series.map(s=>`<span style="color:${s.color}">●</span> ${s.name}: <b>${fmtI(s.values[i])}</b>`).join('<br>');
   tip.style.left=Math.min(X(i)*(rc.width/W)+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top='6px'};
  hit.onmousemove=e=>mv(e.clientX);hit.ontouchstart=hit.ontouchmove=e=>mv(e.touches[0].clientX);
