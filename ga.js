@@ -1,5 +1,6 @@
 // Google Analytics 4 (Firebase Analytics) через Analytics Data API.
-// Ключ сервисного аккаунта: GA_SERVICE_ACCOUNT_JSON (содержимое JSON) или GA_SERVICE_ACCOUNT_FILE (путь к файлу).
+// Ключ сервисного аккаунта: GA_SERVICE_ACCOUNT_JSON (содержимое JSON), GA_SERVICE_ACCOUNT_FILE (путь к файлу)
+// или пара GA_CLIENT_EMAIL + GA_PRIVATE_KEY (переводы строк можно писать как \n).
 // Сервисному аккаунту нужна роль «Читатель» (Viewer) на GA4-свойстве.
 const crypto = require('crypto'), fs = require('fs');
 
@@ -10,6 +11,7 @@ const APPS = {
 const fail = (code, message) => Object.assign(new Error(message), { code });
 
 function loadCreds() {
+  if (process.env.GA_CLIENT_EMAIL && process.env.GA_PRIVATE_KEY) return { client_email: process.env.GA_CLIENT_EMAIL, private_key: process.env.GA_PRIVATE_KEY.replace(/\\n/g, '\n') };
   let raw = process.env.GA_SERVICE_ACCOUNT_JSON;
   if (!raw && process.env.GA_SERVICE_ACCOUNT_FILE) {
     try { raw = fs.readFileSync(process.env.GA_SERVICE_ACCOUNT_FILE, 'utf8'); } catch { throw fail('ga_no_credentials', 'Не удалось прочитать файл ключа (GA_SERVICE_ACCOUNT_FILE)'); }
