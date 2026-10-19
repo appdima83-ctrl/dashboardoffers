@@ -67,6 +67,7 @@ async function affise(from, to, q) {
   const offer = q.get('offer');
   const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ]];
   const balP = cached('bal', fetchBalance, 5000).catch(() => null);
+  const catP = offersCatalog().catch(() => ({}));
   const today = new Date().toLocaleDateString('en-CA', { timeZone: TZ }); // сегодняшняя дата в часовом поясе кабинета
   const todayP = cached('today|' + today, () => allPages('/3.0/stats/custom', [['filter[date_from]', today], ['filter[date_to]', today], ['timezone', TZ], ['slice[]', 'offer']]), 15000)
     .then(st => Object.fromEntries(st.map(x => [String(x.slice.offer.id), norm(x)]))).catch(() => null);
@@ -81,7 +82,26 @@ async function affise(from, to, q) {
     const offers = byOff.map(s => ({ id: String(s.slice.offer.id), title: s.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...norm(s) }));
     return { demo: false, currency: 'USD', rows, offers, offersSource: 'affise', updatedAt: new Date().toISOString() };
   });
-  return { ...data, balance: await balP, today, offersToday: await todayP };
+  const cat = await catP;
+  return { ...data, offers: data.offers.map(o => ({ ...o, countries: cat[o.id] || [] })), balance: await balP, today, offersToday: await todayP };
+}
+// Каталог офферов: страны оффера = страны из тарифов (payments) + двухбуквенные категории (ZA, IN, PH…)
+async function offersCatalog() {
+  return cached('catalog', async () => {
+    const map = {}; let page = 1;
+    for (;;) {
+      const j = await aget('/3.0/partner/offers', [['limit', 100], ['page', page]]);
+      for (const o of j.offers || []) {
+        const set = new Set();
+        (o.payments || []).forEach(p => { if (!p.country_exclude) (p.countries || []).forEach(c => /^[A-Za-z]{2}$/.test(c) && set.add(c.toUpperCase())); });
+        (o.categories || []).forEach(c => /^[A-Z]{2}$/.test(c) && set.add(c));
+        map[String(o.id)] = [...set];
+      }
+      if (!j.pagination || !j.pagination.next_page || !(j.offers || []).length) break;
+      page = j.pagination.next_page;
+    }
+    return map;
+  }, 600000);
 }
 async function offersList() {
   return cached('offers', async () => {
