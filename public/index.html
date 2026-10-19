@@ -18,7 +18,7 @@ button{font:inherit;cursor:pointer;border:1px solid var(--line);background:trans
 button:hover{color:var(--tx)}button.on{background:rgba(255,106,26,.15);color:#FF8A4C;border-color:rgba(255,106,26,.45)}
 button.primary{background:linear-gradient(180deg,#FF7A2E,#F25C05);color:#ffffff;border:0;font-weight:600}
 .upd{color:var(--tx2);font-size:12px;margin-left:auto}.upd.stale{color:#F59E0B}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.7fr);gap:16px}.card.d{border-color:rgba(255,106,26,.35)}.card.d:before{background:radial-gradient(closest-side,rgba(255,106,26,.4),transparent)}.card .v{font-size:clamp(22px,2.2vw,32px)!important;white-space:nowrap}.v.bal{white-space:normal}.card .s small{display:block;opacity:.85}.v.bal{display:flex;align-items:center;flex-wrap:wrap;column-gap:14px;row-gap:4px}.v.bal .o{font-size:inherit;border-left:2px solid rgba(255,106,26,.85);padding-left:14px;line-height:1.1}
+.cards{display:grid;grid-template-columns:minmax(0,1.7fr) repeat(4,minmax(0,1fr));gap:16px}.card.d{border-color:rgba(255,106,26,.35)}.card.d:before{background:radial-gradient(closest-side,rgba(255,106,26,.4),transparent)}.card .v{font-size:clamp(22px,2.2vw,32px)!important;white-space:nowrap}.v.bal{white-space:normal}.card .s small{display:block;opacity:.85}.v.bal{display:flex;align-items:center;flex-wrap:wrap;column-gap:14px;row-gap:4px}.v.bal .o{font-size:inherit;border-left:2px solid rgba(255,106,26,.85);padding-left:14px;line-height:1.1}
 .card{border-radius:16px;padding:22px;position:relative;overflow:hidden}
 .card{background:var(--surf);border:1px solid var(--line)}.card:before{content:'';position:absolute;inset:auto -40px -60px auto;width:180px;height:140px;background:radial-gradient(closest-side,rgba(255,106,26,.3),transparent)}.card.c:before{background:radial-gradient(closest-side,rgba(255,106,26,.16),transparent)}.card.b:before{background:radial-gradient(closest-side,rgba(255,106,26,.5),transparent)}
 .card .l{color:var(--tx2);font-weight:500}.card .v{color:#fff}.card .v{font-size:40px;font-weight:700;margin:6px 0 2px;font-variant-numeric:tabular-nums}.card .s{opacity:.8;font-size:13px}
@@ -39,7 +39,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--line);border-bottom:0;backgr
 .sk{background:linear-gradient(90deg,rgba(255,255,255,.04),rgba(255,255,255,.10),rgba(255,255,255,.04));background-size:200%;animation:sh 1.2s infinite;border-radius:10px}
 @keyframes sh{to{background-position:-200%}}
 .banner{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:#FBBF24;padding:10px 14px;border-radius:12px;display:none}
-@media(max-width:1000px){.cards{grid-template-columns:1fr 1fr}.card:last-child:nth-child(odd){grid-column:1/-1}}
+@media(max-width:1000px){.cards{grid-template-columns:1fr 1fr}.card:first-child{grid-column:1/-1}}
 
 [hidden]{display:none!important}
 .view{display:flex;flex-direction:column;gap:22px}
@@ -302,11 +302,11 @@ function render(){
  if(!st.rows){b.style.display='none';for(const id of['#cards','#chartbox','#tbl'])$(id).innerHTML=id==='#cards'?'':'';$('#cards').innerHTML='';$('#chartbox').innerHTML=errBox();$('#tbl').innerHTML='';$('#obars').innerHTML='';$('#donut').innerHTML='';return}
  b.style.display=st.stale?'block':'none';if(st.stale)b.textContent='Не удалось обновить данные — показаны предыдущие значения.';
  const T=tot(st.rows);
- $('#cards').innerHTML=`<div class="card c"><div class="l">Хосты</div><div class="v" title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</div><div class="s">Уникальные по дням</div></div>
+ $('#cards').innerHTML=`${balCard()}
+ <div class="card c"><div class="l">Хосты</div><div class="v" title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</div><div class="s">Уникальные по дням</div></div>
  <div class="card c"><div class="l">Клики</div><div class="v">${fmtI(T.clicks)}</div><div class="s">Всего за период</div></div>
  <div class="card a"><div class="l">Кол-во офферов</div><div class="v">${fmtI(T.conversions)}</div><div class="s">Конверсии за период</div></div>
- <div class="card b"><div class="l">Заработано</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>
- ${balCard()}`;
+ <div class="card b"><div class="l">Заработано</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>`;
  if(!st.rows.length||(T.hosts+T.clicks+T.conversions===0&&false)){}
  chart();table(T);bars();countUp();
 }
