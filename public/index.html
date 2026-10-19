@@ -261,6 +261,26 @@ button.act.busy .ico{animation:spin .8s linear infinite}@keyframes spin{to{trans
  .sidefoot button{padding:7px 14px;height:auto}
 }
 .orow .n{flex-wrap:nowrap!important}.orow .tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.orow .up{flex:none}
+
+/* ===== Адаптивность: тянется на весь экран, перестраивается по ширине ===== */
+.wrap{max-width:none!important;width:100%;margin:0;grid-template-columns:clamp(212px,15vw,300px) minmax(0,1fr)!important;gap:clamp(16px,1.6vw,32px)!important;padding:calc(env(safe-area-inset-top,0px) + clamp(14px,1.5vw,28px)) calc(env(safe-area-inset-right,0px) + clamp(14px,1.8vw,36px)) calc(env(safe-area-inset-bottom,0px) + clamp(14px,1.5vw,28px)) calc(env(safe-area-inset-left,0px) + clamp(14px,1.5vw,28px))!important}
+.main{gap:clamp(16px,1.5vw,26px)}
+.side{height:calc(100vh - clamp(28px,3vw,56px))!important;top:clamp(14px,1.5vw,28px)!important}
+.chartbox{height:clamp(250px,38vh,560px)}.cb{height:clamp(210px,26vh,360px)}
+.head h1{font-size:clamp(24px,2.2vw,38px)}
+.card .v{font-size:clamp(22px,2vw,40px)!important}
+.cards{grid-template-columns:minmax(0,1.7fr) repeat(4,minmax(0,1fr))!important}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@media(max-width:1399px){.g3{grid-template-columns:repeat(2,minmax(0,1fr))!important}.g3>:first-child{grid-column:1/-1}}
+@media(max-width:1199px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))!important}.cards>.card:first-child{grid-column:1/-1}.g2o{grid-template-columns:minmax(0,1fr)!important}}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}.g3,.g2,.g2o{grid-template-columns:minmax(0,1fr)!important}.g3>:first-child{grid-column:auto}}
+@media(min-width:1700px){.g2o{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}.panel{padding:24px 28px}}
+button.fsbtn{width:44px;padding:0;justify-content:center}
+@media(max-width:700px){button.fsbtn{display:none!important}}
+@media(max-width:900px){
+ .wrap{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
+ .side{height:auto!important;top:auto!important;position:relative!important}
+}
 </style></head><body><div class="wrap">
 <aside class="side">
   <div class="brand"><span class="logo"><img src="logo-glyph.png" alt="" width="38" height="38"></span><b>ProfitCash</b></div>
@@ -274,12 +294,12 @@ button.act.busy .ico{animation:spin .8s linear infinite}@keyframes spin{to{trans
     <span class="upd" id="upd"></span>
     <input type="hidden" id="offer" value="all"><select id="cur" hidden></select>
     <label class="range" title="Период"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><input type="date" id="from"><span>–</span><input type="date" id="to"><svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></label>
-    <button id="refresh" class="act"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg><span>Обновить</span></button>
+    <button class="act fsbtn" title="На весь экран" aria-label="На весь экран"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button><button id="refresh" class="act"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg><span>Обновить</span></button>
   </div>
   <div class="hact" id="hactApp" hidden>
     <span class="upd" id="appUpd"></span><span class="badge" id="appDemo" hidden>Демо</span><b id="appTitle" hidden>Wonga</b>
     <label class="range sel" title="Период"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><select id="appDays"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select><svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></label>
-    <button id="appRefresh" class="act"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg><span>Обновить</span></button>
+    <button class="act fsbtn" title="На весь экран" aria-label="На весь экран"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button><button id="appRefresh" class="act"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg><span>Обновить</span></button>
   </div>
 </header>
 <div id="viewMain" class="view">
@@ -513,6 +533,11 @@ addEventListener('hashchange',()=>{st.cfg&&route()});
 ['#from','#to'].forEach(s=>$(s).addEventListener('click',e=>{try{e.target.showPicker&&e.target.showPicker()}catch{}}));
 $('#appRefresh').onclick=loadApp;$('#appDays').onchange=loadApp;
 addEventListener('resize',()=>{isApp()&&st2.data&&appRender()});
+
+// ---------- Полный экран ----------
+(function(){const de=document.documentElement,ok=!!(de.requestFullscreen||de.webkitRequestFullscreen);
+ document.querySelectorAll('.fsbtn').forEach(b=>{if(!ok){b.style.display='none';return}
+  b.onclick=()=>{const on=document.fullscreenElement||document.webkitFullscreenElement;try{on?(document.exitFullscreen||document.webkitExitFullscreen).call(document):(de.requestFullscreen||de.webkitRequestFullscreen).call(de)}catch{}}})})();
 // крутилка на кнопке «Обновить» во время загрузки
 for(const [fn,id] of [['load','#refresh'],['loadApp','#appRefresh']]){const orig=eval(fn);const w=async function(...a){const b=$(id);b&&b.classList.add('busy');try{return await orig.apply(this,a)}finally{b&&b.classList.remove('busy')}};if(fn==='load')load=w;else loadApp=w}
 (async()=>{const c=(await api('/api/config')).j;st.cfg=c;
