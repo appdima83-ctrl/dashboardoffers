@@ -7,7 +7,7 @@ const crypto = require('crypto'), fs = require('fs');
 const APPS = {
   wonga: { title: 'Wonga', propertyId: process.env.GA_PROPERTY_WONGA || '546879836' },
   // Mpowa — Firebase-проект in-emergency-loan-guide (Android: com.emergencyloanguide.app). ID свойства GA4 задаётся в GA_PROPERTY_MPOWA
-  mpowa: { title: 'Mpowa', propertyId: process.env.GA_PROPERTY_MPOWA || '' },
+  mpowa: { title: 'Mpowa', propertyId: process.env.GA_PROPERTY_MPOWA || '', findByName: 'in-emergency-loan-guide' },
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
@@ -108,14 +108,25 @@ async function listProperties(app) {
   const j = await r.json();
   return (j.accountSummaries || []).flatMap(a => (a.propertySummaries || []).map(p => ({ account: a.displayName, property: p.property.replace('properties/', ''), name: p.displayName })));
 }
+// ID свойства: из переменной окружения или по названию среди доступных сервисному аккаунту свойств
+const found = new Map();
+async function resolveProperty(app, a) {
+  if (a.propertyId) return a.propertyId;
+  if (!a.findByName) return '';
+  const hit = found.get(app); if (hit && Date.now() - hit.t < 600000) return hit.id;
+  const list = await listProperties(app), p = list.find(x => x.name.toLowerCase() === a.findByName.toLowerCase());
+  if (!p) throw fail('ga_access', 'Сервисный аккаунт ' + loadCreds(app).client_email + ' не видит свойство «' + a.findByName + '»');
+  found.set(app, { id: p.property, t: Date.now() }); return p.property;
+}
 const cache = new Map();
 async function getApp(app, days) {
   const a = APPS[app]; if (!a) throw fail('not_found', 'Неизвестное приложение');
   days = [7, 30, 90].includes(days) ? days : 30;
   if (process.env.GA_MOCK === '1') return mock(days);
-  if (!a.propertyId) throw fail('ga_no_property', 'Для приложения ' + a.title + ' не задан ID свойства GA4 (переменная GA_PROPERTY_' + app.toUpperCase() + ')');
+  const pid = await resolveProperty(app, a);
+  if (!pid) throw fail('ga_no_property', 'Для приложения ' + a.title + ' не задан ID свойства GA4 (переменная GA_PROPERTY_' + app.toUpperCase() + ')');
   const k = app + days, c = cache.get(k);
   if (c && Date.now() - c.t < 20000) return c.v;
-  const v = await report(a.propertyId, days, app); cache.set(k, { t: Date.now(), v }); return v;
+  const v = await report(pid, days, app); cache.set(k, { t: Date.now(), v }); return v;
 }
 module.exports = { getApp, APPS, listProperties };
