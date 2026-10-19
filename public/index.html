@@ -108,6 +108,23 @@ tfoot td{background:rgba(255,255,255,.04)}th,td{border-bottom-color:rgba(255,255
  .sidefoot{margin:0 0 0 auto}.sidefoot button{width:auto;padding:7px 14px}
  .head h1{font-size:26px}.panel{border-radius:24px;padding:18px}
 }
+
+/* ===== Стекло (liquid glass) ===== */
+body{background:#121316;background-image:radial-gradient(900px 600px at 85% -8%,rgba(76,141,255,.34),transparent 62%),radial-gradient(800px 600px at -8% 100%,rgba(155,123,255,.30),transparent 60%),radial-gradient(700px 500px at 55% 108%,rgba(45,212,191,.16),transparent 62%),radial-gradient(500px 400px at 30% 30%,rgba(244,114,182,.06),transparent 60%);background-attachment:fixed}
+.side,.panel,.card{background:linear-gradient(145deg,rgba(255,255,255,.105) 0%,rgba(255,255,255,.04) 42%,rgba(255,255,255,.065) 100%)!important;-webkit-backdrop-filter:blur(26px) saturate(165%);backdrop-filter:blur(26px) saturate(165%);border:1px solid rgba(255,255,255,.06)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(0,0,0,.28),inset 0 0 30px rgba(255,255,255,.03),0 20px 44px rgba(0,0,0,.45)!important}
+.panel,.card{position:relative}
+.side::after,.panel::after,.card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;background:linear-gradient(155deg,rgba(255,255,255,.42),rgba(255,255,255,.05) 28%,rgba(255,255,255,.02) 68%,rgba(255,255,255,.20));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.panel.tblwrap::after{display:none}.panel.tblwrap{border-color:rgba(255,255,255,.12)!important}
+.filters input,.filters select,button{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 4px 12px rgba(0,0,0,.25)}
+.filters input,.filters select{background:rgba(0,0,0,.30);box-shadow:inset 0 2px 5px rgba(0,0,0,.45),inset 0 -1px 0 rgba(255,255,255,.06)}
+button.primary{background:linear-gradient(180deg,#6BA6FF,#2563EB)!important;box-shadow:0 8px 22px rgba(37,99,235,.55),inset 0 1px 0 rgba(255,255,255,.45)!important}
+button.on,nav#nav a.on{background:linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.08))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 6px 16px rgba(0,0,0,.35)!important;border-color:rgba(255,255,255,.14)!important}
+.card:before{opacity:.9}
+.tip{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(18,19,24,.75)!important}
+tfoot td{background:rgba(255,255,255,.05)}
+.otr{box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
+@media(max-width:900px){.side{position:relative!important}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.side,.panel,.card{background:#1d1f26!important}}
 </style></head><body><div class="wrap">
 <aside class="side">
   <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V11M12 19V5M19 19v-5"/></svg></span><b>ProfitCash</b></div>
