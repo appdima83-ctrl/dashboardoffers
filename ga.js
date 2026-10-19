@@ -6,8 +6,8 @@ const crypto = require('crypto'), fs = require('fs');
 
 const APPS = {
   wonga: { title: 'Wonga', propertyId: process.env.GA_PROPERTY_WONGA || '546879836' },
-  // Mpopwa — Firebase-проект in-emergency-loan-guide (Android: com.emergencyloanguide.app). ID свойства GA4 задаётся в GA_PROPERTY_MPOPWA
-  mpopwa: { title: 'Mpopwa', propertyId: process.env.GA_PROPERTY_MPOPWA || '' },
+  // Mpowa — Firebase-проект in-emergency-loan-guide (Android: com.emergencyloanguide.app). ID свойства GA4 задаётся в GA_PROPERTY_MPOWA
+  mpowa: { title: 'Mpowa', propertyId: process.env.GA_PROPERTY_MPOWA || '' },
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
