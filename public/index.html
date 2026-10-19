@@ -116,6 +116,12 @@ tfoot td{background:rgba(255,255,255,.04)}th,td{border-bottom-color:rgba(255,255
 .pager button{min-width:38px;height:38px;padding:0 12px;display:grid;place-items:center;font-variant-numeric:tabular-nums}
 .pager button:disabled{opacity:.35;cursor:default}.pager .dots{color:var(--tx2);padding:0 4px}
 @media(max-width:700px){.pager{justify-content:center}.pager .pi{width:100%;text-align:center}}
+
+.orow.hot{background:linear-gradient(90deg,rgba(52,211,153,.14),transparent 70%);border-radius:14px;margin:0 -10px;padding-left:10px;padding-right:10px;box-shadow:inset 3px 0 0 #34D399}
+.orow.hot .ofill{background:linear-gradient(90deg,#1c9d78,#34D399)!important;box-shadow:0 0 16px rgba(52,211,153,.5)!important}
+.up{margin-left:10px;font-size:11px;font-weight:700;color:#34D399;background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.35);border-radius:999px;padding:2px 8px;white-space:nowrap;animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 4px rgba(52,211,153,.14)}}
+.orow .n{flex-wrap:wrap}
 /* ===== Стекло (liquid glass) ===== */
 body{background:#121316;background-image:radial-gradient(900px 600px at 85% -8%,rgba(76,141,255,.34),transparent 62%),radial-gradient(800px 600px at -8% 100%,rgba(155,123,255,.30),transparent 60%),radial-gradient(700px 500px at 55% 108%,rgba(45,212,191,.16),transparent 62%),radial-gradient(500px 400px at 30% 30%,rgba(244,114,182,.06),transparent 60%);background-attachment:fixed}
 .side,.panel,.card{background:linear-gradient(145deg,rgba(255,255,255,.105) 0%,rgba(255,255,255,.04) 42%,rgba(255,255,255,.065) 100%)!important;-webkit-backdrop-filter:blur(26px) saturate(165%);backdrop-filter:blur(26px) saturate(165%);border:1px solid rgba(255,255,255,.06)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(0,0,0,.28),inset 0 0 30px rgba(255,255,255,.03),0 20px 44px rgba(0,0,0,.45)!important}
@@ -237,7 +243,7 @@ async function load(){lastLoad=Date.now();
  try{
   const {r,j}=await api('/api/stats',p,ctl.signal);
   if(!r.ok)throw Object.assign(new Error(j.message),{code:j.error});
-  if(!st.rows||st.rows.length!==j.rows.length)st.page=1;st.rows=j.rows;st.balance=j.balance;st.offers=j.offers||[];st.osrc=j.offersSource;st.error=null;st.stale=false;$('#demo').hidden=!j.demo;
+  if(!st.rows||st.rows.length!==j.rows.length)st.page=1;st.rows=j.rows;st.balance=j.balance;st.offToday=j.offersToday||null;st.today=j.today;st.offers=j.offers||[];st.osrc=j.offersSource;st.error=null;st.stale=false;$('#demo').hidden=!j.demo;
   const t=new Date(j.updatedAt);$('#upd').textContent='Обновлено: '+t.toLocaleTimeString('ru-RU');$('#upd').className='upd';
  }catch(e){if(e.name==='AbortError')return;st.error=e;if(st.rows){st.stale=true;$('#upd').textContent='Данные не обновлены';$('#upd').className='upd stale'}}
  render();
@@ -278,8 +284,8 @@ function donut(L,k,tt){
  const unit={conversions:'конверсий',amount:'заработано',clicks:'кликов',hosts:'хостов'}[k];
  el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div>`+
  items.map((it,i)=>`<div class="dl"><i style="background:${DPAL[i]}"></i><div class="nm" title="${it.n}">${it.n}</div><div class="vl">${fv(it.v)}</div><div class="pc">${(it.v/tt*100).toFixed(0)}%</div></div>`).join('')}
-function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
- donut(L,k,tt);$('#obars').innerHTML=(L.length?L.map((o,i)=>`<div class="orow"><div class="n"><b>${i+1}</b>${o.title}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
+function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период · ▲ — прирост за сегодня':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
+ donut(L,k,tt);$('#obars').innerHTML=(L.length?L.map((o,i)=>{const tv=st.offToday&&st.offToday[o.id]?st.offToday[o.id][k]:0,hot=tv>0;return `<div class="orow${hot?' hot':''}"><div class="n"><b>${i+1}</b>${o.title}${hot?`<span class="up" title="Прирост за сегодня">▲ +${k==='amount'?fmtM(tv,2)+' '+st.cur:fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%"></div></div><div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`}).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
 const PER=7;
 function table(T){
