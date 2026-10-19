@@ -224,7 +224,25 @@ tbody tr:hover{background:#171717}tfoot td{background:#161616;border-top:1px sol
 .badge{background:#FF6A1A;color:#fff}.banner{background:#1c1409;border-color:#5a3b12}
 .sk{background:linear-gradient(90deg,#141414,#1c1c1c,#141414);background-size:200%;border-radius:14px}
 .orow.hot{background:linear-gradient(90deg,rgba(52,211,153,.12),transparent 70%);box-shadow:inset 3px 0 0 #34D399}
-@media(max-width:900px){.side{border-radius:16px!important}}
+@media(max-width:900px){.side{border-radius:16px!important}.sync{display:none}}
+
+svg.ico{width:17px!important;height:17px!important;flex:none;display:block}svg.chev{width:14px!important;height:14px!important;flex:none;display:block}
+/* ===== Шапка как в референсе: заголовок слева, период и кнопка справа ===== */
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.head .ht{min-width:0}.head h1{margin:0}
+.hact{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.hact[hidden]{display:none!important}
+.range{display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 14px;background:#141414;border:1px solid #2a2a2a;border-radius:10px;color:#cfcfcd;cursor:pointer;transition:border-color .2s,background .2s}
+.range:hover{border-color:#3d3d3d;background:#181818}.range:focus-within{border-color:rgba(255,106,26,.55)}
+.range .ico{color:#9a9a98;flex:none}.range .chev{color:#9a9a98;flex:none;margin-left:2px}.range>span{color:#6f6f6d}
+.range input,.range select{background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important;color:#ececea;font:inherit;font-size:14px;outline:none;cursor:pointer;color-scheme:dark;-webkit-appearance:none;appearance:none}
+.range input[type=date]{width:112px}.range input::-webkit-calendar-picker-indicator{display:none}
+.range select{padding-right:4px!important;min-width:84px}
+button.act{height:44px;display:inline-flex;align-items:center;gap:9px;padding:0 18px}
+button.act .ico{color:#a3a3a1}button.act:hover .ico{color:#fff}
+button.act.busy .ico{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.upd:not(.stale){display:none}.upd.stale{color:#F59E0B;font-size:12px}
+@media(max-width:700px){.head{flex-direction:column;align-items:stretch}.hact{justify-content:flex-start}.range{flex:1 1 auto;min-width:0}.range input[type=date]{width:100px}}
 </style></head><body><div class="wrap">
 <aside class="side">
   <div class="brand"><span class="logo"><img src="logo-glyph.png" alt="" width="38" height="38"></span><b>ProfitCash</b></div>
@@ -232,15 +250,21 @@ tbody tr:hover{background:#171717}tfoot td{background:#161616;border-top:1px sol
   <div class="sidefoot"><div class="sync"><i></i><span>Данные обновлены</span><b id="sync">—</b></div><button id="logout" title="Выйти">Выйти</button></div>
 </aside>
 <main class="main">
-<header class="head"><h1 id="pageTitle">Статистика <span class="badge" id="demo" hidden>Демо</span></h1><p class="sub" id="pageSub">Партнёрская программа LeadCash — данные Affise</p></header>
+<header class="head">
+  <div class="ht"><h1 id="pageTitle">Статистика <span class="badge" id="demo" hidden>Демо</span></h1><p class="sub" id="pageSub">Партнёрская программа LeadCash — данные Affise</p></div>
+  <div class="hact" id="hactMain">
+    <span class="upd" id="upd"></span>
+    <input type="hidden" id="offer" value="all"><select id="cur" hidden></select>
+    <label class="range" title="Период"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><input type="date" id="from"><span>–</span><input type="date" id="to"><svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></label>
+    <button id="refresh" class="act"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg><span>Обновить</span></button>
+  </div>
+  <div class="hact" id="hactApp" hidden>
+    <span class="upd" id="appUpd"></span><span class="badge" id="appDemo" hidden>Демо</span><b id="appTitle" hidden>Wonga</b>
+    <label class="range sel" title="Период"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><select id="appDays"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select><svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></label>
+    <button id="appRefresh" class="act"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg><span>Обновить</span></button>
+  </div>
+</header>
 <div id="viewMain" class="view">
-<div class="panel filters">
-  <input type="date" id="from"><span style="color:var(--tx2)">—</span><input type="date" id="to">
-  <input type="hidden" id="offer" value="all">
-  <select id="cur" hidden></select>
-  <button class="primary" id="refresh">Обновить</button>
-  <span class="upd" id="upd">Не обновлялось</span>
-</div>
 <div class="banner" id="banner"></div>
 <div class="cards" id="cards"></div>
 <div class="panel">
@@ -255,9 +279,6 @@ tbody tr:hover{background:#171717}tfoot td{background:#161616;border-top:1px sol
 <div class="panel tblwrap" id="tbl"></div>
 </div>
 <div id="viewApp" class="view" hidden>
-  <div class="panel filters"><b id="appTitle">Wonga</b><span class="badge" id="appDemo" hidden>Демо</span>
-    <select id="appDays"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select>
-    <button class="primary" id="appRefresh">Обновить</button><span class="upd" id="appUpd">Не обновлялось</span></div>
   <div id="appBody" class="view"></div>
 </div>
 </main>
@@ -403,7 +424,7 @@ function isApp(){return !!APPN[location.hash.slice(1)]}
 function reload(){isApp()?loadApp():load()}
 function route(){
  const app=location.hash.slice(1),on=!!APPN[app];
- $('#viewMain').hidden=on;$('#viewApp').hidden=!on;
+ $('#viewMain').hidden=on;$('#viewApp').hidden=!on;$('#hactMain').hidden=on;$('#hactApp').hidden=!on;
  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',on?a.getAttribute('href')==='#'+app:a.getAttribute('href')==='#'));
  document.title=on?APPN[app]+' — аналитика':'Статистика ProfitCash';
  $('#pageTitle').firstChild.textContent=on?APPN[app]+' ':'Статистика ';
@@ -471,8 +492,11 @@ function appRender(){
  drawLines($('#gVer'),d.versions.dates,d.versions.series.map((s,i)=>({...s,color:PAL[i]})));
 }
 addEventListener('hashchange',()=>{st.cfg&&route()});
+['#from','#to'].forEach(s=>$(s).addEventListener('click',e=>{try{e.target.showPicker&&e.target.showPicker()}catch{}}));
 $('#appRefresh').onclick=loadApp;$('#appDays').onchange=loadApp;
 addEventListener('resize',()=>{isApp()&&st2.data&&appRender()});
+// крутилка на кнопке «Обновить» во время загрузки
+for(const [fn,id] of [['load','#refresh'],['loadApp','#appRefresh']]){const orig=eval(fn);const w=async function(...a){const b=$(id);b&&b.classList.add('busy');try{return await orig.apply(this,a)}finally{b&&b.classList.remove('busy')}};if(fn==='load')load=w;else loadApp=w}
 (async()=>{const c=(await api('/api/config')).j;st.cfg=c;
  if(c.currencies.length>1){$('#cur').hidden=false;$('#cur').innerHTML=c.currencies.map(x=>`<option>${x}</option>`).join('')}
  $('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('all');route()})();
