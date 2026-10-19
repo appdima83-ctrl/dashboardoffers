@@ -233,7 +233,7 @@ function barList(items,fmt=fmtI){const mx=Math.max(1,...items.map(i=>i.value));
 function appRender(){
  const d=st2.data,b=$('#appBody');
  if(!d){b.innerHTML=st2.error?appErr():'';return}
- const last=a=>a.length?a[a.length-1]:0;
+ const li=(()=>{for(let i=d.activity.d1.length-1;i>=0;i--)if(d.activity.d1[i]>0)return i;return d.activity.d1.length-1})(),last=a=>a.length?a[li]:0; // текущие сутки в GA ещё не досчитаны — берём последний день с данными
  const bn=$('#appUpd');
  b.innerHTML=`${st2.error?'<div class="banner" style="display:block">Не удалось обновить данные — показаны предыдущие значения.</div>':''}
  <div class="g3">
