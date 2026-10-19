@@ -142,7 +142,7 @@ tfoot td{background:rgba(255,255,255,.05)}
 <div id="viewMain" class="view">
 <div class="panel filters">
   <input type="date" id="from"><span style="color:var(--tx2)">—</span><input type="date" id="to">
-  <select id="offer"><option value="all">Все офферы</option></select>
+  <input type="hidden" id="offer" value="all">
   <select id="cur" hidden></select>
   <button class="primary" id="refresh">Обновить</button>
   <span class="upd" id="upd">Не обновлялось</span>
@@ -364,7 +364,7 @@ function appRender(){
 addEventListener('hashchange',()=>{st.cfg&&route()});
 $('#appRefresh').onclick=loadApp;$('#appDays').onchange=loadApp;
 addEventListener('resize',()=>{isApp()&&st2.data&&appRender()});
-(async()=>{const c=(await api('/api/config')).j;st.cfg=c;$('#offer').innerHTML='<option value="all">Все офферы</option>'+c.offers.map(o=>`<option value="${o.id}">${o.title}</option>`).join('');
+(async()=>{const c=(await api('/api/config')).j;st.cfg=c;
  if(c.currencies.length>1){$('#cur').hidden=false;$('#cur').innerHTML=c.currencies.map(x=>`<option>${x}</option>`).join('')}
  $('#logout').onclick=async()=>{await fetch('/logout',{method:'POST'});location.href='/login'};quick('all');route()})();
 // свежие данные при возврате на вкладку/из кэша страницы
