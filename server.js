@@ -109,7 +109,7 @@ http.createServer(async (req, res) => {
   }
   if (u.pathname === '/logout') { res.writeHead(204, { 'Set-Cookie': 'pc_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0' }); return res.end(); }
   if (u.pathname === '/login') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(LOGIN()); }
-  const PUBLIC = ['/manifest.webmanifest', '/sw.js', '/favicon-32.png', '/favicon-64.png', '/apple-touch-icon.png', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png'];
+  const PUBLIC = ['/manifest.webmanifest', '/sw.js', '/favicon-32.png', '/favicon-64.png', '/apple-touch-icon.png', '/icon-192.png', '/icon-512.png', '/icon-maskable-512.png', '/logo-glyph.png'];
   if (!authed && !PUBLIC.includes(u.pathname)) {
     if (u.pathname.startsWith('/api/')) return send(res, 401, { error: 'auth', message: 'Требуется вход' });
     res.writeHead(303, { Location: '/login' }); return res.end();
