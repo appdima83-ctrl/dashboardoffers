@@ -606,8 +606,8 @@ function geoRender(){
  const el=$('#geoList');if(!el)return;
  const g=st.geo;
  if(!g||!g.length){el.innerHTML='<p style="color:var(--tx2)">Нет данных по странам за период</p>';return}
- const mx=Math.max(1,...g.map(x=>x.hosts)),tot=g.reduce((a,x)=>a+x.hosts,0)||1,narrowG=matchMedia('(max-width:1199px)').matches,lim=narrowG&&!st.geoAll?8:g.length;
- el.innerHTML=g.slice(0,lim).map((x,i)=>`<div class="gr"><div class="gtop"><span class="gfl">${flagEmoji(x.code)}</span><span class="gnm" title="${cname(x.code)}">${cname(x.code)}</span><b class="ghs" title="Хосты">${fmtI(x.hosts)}</b><span class="gpc">${(x.hosts/tot*100).toFixed(0)}%</span></div>
+ const mx=Math.max(1,...g.map(x=>x.hosts)),narrowG=matchMedia('(max-width:1199px)').matches,lim=narrowG&&!st.geoAll?8:g.length;
+ el.innerHTML=g.slice(0,lim).map((x,i)=>`<div class="gr"><div class="gtop"><span class="gfl">${flagEmoji(x.code)}</span><span class="gnm" title="${cname(x.code)}">${cname(x.code)}</span><b class="ghs" title="Хосты">${fmtI(x.hosts)}</b></div>
   <div class="gbar"><div style="width:${x.hosts/mx*100}%"></div></div>
   ${x.offers.length?`<div class="goff">${x.offers.slice(0,3).map(o=>`<span title="${o.title}: ${fmtI(o.hosts)} хостов, ${fmtI(o.clicks)} кликов">${o.title.replace(/\s*\[.*$/,'')} <b>${fmtI(o.hosts)}</b></span>`).join('')}${x.offers.length>3?`<span class="gm" title="${x.offers.slice(3).map(o=>o.title+': '+fmtI(o.hosts)).join(', ')}">+${x.offers.length-3}</span>`:''}</div>`:''}</div>`).join('')+(narrowG&&g.length>8?`<button class="gmore" id="gmore">${st.geoAll?'Свернуть':'Показать все ('+g.length+')'}</button>`:'');
  const gb=$('#gmore');if(gb)gb.onclick=()=>{st.geoAll=!st.geoAll;geoRender()}}
