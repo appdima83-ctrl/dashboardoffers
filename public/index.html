@@ -418,6 +418,16 @@ nav#nav{margin-top:0}
 .gdbar>div{height:100%;border-radius:5px;background:linear-gradient(90deg,#8a3a08,#FF6A1A);box-shadow:0 0 8px rgba(255,106,26,.3)}
 .geolist{max-height:none!important;overflow:visible!important}
 .dseg.dim{opacity:.28!important}
+
+/* Флаги: крупный в центре кольца, ряд кликабельных флагов под ним */
+.gdn .gflag{font-size:50px!important;line-height:1}
+.gdn .ct{padding:0 15%}.gdn .ct .dname{font-size:14px;margin-top:6px}.gdn .ct .gbig{font-size:clamp(22px,2.3vw,28px);margin-top:2px}
+.gflags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0 4px}
+.gchip{width:46px;height:44px;padding:0;display:grid;place-items:center;border-radius:12px!important;position:relative;background:#161616!important}
+.gchip .gf{font-size:27px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;transition:transform .2s}
+.gchip::after{content:"";position:absolute;left:10px;right:10px;bottom:4px;height:3px;border-radius:3px;background:var(--c);opacity:.55;transition:opacity .2s}
+.gchip:hover .gf{transform:scale(1.12)}.gchip.on{background:#222!important;border-color:var(--c)!important;box-shadow:0 0 0 1px var(--c) inset!important}.gchip.on::after{opacity:1}
+.gdetail.empty{display:none}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a></nav>
@@ -447,7 +457,7 @@ nav#nav{margin-top:0}
   <div class="tabs" id="modes"><div class="legend" id="legend"></div></div>
   <div class="chartbox" id="chartbox"></div>
 </div>
-<div class="panel w" id="geoPanel"><h2>Трафик по странам</h2><div class="gsub">Хосты за период. Нажмите на долю, чтобы увидеть офферы страны</div><div class="geolist" id="geoList"></div></div>
+<div class="panel w" id="geoPanel"><h2>Трафик по странам</h2><div class="geolist" id="geoList"></div></div>
 </div>
 <div class="g2o">
 <div class="panel"><div class="tabs"><h2 style="margin:0 12px 0 0;align-self:center">Офферы по результату</h2><div id="omodes" style="display:flex;gap:6px"><button data-o="conversions" class="on">Конверсии</button><button data-o="amount">Сумма</button><button data-o="clicks">Клики</button><button data-o="hosts">Хосты</button></div></div><div id="osrc" style="color:var(--tx2);font-size:12px;margin:-4px 0 6px"></div><div id="obars"></div></div>
@@ -630,16 +640,17 @@ function geoRender(){
  if(rest.length)items.push({n:'Остальные ('+rest.length+')',v:rest.reduce((a,x)=>a+x.hosts,0),group:rest});
  const tot=items.reduce((a,x)=>a+x.v,0)||1,R=70,C=2*Math.PI*R,gap=items.length>1?4:0;let cum=0;
  const seg=items.map((it,i)=>{const f=it.v/tot,len=Math.max(.01,f*C-gap-16),o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke="${DPAL[i]}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${len} ${C}" stroke-dashoffset="${-(cum*C+gap/2+8)}" transform="rotate(-90 100 100)" class="dseg" data-i="${i}"><title>${it.n}: ${fmtI(it.v)} хостов</title></circle>`;cum+=f;return o}).join('');
- el.innerHTML=`<div class="dn gdn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fmtI(tot)}</b><span>хостов</span></div></div><div class="gdetail" id="gdetail"><div class="dhint">Нажмите на долю, чтобы увидеть страну и офферы</div></div>`;
- const ct=el.querySelector('.ct'),base=ct.innerHTML,det=el.querySelector('#gdetail'),segs=[...el.querySelectorAll('.dseg')],hint=det.innerHTML;
+ el.innerHTML=`<div class="dn gdn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fmtI(tot)}</b><span>хостов</span></div></div><div class="gflags" id="gflags">${items.map((it,i)=>`<button class="gchip" data-i="${i}" style="--c:${DPAL[i]}" title="${it.n}: ${fmtI(it.v)} хостов" aria-label="${it.n}"><span class="gf">${it.code?flagEmoji(it.code):'🌐'}</span></button>`).join('')}</div><div class="gdetail empty" id="gdetail"></div>`;
+ const ct=el.querySelector('.ct'),base=ct.innerHTML,det=el.querySelector('#gdetail'),segs=[...el.querySelectorAll('.dseg')],chips=[...el.querySelectorAll('.gchip')];
  const rows=(list,fmtName)=>{const mx=Math.max(1,...list.map(o=>o.v));return list.map(o=>`<div class="gdrow"><div class="gdn1"><span class="gdnm" title="${o.t||''}">${fmtName(o)}</span><b>${fmtI(o.v)}</b></div><div class="gdbar"><div style="width:${o.v/mx*100}%"></div></div></div>`).join('')};
- const sel=i=>{st.gsel=i===null?null:items[i].n;segs.forEach((c,j)=>{c.classList.toggle('dim',i!==null&&j!==i);c.classList.toggle('on',j===i)});
-  if(i===null){ct.innerHTML=base;det.innerHTML=hint;return}
+ const sel=i=>{st.gsel=i===null?null:items[i].n;segs.forEach((c,j)=>{c.classList.toggle('dim',i!==null&&j!==i);c.classList.toggle('on',j===i)});chips.forEach((c,j)=>c.classList.toggle('on',j===i));det.classList.toggle('empty',i===null);
+  if(i===null){ct.innerHTML=base;det.innerHTML='';return}
   const it=items[i];
   ct.innerHTML=`<span class="gflag">${it.code?flagEmoji(it.code):'🌐'}</span><span class="dname">${it.n}</span><b class="gbig">${fmtI(it.v)}</b><span class="dpc">хостов</span>`;
   if(it.group)det.innerHTML=`<div class="gdt">Страны в группе</div>`+rows(it.group.map(x=>({t:cname(x.code),n:cname(x.code),code:x.code,v:x.hosts})),o=>`${flagEmoji(o.code)} ${o.n}`);
   else det.innerHTML=`<div class="gdt">Офферы: ${it.n}</div>`+(it.offers.length?rows(it.offers.map(o=>({t:o.title,n:o.title.replace(/\s*\[.*$/,''),v:o.hosts})),o=>o.n):'<div class="dhint">Нет данных по офферам</div>')};
  segs.forEach((c,j)=>{c.onclick=e=>{e.stopPropagation();sel(st.gsel===items[j].n?null:j)}});
+ chips.forEach((c,j)=>{c.onclick=()=>sel(st.gsel===items[j].n?null:j)});
  el.querySelector('.dn svg').onclick=()=>sel(null);
  const keep=items.findIndex(x=>x.n===st.gsel);if(keep>=0)sel(keep);else st.gsel=null}
 // ---------- Флаги стран оффера ----------
