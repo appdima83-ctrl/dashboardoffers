@@ -488,6 +488,7 @@ nav#nav{margin-top:0}
 .pbadge.st-review{color:#FFA21F;background:rgba(255,162,31,.12);border-color:rgba(255,162,31,.3)}
 .pbadge.st-bad{color:#F87171;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
 .pbadge.st-idle,.pbadge.st-none{color:var(--tx2);background:rgba(255,255,255,.05);border-color:#2a2a2a}
+.pinst{display:flex;align-items:baseline;gap:10px;margin:10px 2px 0;color:var(--tx2);font-size:13px}.pinst b{color:var(--tx);font-size:20px}.pinst i{font-style:normal;font-size:12px}.pinst .up{color:#4ade80}.pinst .dn{color:#f87171}
 .pst{color:var(--tx2);font-size:12px;margin-top:3px}
 .ph .pk{margin-left:56px}
 </style></head><body><div class="wrap">
@@ -814,12 +815,14 @@ function playRender(){
  const d=stp.data,b=$('#playBody');
  if(!d){b.innerHTML=stp.error?`<div class="panel msg"><h3>Не удалось получить данные Google Play</h3><p>${stp.error.message}</p><button class="primary" onclick="loadPlay()">Повторить</button></div>`:'';return}
  const fmtD=ms=>ms?new Date(ms).toLocaleDateString('ru-RU'):'';
+ const MON=['янв.','февр.','мар.','апр.','мая','июн.','июл.','авг.','сент.','окт.','нояб.','дек.'],vd=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return +d+' '+MON[m-1]+' '+y+' г.'};
  b.innerHTML=`<div class="pgrid">${d.apps.map(a=>{
   if(!a.ok)return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div><div class="pbad">${a.message}</div></div>`;
   const prod=(a.tracks.find(t=>t.track==='production')||{}).releases||[],pr=prod[0];
   return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div>
-  <div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div>${a.status&&a.status.storeVersion?`<div class="pst">В магазине: ${a.status.storeVersion}</div>`:''}</div><span class="pbadge st-${a.status?a.status.state:'idle'}" title="${a.status?a.status.hint:''}">${a.status?a.status.text:'—'}</span></div>
-  <div class="ptracks">${a.tracks.filter(t=>!['beta','internal'].includes(t.track)).map(t=>{const r=(t.releases||[])[0];return `<div class="ptr"><span class="ptn">${t.name}</span><span class="ptv">${r?(r.name||('код '+r.versionCodes.join(', '))):'—'}</span>${t.track==='production'&&a.status?`<span class="pbadge sm st-${a.status.state}" title="${a.status.hint}">${a.status.text}</span>`:r?`<span class="pbadge sm ${PST[r.status]||'idle'}" title="${STIP}">${r.statusText}</span>`:'<span class="pbadge sm idle">Пусто</span>'}</div>`}).join('')}</div>
+  <div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div>${pr&&pr.date?`<div class="pst" title="По данным Google Analytics: первое появление версии у пользователей">Последнее обновление: ${vd(pr.date)}</div>`:''}${a.status&&a.status.storeVersion?`<div class="pst">В магазине: ${a.status.storeVersion}</div>`:''}</div><span class="pbadge st-${a.status?a.status.state:'idle'}" title="${a.status?a.status.hint:''}">${a.status?a.status.text:'—'}</span></div>
+  ${a.installs?`<div class="pinst"><span>Число установок</span><b>${a.installs.installs.toLocaleString('ru-RU')}</b>${a.installs.change==null?'':`<i class="${a.installs.change<0?'dn':'up'}">${a.installs.change>0?'+':''}${a.installs.change}%</i>`}</div>`:''}
+  ${pr?'':`<div class="ptracks">${a.tracks.filter(t=>!['beta','internal'].includes(t.track)).map(t=>{const r=(t.releases||[])[0];return `<div class="ptr"><span class="ptn">${t.name}</span><span class="ptv">${r?(r.name||('код '+r.versionCodes.join(', '))):'—'}${r&&r.date?` <small style="color:var(--tx2);font-weight:400">· ${vd(r.date)}</small>`:''}</span>${t.track==='production'&&a.status?`<span class="pbadge sm st-${a.status.state}" title="${a.status.hint}">${a.status.text}</span>`:r?`<span class="pbadge sm ${PST[r.status]||'idle'}" title="${STIP}">${r.statusText}</span>`:'<span class="pbadge sm idle">Пусто</span>'}</div>`}).join('')}</div>`}
   ${a.reviews.length?`<div class="prh">Последние отзывы</div>${a.reviews.slice(0,3).map(v=>`<div class="prv"><div class="prs">${'★'.repeat(v.stars)}<i>${'★'.repeat(5-v.stars)}</i><span>${fmtD(v.date)}${v.version?' · v '+v.version:''}</span></div><div class="prt">${(v.text||'').replace(/</g,'&lt;')}</div></div>`).join('')}`:''}
   </div>`}).join('')}</div>`}
 $('#playRefresh').onclick=loadPlay;

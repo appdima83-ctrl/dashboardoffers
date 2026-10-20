@@ -1,10 +1,10 @@
 // Google Play Developer API (Android Publisher): статусы выпусков и отзывы. Только чтение.
 // Служебный аккаунт приглашён в Play Console с правом «Просмотр информации о приложении».
-const { accessToken, fail } = require('./ga.js');
+const { accessToken, fail, listProperties } = require('./ga.js');
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const API = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/';
 // Пакеты приложений: PLAY_PACKAGES="com.a.b:Название,com.c.d:Другое"
-const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc';
+const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc,com.prestomin.dinerorapido:Prestomin Dinero Rápido';
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
@@ -53,7 +53,64 @@ function derive(out, store) {
   return { state: 'live', text: r.status === 'inProgress' && r.fraction ? 'Раскатка ' + Math.round(r.fraction * 100) + '%' : 'Опубликовано', hint: 'Версия в магазине' + (store.version ? ': ' + store.version : '') + ', совпадает с консолью.', storeVersion: store.version, consoleVersion: r.name };
 }
 
-async function oneApp(p, token) {
+// ---- Даты версий: когда версия впервые появилась у пользователей (по Google Analytics) ----
+let gaMap = null, gaMapT = 0;
+async function gaStreams() {
+  if (gaMap && Date.now() - gaMapT < 3600000) return gaMap;
+  const t = await accessToken(undefined), m = {};
+  for (const p of await listProperties()) {
+    const r = await fetch('https://analyticsadmin.googleapis.com/v1beta/properties/' + p.property + '/dataStreams', { headers: { Authorization: 'Bearer ' + t }, signal: AbortSignal.timeout(20000) });
+    for (const s of (await r.json()).dataStreams || []) if (s.androidAppStreamData) m[s.androidAppStreamData.packageName] = { property: p.property, streamId: s.name.split('/').pop() };
+  }
+  gaMap = m; gaMapT = Date.now(); return m;
+}
+const verDates = new Map();
+async function versionDates(pkg) {
+  const hit = verDates.get(pkg); if (hit && Date.now() - hit.t < 1800000) return hit.v;
+  let v = {};
+  try {
+    const m = (await gaStreams())[pkg];
+    if (m) {
+      const t = await accessToken(undefined);
+      const r = await fetch('https://analyticsdata.googleapis.com/v1beta/properties/' + m.property + ':runReport', { method: 'POST', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(25000),
+        body: JSON.stringify({ dateRanges: [{ startDate: '730daysAgo', endDate: 'today' }], dimensions: [{ name: 'appVersion' }, { name: 'date' }], metrics: [{ name: 'activeUsers' }], dimensionFilter: { filter: { fieldName: 'streamId', stringFilter: { matchType: 'EXACT', value: m.streamId } } }, limit: 100000 }) });
+      for (const row of (await r.json()).rows || []) {
+        const ver = row.dimensionValues[0].value, d = row.dimensionValues[1].value, iso = d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8);
+        if (Number(row.metricValues[0].value) > 0 && (!v[ver] || iso < v[ver])) v[ver] = iso;
+      }
+    }
+  } catch {}
+  verDates.set(pkg, { t: Date.now(), v }); return v;
+}
+const dateFor = (name, dates) => { for (const c of String(name || '').match(/\d+(?:\.\d+)+/g) || []) if (dates[c]) return dates[c]; return ''; };
+
+// ---- Установки: из массовых отчётов Play Console (хранилище pubsite_prod_<ID аккаунта>); нужно право «скачивание массовых отчётов» ----
+const DEV = process.env.PLAY_DEVELOPER_ID || '5403334729948184361';
+const instCache = new Map(); let instAccess = null;
+const ym = d => d.getUTCFullYear() + String(d.getUTCMonth() + 1).padStart(2, '0');
+async function gcsCsv(token, pkg, month) {
+  const obj = 'stats/installs/installs_' + pkg + '_' + month + '_overview.csv';
+  const r = await fetch('https://storage.googleapis.com/storage/v1/b/pubsite_prod_' + DEV + '/o/' + encodeURIComponent(obj) + '?alt=media', { headers: { Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(20000) });
+  if (r.status === 403) throw Object.assign(new Error('no_access'), { noAccess: true });
+  if (!r.ok) return [];
+  const buf = Buffer.from(await r.arrayBuffer()), txt = (buf[0] === 0xFF && buf[1] === 0xFE ? buf.toString('utf16le') : buf.toString('utf8')).replace(/^\uFEFF/, '');
+  const lines = txt.split(/\r?\n/).filter(Boolean), head = lines[0].split(',').map(x => x.replace(/"/g, '').trim());
+  return lines.slice(1).map(l => { const c = l.split(',').map(x => x.replace(/"/g, '').trim()); return Object.fromEntries(head.map((h, i) => [h, c[i]])); });
+}
+async function installsFor(pkg, token) {
+  const hit = instCache.get(pkg); if (hit && Date.now() - hit.t < 3600000) return hit.v;
+  let v = null;
+  try {
+    const now = new Date(), prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+    const rows = [...(await gcsCsv(token, pkg, ym(prev))), ...(await gcsCsv(token, pkg, ym(now)))].filter(r => r['Date']).sort((a, b) => a['Date'] < b['Date'] ? -1 : 1);
+    const col = rows.length ? (['Active Device Installs', 'Current Device Installs', 'Total User Installs'].find(c => rows[rows.length - 1][c] !== undefined) || null) : null;
+    if (col) { const cur = Number(rows[rows.length - 1][col]), old = rows.length > 28 ? Number(rows[rows.length - 29][col]) : null; v = { installs: cur, change: old ? Math.round((cur - old) / old * 100) : null, column: col, date: rows[rows.length - 1]['Date'] }; }
+    instAccess = true;
+  } catch (e) { if (e.noAccess) instAccess = false; }
+  instCache.set(pkg, { t: Date.now(), v }); return v;
+}
+
+async function oneApp(p, token, gcsToken) {
   try {
     // Чтение дорожек требует временной «правки» (так устроен API): создаём, читаем, сразу удаляем. Ничего не публикуется.
     const edit = await pget(p.id, '/edits', token, { method: 'POST', body: '{}', headers: { 'Content-Type': 'application/json' } });
@@ -71,8 +128,9 @@ async function oneApp(p, token) {
     const out = tracks.map(t => ({ track: t.track, name: TRACK[t.track] || ('Закрытое тестирование: ' + t.track), releases: (t.releases || []).map(r => ({ name: r.name || '', status: r.status, statusText: r.status === 'inProgress' && r.userFraction ? 'Раскатка ' + Math.round(r.userFraction * 100) + '%' : (STAT[r.status] || r.status), fraction: r.userFraction || null, versionCodes: r.versionCodes || [], notes: ((r.releaseNotes || [])[0] || {}).text || '' })) }));
     let reviews = [];
     try { reviews = ((await pget(p.id, '/reviews?maxResults=5', token)).reviews || []).map(r => { const c = ((r.comments || [])[0] || {}).userComment || {}; return { author: r.authorName || '', stars: c.starRating || 0, text: c.text || '', date: c.lastModified ? Number(c.lastModified.seconds) * 1000 : 0, version: c.appVersionName || '', device: (c.deviceMetadata || {}).productName || '' }; }); } catch {}
-    const store = await storeInfo(p.id);
-    return { id: p.id, title: storeTitle || p.title, ok: true, icon, tracks: out, reviews, status: derive(out, store) };
+    const [store, dates, inst] = await Promise.all([storeInfo(p.id), versionDates(p.id), gcsToken ? installsFor(p.id, gcsToken) : null]);
+    for (const t of out) for (const r of t.releases) r.date = dateFor(r.name, dates);
+    return { id: p.id, title: storeTitle || p.title, ok: true, icon, tracks: out, reviews, status: derive(out, store), installs: inst };
   } catch (e) {
     const denied = e.status === 403 || e.status === 404;
     return { id: p.id, title: p.title, ok: false, error: denied ? 'no_access' : 'upstream', message: e.status === 403 && /has not been used|disabled/i.test(e.message) ? 'Google Play Android Developer API не включён в проекте Cloud' : denied ? 'Нет доступа: добавьте служебный аккаунт в Play Console и выдайте права на это приложение (или проверьте имя пакета)' : e.message };
@@ -82,7 +140,8 @@ let cache = null;
 async function getPlay() {
   if (cache && Date.now() - cache.t < 120000) return cache.v;
   const token = await accessToken(undefined, SCOPE);
-  const apps = await Promise.all(packages().map(p => oneApp(p, token)));
-  const v = { apps, updatedAt: new Date().toISOString() }; cache = { t: Date.now(), v }; return v;
+  let gcs = null; try { gcs = await accessToken(undefined, 'https://www.googleapis.com/auth/devstorage.read_only'); } catch {}
+  const apps = await Promise.all(packages().map(p => oneApp(p, token, gcs)));
+  const v = { apps, installsAccess: apps.some(a => a.installs) ? true : instAccess, updatedAt: new Date().toISOString() }; cache = { t: Date.now(), v }; return v;
 }
 module.exports = { getPlay };
