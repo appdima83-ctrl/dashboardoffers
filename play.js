@@ -4,7 +4,7 @@ const { accessToken, fail } = require('./ga.js');
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const API = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/';
 // Пакеты приложений: PLAY_PACKAGES="com.a.b:Название,com.c.d:Другое"
-const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.emergencyloanguide.app:Mpowa';
+const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc';
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
@@ -24,7 +24,7 @@ async function oneApp(p, token) {
     let tracks = [];
     try { tracks = (await pget(p.id, '/edits/' + edit.id + '/tracks', token)).tracks || []; }
     finally { pget(p.id, '/edits/' + edit.id, token, { method: 'DELETE' }).catch(() => {}); }
-    const out = tracks.map(t => ({ track: t.track, name: TRACK[t.track] || t.track, releases: (t.releases || []).map(r => ({ name: r.name || '', status: r.status, statusText: r.status === 'inProgress' && r.userFraction ? 'Раскатка ' + Math.round(r.userFraction * 100) + '%' : (STAT[r.status] || r.status), fraction: r.userFraction || null, versionCodes: r.versionCodes || [], notes: ((r.releaseNotes || [])[0] || {}).text || '' })) }));
+    const out = tracks.map(t => ({ track: t.track, name: TRACK[t.track] || ('Закрытое тестирование: ' + t.track), releases: (t.releases || []).map(r => ({ name: r.name || '', status: r.status, statusText: r.status === 'inProgress' && r.userFraction ? 'Раскатка ' + Math.round(r.userFraction * 100) + '%' : (STAT[r.status] || r.status), fraction: r.userFraction || null, versionCodes: r.versionCodes || [], notes: ((r.releaseNotes || [])[0] || {}).text || '' })) }));
     let reviews = [];
     try { reviews = ((await pget(p.id, '/reviews?maxResults=5', token)).reviews || []).map(r => { const c = ((r.comments || [])[0] || {}).userComment || {}; return { author: r.authorName || '', stars: c.starRating || 0, text: c.text || '', date: c.lastModified ? Number(c.lastModified.seconds) * 1000 : 0, version: c.appVersionName || '', device: (c.deviceMetadata || {}).productName || '' }; }); } catch {}
     return { id: p.id, title: p.title, ok: true, tracks: out, reviews };
