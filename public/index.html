@@ -483,6 +483,13 @@ nav#nav{margin-top:0}
 .pmark.m-rejected,.pmark.m-blocked{color:#F87171;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.35)}
 .pmark.m-live{color:#34D399;background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35)}
 .ph .pk{margin-left:56px}
+
+.pbadge.st-live{color:#34D399;background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3)}
+.pbadge.st-review{color:#FFA21F;background:rgba(255,162,31,.12);border-color:rgba(255,162,31,.3)}
+.pbadge.st-bad{color:#F87171;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
+.pbadge.st-idle,.pbadge.st-none{color:var(--tx2);background:rgba(255,255,255,.05);border-color:#2a2a2a}
+.pst{color:var(--tx2);font-size:12px;margin-top:3px}
+.ph .pk{margin-left:56px}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a><a href="#play"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5v17l14-8.5z"/></svg><span>Google Play</span></a></nav>
@@ -810,9 +817,9 @@ function playRender(){
  b.innerHTML=`<div class="pgrid">${d.apps.map(a=>{
   if(!a.ok)return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div><div class="pbad">${a.message}</div></div>`;
   const prod=(a.tracks.find(t=>t.track==='production')||{}).releases||[],pr=prod[0];
-  return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2>${markHtml(a)}<span class="pk">${a.id}</span></div>
-  <div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div></div>${pr?`<span class="pbadge ${PST[pr.status]||'idle'}" title="${STIP}">${pr.statusText}</span>`:'<span class="pbadge idle">Нет выпуска</span>'}</div>
-  <div class="ptracks">${a.tracks.filter(t=>!['beta','internal'].includes(t.track)).map(t=>{const r=(t.releases||[])[0];return `<div class="ptr"><span class="ptn">${t.name}</span><span class="ptv">${r?(r.name||('код '+r.versionCodes.join(', '))):'—'}</span>${r?`<span class="pbadge sm ${PST[r.status]||'idle'}" title="${STIP}">${r.statusText}</span>`:'<span class="pbadge sm idle">Пусто</span>'}</div>`}).join('')}</div>
+  return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div>
+  <div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div>${a.status&&a.status.storeVersion?`<div class="pst">В магазине: ${a.status.storeVersion}</div>`:''}</div><span class="pbadge st-${a.status?a.status.state:'idle'}" title="${a.status?a.status.hint:''}">${a.status?a.status.text:'—'}</span></div>
+  <div class="ptracks">${a.tracks.filter(t=>!['beta','internal'].includes(t.track)).map(t=>{const r=(t.releases||[])[0];return `<div class="ptr"><span class="ptn">${t.name}</span><span class="ptv">${r?(r.name||('код '+r.versionCodes.join(', '))):'—'}</span>${t.track==='production'&&a.status?`<span class="pbadge sm st-${a.status.state}" title="${a.status.hint}">${a.status.text}</span>`:r?`<span class="pbadge sm ${PST[r.status]||'idle'}" title="${STIP}">${r.statusText}</span>`:'<span class="pbadge sm idle">Пусто</span>'}</div>`}).join('')}</div>
   ${a.reviews.length?`<div class="prh">Последние отзывы</div>${a.reviews.slice(0,3).map(v=>`<div class="prv"><div class="prs">${'★'.repeat(v.stars)}<i>${'★'.repeat(5-v.stars)}</i><span>${fmtD(v.date)}${v.version?' · v '+v.version:''}</span></div><div class="prt">${(v.text||'').replace(/</g,'&lt;')}</div></div>`).join('')}`:''}
   </div>`}).join('')}</div>`}
 $('#playRefresh').onclick=loadPlay;
