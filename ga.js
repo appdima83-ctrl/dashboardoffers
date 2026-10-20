@@ -37,15 +37,15 @@ function loadCredsFrom(sfx) {
 }
 
 const toks = new Map();
-async function accessToken(app) {
-  const c = loadCreds(app), hit = toks.get(c.client_email);
+async function accessToken(app, scope = 'https://www.googleapis.com/auth/analytics.readonly') {
+  const c = loadCreds(app), hit = toks.get(c.client_email + '|' + scope);
   if (hit && Date.now() < hit.exp) return hit.v;
   const now = Math.floor(Date.now() / 1000), b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
-  const unsigned = b64({ alg: 'RS256', typ: 'JWT' }) + '.' + b64({ iss: c.client_email, scope: 'https://www.googleapis.com/auth/analytics.readonly', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 });
+  const unsigned = b64({ alg: 'RS256', typ: 'JWT' }) + '.' + b64({ iss: c.client_email, scope, aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 });
   const sig = crypto.createSign('RSA-SHA256').update(unsigned).sign(c.private_key, 'base64url');
   const r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: unsigned + '.' + sig }), signal: AbortSignal.timeout(15000) });
   if (!r.ok) throw fail('ga_auth', 'Google отклонил ключ сервисного аккаунта (' + r.status + ')');
-  const j = await r.json(); toks.set(c.client_email, { v: j.access_token, exp: Date.now() + (j.expires_in - 120) * 1000 });
+  const j = await r.json(); toks.set(c.client_email + '|' + scope, { v: j.access_token, exp: Date.now() + (j.expires_in - 120) * 1000 });
   return j.access_token;
 }
 
@@ -129,4 +129,4 @@ async function getApp(app, days) {
   if (c && Date.now() - c.t < 20000) return c.v;
   const v = await report(pid, days, app); cache.set(k, { t: Date.now(), v }); return v;
 }
-module.exports = { getApp, APPS, listProperties };
+module.exports = { getApp, APPS, listProperties, accessToken, fail };

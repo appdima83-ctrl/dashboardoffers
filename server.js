@@ -170,6 +170,10 @@ http.createServer(async (req, res) => {
     if (!KEY) return send(res, 200, { ...CONFIG, hasKey: false });
     try { return send(res, 200, { ...CONFIG, hasKey: true, offers: await offersList() }); } catch (e) { return send(res, 200, { ...CONFIG, hasKey: true }); }
   }
+  if (u.pathname === '/api/play') {
+    try { return send(res, 200, await require('./play.js').getPlay()); }
+    catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
+  }
   if (u.pathname.startsWith('/api/ga/')) {
     try { return send(res, 200, await ga.getApp(u.pathname.slice(8), +u.searchParams.get('days'))); }
     catch (e) { return send(res, e.code === 'not_found' ? 404 : 502, { error: e.code || 'upstream', message: e.message }); }

@@ -450,9 +450,29 @@ nav#nav{margin-top:0}
 .gchip.on{border:2px solid var(--c)!important;box-shadow:none!important;background:#1a1a1a!important}
 .gchip:focus,.gchip:focus-visible{outline:none!important}
 .gchip .gf{border-radius:50%}
+
+/* Google Play */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px}
+.pcard{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ph{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.ph h2{margin:0}.pk{color:var(--tx2);font-size:12px;word-break:break-all}
+.pmain{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:14px;background:#161616;border:1px solid #232323}
+.pl{color:var(--tx2);font-size:12px}.pv{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:2px}
+.pbadge{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+.pbadge.sm{padding:3px 10px;font-size:12px}
+.pbadge.ok{color:#34D399;background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3)}
+.pbadge.prog{color:#FFA21F;background:rgba(255,162,31,.12);border-color:rgba(255,162,31,.3)}
+.pbadge.bad{color:#F87171;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
+.pbadge.idle{color:var(--tx2);background:rgba(255,255,255,.05);border-color:#2a2a2a}
+.ptracks{display:flex;flex-direction:column}
+.ptr{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #1d1d1d}.ptr:last-child{border-bottom:0}
+.ptn{color:var(--tx2);font-size:13.5px}.ptv{font-weight:600;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prh{color:var(--tx2);font-size:12px;margin-top:2px}
+.prv{padding:10px 0;border-top:1px solid #1d1d1d}.prs{color:#FFA21F;font-size:14px;letter-spacing:1px;display:flex;align-items:center;gap:8px}.prs i{font-style:normal;color:#3a3a3a;margin-left:-8px}.prs span{color:var(--tx2);font-size:12px;letter-spacing:0}
+.prt{margin-top:4px;font-size:13.5px;line-height:1.4;overflow-wrap:anywhere}
+.pbad{padding:14px 16px;border-radius:14px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);color:#fca5a5;font-size:13.5px;line-height:1.45}
 </style></head><body><div class="wrap">
 <aside class="side">
-  <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a></nav>
+  <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a><a href="#play"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5v17l14-8.5z"/></svg><span>Google Play</span></a></nav>
   <div class="sidefoot"><div class="sync"><i></i><span>Данные обновлены</span><b id="sync">—</b></div><button id="logout" title="Выйти">Выйти</button></div>
 </aside>
 <main class="main">
@@ -464,6 +484,7 @@ nav#nav{margin-top:0}
     <label class="range" title="Период"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span class="dt"><span class="dtx" id="fromTxt">—</span><input type="date" id="from" aria-label="С даты"></span><span class="dash">–</span><span class="dt"><span class="dtx" id="toTxt">—</span><input type="date" id="to" aria-label="По дату"></span><svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></label>
     <button class="act fsbtn" title="На весь экран" aria-label="На весь экран"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button><button id="refresh" class="act"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg><span>Обновить</span></button>
   </div>
+  <div class="hact" id="hactPlay" hidden><span class="upd" id="playUpd"></span><button id="playRefresh" class="act"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg><span>Обновить</span></button></div>
   <div class="hact" id="hactApp" hidden>
     <span class="upd" id="appUpd"></span><span class="badge" id="appDemo" hidden>Демо</span><b id="appTitle" hidden>Wonga</b>
     <label class="range sel" title="Период"><svg class="ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><select id="appDays"><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="90">90 дней</option></select><svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></label>
@@ -487,6 +508,7 @@ nav#nav{margin-top:0}
 </div>
 <div class="panel tblwrap" id="tbl"></div>
 </div>
+<div id="viewPlay" class="view" hidden><div id="playBody" class="view"></div></div>
 <div id="viewApp" class="view" hidden>
   <div id="appBody" class="view"></div>
 </div>
@@ -747,20 +769,47 @@ function countUp(){
   const to=parseFloat(m[1].replace(/[\s\u00A0]/g,'').replace(',','.')),dec=(m[1].split(',')[1]||'').length,suf=m[2],t0=performance.now();
   const f=v=>dec?fmtM(v,dec):fmtI(v);
   (function tick(t){const p=Math.min(1,(t-t0)/900);el.textContent=f(to*ease(p))+suf;if(p<1)requestAnimationFrame(tick);else el.textContent=txt})(t0)})}
+
+// ---------- Google Play ----------
+const stp={data:null,error:null,ctl:null};
+async function loadPlay(){
+ lastLoad=Date.now();stp.ctl&&stp.ctl.abort();const ctl=stp.ctl=new AbortController();
+ if(!stp.data)$('#playBody').innerHTML='<div class="pgrid"><div class="sk" style="height:260px"></div><div class="sk" style="height:260px"></div></div>';
+ const b=$('#playRefresh');b&&b.classList.add('busy');
+ try{const {r,j}=await api('/api/play',null,ctl.signal);if(!r.ok)throw Object.assign(new Error(j.message),{code:j.error});stp.data=j;stp.error=null;
+  const t=new Date(j.updatedAt).toLocaleTimeString('ru-RU');$('#sync').textContent=t.slice(0,5)}
+ catch(e){if(e.name==='AbortError')return;stp.error=e}
+ finally{b&&b.classList.remove('busy')}
+ playRender()}
+const PST={completed:'ok',inProgress:'prog',halted:'bad',draft:'idle'};
+function playRender(){
+ const d=stp.data,b=$('#playBody');
+ if(!d){b.innerHTML=stp.error?`<div class="panel msg"><h3>Не удалось получить данные Google Play</h3><p>${stp.error.message}</p><button class="primary" onclick="loadPlay()">Повторить</button></div>`:'';return}
+ const fmtD=ms=>ms?new Date(ms).toLocaleDateString('ru-RU'):'';
+ b.innerHTML=`<div class="pgrid">${d.apps.map(a=>{
+  if(!a.ok)return `<div class="panel pcard"><div class="ph"><h2>${a.title}</h2><span class="pk">${a.id}</span></div><div class="pbad">${a.message}</div></div>`;
+  const prod=(a.tracks.find(t=>t.track==='production')||{}).releases||[],pr=prod[0];
+  return `<div class="panel pcard"><div class="ph"><h2>${a.title}</h2><span class="pk">${a.id}</span></div>
+  <div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div></div>${pr?`<span class="pbadge ${PST[pr.status]||'idle'}">${pr.statusText}</span>`:'<span class="pbadge idle">Нет выпуска</span>'}</div>
+  <div class="ptracks">${a.tracks.map(t=>{const r=(t.releases||[])[0];return `<div class="ptr"><span class="ptn">${t.name}</span><span class="ptv">${r?(r.name||('код '+r.versionCodes.join(', '))):'—'}</span>${r?`<span class="pbadge sm ${PST[r.status]||'idle'}">${r.statusText}</span>`:'<span class="pbadge sm idle">Пусто</span>'}</div>`}).join('')}</div>
+  ${a.reviews.length?`<div class="prh">Последние отзывы</div>${a.reviews.slice(0,3).map(v=>`<div class="prv"><div class="prs">${'★'.repeat(v.stars)}<i>${'★'.repeat(5-v.stars)}</i><span>${fmtD(v.date)}${v.version?' · v '+v.version:''}</span></div><div class="prt">${(v.text||'').replace(/</g,'&lt;')}</div></div>`).join('')}`:'<div class="prh">Отзывов за последнюю неделю нет</div>'}
+  </div>`}).join('')}</div>`}
+$('#playRefresh').onclick=loadPlay;
 // ---------- Приложения (Firebase / GA4) ----------
 const APPN={wonga:'Wonga',mpowa:'Mpowa'};
 const st2={days:30,data:null,error:null,ctl:null};
 function isApp(){return !!APPN[location.hash.slice(1)]}
-function reload(){isApp()?loadApp():load()}
+function reload(){location.hash==='#play'?loadPlay():isApp()?loadApp():load()}
 function route(){
- const app=location.hash.slice(1),on=!!APPN[app];
- $('#viewMain').hidden=on;$('#viewApp').hidden=!on;$('#hactMain').hidden=on;$('#hactApp').hidden=!on;
- document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',on?a.getAttribute('href')==='#'+app:a.getAttribute('href')==='#'));
- document.title=on?APPN[app]+' — аналитика':'Статистика ProfitCash';
- $('#pageTitle').firstChild.textContent=on?APPN[app]+' ':'Статистика ';
- $('#pageSub').textContent=on?'Аналитика приложения — Firebase / Google Analytics 4':'Партнёрская программа LeadCash — данные Affise';
+ const app=location.hash.slice(1),isPlay=app==='play',on=!!APPN[app];
+ $('#viewMain').hidden=on||isPlay;$('#viewApp').hidden=!on;$('#viewPlay').hidden=!isPlay;
+ $('#hactMain').hidden=on||isPlay;$('#hactApp').hidden=!on;$('#hactPlay').hidden=!isPlay;
+ document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',(on||isPlay)?a.getAttribute('href')==='#'+app:a.getAttribute('href')==='#'));
+ document.title=isPlay?'Google Play — статусы приложений':on?APPN[app]+' — аналитика':'Статистика ProfitCash';
+ $('#pageTitle').firstChild.textContent=isPlay?'Google Play ':on?APPN[app]+' ':'Статистика ';
+ $('#pageSub').textContent=isPlay?'Статусы выпусков и отзывы — Google Play Developer API':on?'Аналитика приложения — Firebase / Google Analytics 4':'Партнёрская программа LeadCash — данные Affise';
  moveInd();
- if(on){$('#appTitle').textContent=APPN[app];loadApp()}else load()}
+ if(isPlay)loadPlay();else if(on){$('#appTitle').textContent=APPN[app];loadApp()}else load()}
 async function loadApp(){lastLoad=Date.now();
  if(st2.app!==location.hash.slice(1)){st2.app=location.hash.slice(1);st2.data=null;st2.error=null;$('#appDemo').hidden=true}
  const app=location.hash.slice(1);if(!APPN[app])return;
