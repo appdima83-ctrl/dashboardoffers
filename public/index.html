@@ -428,6 +428,14 @@ nav#nav{margin-top:0}
 .gchip::after{content:"";position:absolute;left:10px;right:10px;bottom:4px;height:3px;border-radius:3px;background:var(--c);opacity:.55;transition:opacity .2s}
 .gchip:hover .gf{transform:scale(1.12)}.gchip.on{background:#222!important;border-color:var(--c)!important;box-shadow:0 0 0 1px var(--c) inset!important}.gchip.on::after{opacity:1}
 .gdetail.empty{display:none}
+
+/* SVG-флаги (circle-flags) и значок глобуса (Hugeicons) */
+.flagi{display:inline-block;vertical-align:middle;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+.fl .flagi{vertical-align:-4px}.fls{gap:5px}
+.gchip .gf{font-size:0;display:grid;place-items:center}.gchip .gf .globeic{width:28px;height:28px;color:#cfcfcd}
+.gdn .gflag{font-size:0!important;display:grid;place-items:center}.gdn .gflag .globeic{width:50px;height:50px;color:#cfcfcd}
+.gdnm .flagi{margin-right:7px;vertical-align:-3px}
+.gchip:hover .flagi{transform:scale(1.1)}.gchip .flagi{transition:transform .2s}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a></nav>
@@ -640,14 +648,14 @@ function geoRender(){
  if(rest.length)items.push({n:'Остальные ('+rest.length+')',v:rest.reduce((a,x)=>a+x.hosts,0),group:rest});
  const tot=items.reduce((a,x)=>a+x.v,0)||1,R=70,C=2*Math.PI*R,gap=items.length>1?4:0;let cum=0;
  const seg=items.map((it,i)=>{const f=it.v/tot,len=Math.max(.01,f*C-gap-16),o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke="${DPAL[i]}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${len} ${C}" stroke-dashoffset="${-(cum*C+gap/2+8)}" transform="rotate(-90 100 100)" class="dseg" data-i="${i}"><title>${it.n}: ${fmtI(it.v)} хостов</title></circle>`;cum+=f;return o}).join('');
- el.innerHTML=`<div class="dn gdn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fmtI(tot)}</b><span>хостов</span></div></div><div class="gflags" id="gflags">${items.map((it,i)=>`<button class="gchip" data-i="${i}" style="--c:${DPAL[i]}" title="${it.n}: ${fmtI(it.v)} хостов" aria-label="${it.n}"><span class="gf">${it.code?flagEmoji(it.code):'🌐'}</span></button>`).join('')}</div><div class="gdetail empty" id="gdetail"></div>`;
+ el.innerHTML=`<div class="dn gdn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fmtI(tot)}</b><span>хостов</span></div></div><div class="gflags" id="gflags">${items.map((it,i)=>`<button class="gchip" data-i="${i}" style="--c:${DPAL[i]}" title="${it.n}: ${fmtI(it.v)} хостов" aria-label="${it.n}"><span class="gf">${flagImg(it.code,30)}</span></button>`).join('')}</div><div class="gdetail empty" id="gdetail"></div>`;
  const ct=el.querySelector('.ct'),base=ct.innerHTML,det=el.querySelector('#gdetail'),segs=[...el.querySelectorAll('.dseg')],chips=[...el.querySelectorAll('.gchip')];
  const rows=(list,fmtName)=>{const mx=Math.max(1,...list.map(o=>o.v));return list.map(o=>`<div class="gdrow"><div class="gdn1"><span class="gdnm" title="${o.t||''}">${fmtName(o)}</span><b>${fmtI(o.v)}</b></div><div class="gdbar"><div style="width:${o.v/mx*100}%"></div></div></div>`).join('')};
  const sel=i=>{st.gsel=i===null?null:items[i].n;segs.forEach((c,j)=>{c.classList.toggle('dim',i!==null&&j!==i);c.classList.toggle('on',j===i)});chips.forEach((c,j)=>c.classList.toggle('on',j===i));det.classList.toggle('empty',i===null);
   if(i===null){ct.innerHTML=base;det.innerHTML='';return}
   const it=items[i];
-  ct.innerHTML=`<span class="gflag">${it.code?flagEmoji(it.code):'🌐'}</span><span class="dname">${it.n}</span><b class="gbig">${fmtI(it.v)}</b><span class="dpc">хостов</span>`;
-  if(it.group)det.innerHTML=`<div class="gdt">Страны в группе</div>`+rows(it.group.map(x=>({t:cname(x.code),n:cname(x.code),code:x.code,v:x.hosts})),o=>`${flagEmoji(o.code)} ${o.n}`);
+  ct.innerHTML=`<span class="gflag">${flagImg(it.code,56)}</span><span class="dname">${it.n}</span><b class="gbig">${fmtI(it.v)}</b><span class="dpc">хостов</span>`;
+  if(it.group)det.innerHTML=`<div class="gdt">Страны в группе</div>`+rows(it.group.map(x=>({t:cname(x.code),n:cname(x.code),code:x.code,v:x.hosts})),o=>`${flagImg(o.code,16)} ${o.n}`);
   else det.innerHTML=`<div class="gdt">Офферы: ${it.n}</div>`+(it.offers.length?rows(it.offers.map(o=>({t:o.title,n:o.title.replace(/\s*\[.*$/,''),v:o.hosts})),o=>o.n):'<div class="dhint">Нет данных по офферам</div>')};
  segs.forEach((c,j)=>{c.onclick=e=>{e.stopPropagation();sel(st.gsel===items[j].n?null:j)}});
  chips.forEach((c,j)=>{c.onclick=()=>sel(st.gsel===items[j].n?null:j)});
@@ -656,10 +664,12 @@ function geoRender(){
 // ---------- Флаги стран оффера ----------
 const RN=(()=>{try{return new Intl.DisplayNames(['ru'],{type:'region'})}catch{return null}})();
 const flagEmoji=c=>String.fromCodePoint(...[...c.toUpperCase()].map(ch=>0x1F1E6+ch.charCodeAt(0)-65));
+const GLOBE='<svg class="globeic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12C8 18 12 22 12 22C12 22 16 18 16 12C16 6 12 2 12 2C12 2 8 6 8 12Z"/><path d="M21 15H3"/><path d="M21 9H3"/></svg>'; // Hugeicons: globe-02
+const flagImg=(c,px=20)=>/^[A-Za-z]{2}$/.test(c||'')?`<img class="flagi" src="flags/${c.toLowerCase()}.svg" width="${px}" height="${px}" alt="" loading="lazy" onerror="this.replaceWith(document.createTextNode('${flagEmoji(c)}'))">`:GLOBE;
 const SHORTN={ZA:'ЮАР',US:'США',AE:'ОАЭ',GB:'Великобритания',CD:'ДР Конго',CG:'Конго',KR:'Южная Корея',KP:'КНДР',CZ:'Чехия',BA:'Босния и Герцеговина',MM:'Мьянма'};
 const cname=c=>{try{return SHORTN[c]||(RN&&RN.of(c))||c}catch{return c}};
 function flagsHtml(o){const cs=o.countries||[];if(!cs.length)return '';
- const show=cs.slice(0,3).map(c=>`<span class="fl" title="${cname(c)}">${flagEmoji(c)}</span>`).join('');
+ const show=cs.slice(0,3).map(c=>`<span class="fl" title="${cname(c)}">${flagImg(c,19)}</span>`).join('');
  const more=cs.length>3?`<span class="flm" title="${cs.slice(3).map(cname).join(', ')}">+${cs.length-3}</span>`:'';
  return `<span class="fls">${show}${more}</span>`}
 // ---------- Карта мира ----------

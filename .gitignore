@@ -4,3 +4,4 @@ file.env*
 *.rtf
 .claude/
 *.env.md
+.DS_Store
