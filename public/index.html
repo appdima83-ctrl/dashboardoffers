@@ -488,7 +488,7 @@ nav#nav{margin-top:0}
 .pbadge.st-review{color:#FFA21F;background:rgba(255,162,31,.12);border-color:rgba(255,162,31,.3)}
 .pbadge.st-bad{color:#F87171;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
 .pbadge.st-idle,.pbadge.st-none{color:var(--tx2);background:rgba(255,255,255,.05);border-color:#2a2a2a}
-.prem{margin-left:auto;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid #2a2a2a;color:var(--tx2);white-space:nowrap}.prem.soon{color:#FFA21F;background:rgba(255,162,31,.12);border-color:rgba(255,162,31,.3)}.prem.late{color:#f87171;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
+.ph h2{flex:1 1 0;min-width:0}.prem{margin-left:auto;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid #2a2a2a;color:var(--tx2);white-space:nowrap}.prem.soon{color:#FFA21F;background:rgba(255,162,31,.12);border-color:rgba(255,162,31,.3)}.prem.late{color:#f87171;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
 .pinst{display:flex;align-items:baseline;gap:10px;margin:10px 2px 0;color:var(--tx2);font-size:13px}.pinst b{color:var(--tx);font-size:20px}.pinst i{font-style:normal;font-size:12px}.pinst .up{color:#4ade80}.pinst .dn{color:#f87171}
 .pst{color:var(--tx2);font-size:12px;margin-top:3px}
 .ph .pk{margin-left:56px}
@@ -818,8 +818,8 @@ function playRender(){
  const fmtD=ms=>ms?new Date(ms).toLocaleDateString('ru-RU'):'';
  const REL_DAYS=5,remind=(a,pr)=>{if(pr)return '';let best='';for(const t of a.tracks)if(t.track!=='production'&&!['beta','internal'].includes(t.track))for(const r of t.releases||[])if(r.date&&r.date>best)best=r.date;
   if(!best)return '';const today=new Date().toISOString().slice(0,10),passed=Math.round((Date.parse(today)-Date.parse(best))/864e5),left=REL_DAYS-passed;
-  const [cls,txt]=left>1?['ok','Новая версия через '+left+' дн.']:left===1?['soon','Новую версию — завтра']:left===0?['soon','Сегодня выпустить новую версию']:['late','Новую версию нужно было выпустить '+(-left)+' дн. назад'];
-  return `<span class="prem ${cls}" title="Последняя версия на закрытом тесте: ${best}. Правило: новая версия каждые ${REL_DAYS} дней">⏰ ${txt}</span>`};
+  const [cls,txt]=left>1?['ok','Релиз через '+left+' дн.']:left===1?['soon','Релиз завтра']:left===0?['soon','Релиз сегодня']:['late','Релиз просрочен: '+(-left)+' дн.'];
+  return `<span class="prem ${cls}" title="Последняя версия на закрытом тесте: ${best}. Правило: новая версия каждые ${REL_DAYS} дней (нужно выпускать новую версию)">⏰ ${txt}</span>`};
  const MON=['янв.','февр.','мар.','апр.','мая','июн.','июл.','авг.','сент.','окт.','нояб.','дек.'],vd=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return +d+' '+MON[m-1]+' '+y+' г.'};
  b.innerHTML=`<div class="pgrid">${d.apps.map(a=>{
   if(!a.ok)return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div><div class="pbad">${a.message}</div></div>`;
