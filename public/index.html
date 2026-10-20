@@ -224,12 +224,12 @@ tbody tr:hover{background:#171717}tfoot td{background:#161616;border-top:1px sol
 .badge{background:#FF6A1A;color:#fff}.banner{background:#1c1409;border-color:#5a3b12}
 .sk{background:linear-gradient(90deg,#141414,#1c1c1c,#141414);background-size:200%;border-radius:14px}
 .orow.hot{background:linear-gradient(90deg,rgba(52,211,153,.12),transparent 70%);box-shadow:inset 3px 0 0 #34D399}
-@media(max-width:900px){.side{border-radius:16px!important}.sync{display:none}}
+@media(max-width:900px){.side{border-radius:16px!important}.sync{display:none}.ht .msync{display:flex;align-items:center;gap:6px;position:absolute;right:2px;top:6px;color:var(--tx2);font-size:12px;line-height:1.2;text-align:right}.msync i{width:7px;height:7px;border-radius:50%;background:#34D399;box-shadow:0 0 8px #34D399;flex:none}.msync b{color:#d8d8d6;font-weight:500}}
 
 svg.ico{width:17px!important;height:17px!important;flex:none;display:block}svg.chev{width:14px!important;height:14px!important;flex:none;display:block}
 /* ===== Шапка как в референсе: заголовок слева, период и кнопка справа ===== */
 .head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.head .ht{min-width:0}.head h1{margin:0}
+.msync{display:none}.head .ht{min-width:0;position:relative}.head h1{margin:0}
 .hact{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .hact[hidden]{display:none!important}
 .range{display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 14px;background:#141414;border:1px solid #2a2a2a;border-radius:10px;color:#cfcfcd;cursor:pointer;transition:border-color .2s,background .2s}
@@ -499,7 +499,7 @@ nav#nav{margin-top:0}
 </aside>
 <main class="main">
 <header class="head">
-  <div class="ht"><h1 id="pageTitle">Статистика <span class="badge" id="demo" hidden>Демо</span></h1><p class="sub" id="pageSub">Партнёрская программа LeadCash — данные Affise</p></div>
+  <div class="ht"><div class="msync"><i></i><span>Данные обновлены</span><b id="sync2">—</b></div><h1 id="pageTitle">Статистика <span class="badge" id="demo" hidden>Демо</span></h1><p class="sub" id="pageSub">Партнёрская программа LeadCash — данные Affise</p></div>
   <div class="hact" id="hactMain">
     <span class="upd" id="upd"></span>
     <input type="hidden" id="offer" value="all"><select id="cur" hidden></select>
@@ -673,6 +673,7 @@ function chart(){
 document.querySelectorAll('#quick button').forEach(b=>b.onclick=()=>{quick(b.dataset.q);load()});
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{st.mode=b.dataset.m;document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&chart()});
 ['from','to','offer','cur'].forEach(id=>$('#'+id).onchange=()=>{if(id==='from'||id==='to')document.querySelectorAll('#quick button').forEach(b=>b.classList.remove('on'));load()});
+new MutationObserver(()=>{$('#sync2').textContent=$('#sync').textContent}).observe($('#sync'),{childList:true,characterData:true,subtree:true});
 $('#refresh').onclick=reload;addEventListener('resize',()=>st.rows&&chart());
 
 
