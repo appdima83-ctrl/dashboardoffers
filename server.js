@@ -90,15 +90,23 @@ async function affise(from, to, q) {
   const todayP = cached('today|' + today, () => allPages('/3.0/stats/custom', [['filter[date_from]', today], ['filter[date_to]', today], ['timezone', TZ], ['slice[]', 'offer']]), 15000)
     .then(st => Object.fromEntries(st.map(x => [String(x.slice.offer.id), norm(x)]))).catch(() => null);
   const data = await cached(['s', from, to, offer].join('|'), async () => {
-    const [daily, byOff] = await Promise.all([
+    const [daily, byOff, byCountry, byCO] = await Promise.all([
       allPages('/3.0/stats/getbydate', offer && offer !== 'all' ? [...base, ['filter[offer]', offer]] : base),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'offer']]),
+      allPages('/3.0/stats/custom', [...base, ['slice[]', 'country']]).catch(() => []),
+      allPages('/3.0/stats/custom', [...base, ['slice[]', 'country'], ['slice[]', 'offer']]).catch(() => []),
     ]);
     const map = {};
     for (const s of daily) { const d = s.slice; map[`${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`] = norm(s); }
     const rows = days(from, to).map(date => ({ date, ...(map[date] || { hosts: 0, clicks: 0, conversions: 0, amount: 0 }) }));
     const offers = byOff.map(s => ({ id: String(s.slice.offer.id), title: s.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...norm(s) }));
-    return { demo: false, currency: 'USD', rows, offers, offersSource: 'affise', updatedAt: new Date().toISOString() };
+    // Трафик по странам: хосты/клики по стране + топ офферов внутри страны
+    const cl = t => String(t || '').replace(/\[ /g, '[').replace(/ \]/g, ']');
+    const inner = {};
+    for (const x of byCO) { const c = String(x.slice.country || '').toUpperCase(), n = norm(x); if (!c || !x.slice.offer || !(n.hosts || n.clicks)) continue; (inner[c] ||= []).push({ id: String(x.slice.offer.id), title: cl(x.slice.offer.title), hosts: n.hosts, clicks: n.clicks }); }
+    const geo = byCountry.map(x => ({ code: String(x.slice.country || '').toUpperCase(), ...norm(x) })).filter(g => /^[A-Z]{2}$/.test(g.code) && (g.hosts || g.clicks))
+      .sort((a, b) => b.hosts - a.hosts || b.clicks - a.clicks).slice(0, 25).map(g => ({ ...g, offers: (inner[g.code] || []).sort((a, b) => b.hosts - a.hosts || b.clicks - a.clicks).slice(0, 4) }));
+    return { demo: false, currency: 'USD', rows, offers, geo, offersSource: 'affise', updatedAt: new Date().toISOString() };
   });
   const cat = await catP, rates = await ratesP;
   return { ...data, offers: data.offers.map(o => ({ ...o, countries: (cat[o.id] || {}).countries || [], payouts: ((cat[o.id] || {}).payouts || []).map(p => { if (p.type === 'percent' || p.currency === 'USD') return p; const u = toUsd(p.revenue, p.currency, rates); return u === null ? p : { ...p, usd: r4(u), rate: r4(u / p.revenue) }; }) })), balance: await balP, today, offersToday: await todayP };

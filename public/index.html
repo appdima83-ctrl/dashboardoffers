@@ -380,6 +380,25 @@ nav#nav{margin-top:0}
  .side nav#nav{gap:3px!important;flex-wrap:wrap!important}
  .side .sidefoot button{padding:7px 12px}
 }
+
+/* ===== Блок «Трафик по странам» рядом с графиком ===== */
+.chartrow{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:16px;align-items:stretch}
+@media(max-width:1199px){.chartrow{grid-template-columns:minmax(0,1fr)}}
+.chartrow>.panel{min-width:0}
+#geoPanel{display:flex;flex-direction:column;min-height:0}
+.gsub{color:var(--tx2);font-size:12px;margin:-6px 0 10px}
+.geolist{flex:1;min-height:0;overflow-y:auto;max-height:clamp(320px,52vh,640px);padding-right:6px;margin-right:-6px;scrollbar-width:thin;scrollbar-color:#2e2e2e transparent}
+@media(max-width:1199px){.geolist{max-height:none;overflow:visible}}
+.gr{padding:9px 0;border-bottom:1px solid #1d1d1d}.gr:last-child{border-bottom:0}
+.gtop{display:flex;align-items:center;gap:9px}
+.gfl{font-size:19px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.gnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.ghs{font-variant-numeric:tabular-nums}.gpc{color:var(--tx2);font-size:12px;min-width:34px;text-align:right}
+.gbar{height:6px;border-radius:6px;background:#1d1d1d;margin:7px 0 0;overflow:hidden}
+.gbar>div{height:100%;border-radius:6px;background:linear-gradient(90deg,#8a3a08,#FF6A1A);box-shadow:0 0 10px rgba(255,106,26,.35);transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.goff{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;color:var(--tx2);font-size:12px}
+.goff span{white-space:nowrap}.goff b{color:#d9d9d7;font-weight:600;font-variant-numeric:tabular-nums}.goff .gm{opacity:.8}
+.gmore{width:100%;margin-top:10px;justify-content:center}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a></nav>
@@ -403,10 +422,13 @@ nav#nav{margin-top:0}
 <div id="viewMain" class="view">
 <div class="banner" id="banner"></div>
 <div class="cards" id="cards"></div>
+<div class="chartrow">
 <div class="panel">
   <h2>Динамика по дням</h2>
   <div class="tabs" id="modes"><div class="legend" id="legend"></div></div>
   <div class="chartbox" id="chartbox"></div>
+</div>
+<div class="panel w" id="geoPanel"><h2>Трафик по странам</h2><div class="gsub">Хосты за период и офферы, на которые заходят</div><div class="geolist" id="geoList"></div></div>
 </div>
 <div class="g2o">
 <div class="panel"><div class="tabs"><h2 style="margin:0 12px 0 0;align-self:center">Офферы по результату</h2><div id="omodes" style="display:flex;gap:6px"><button data-o="conversions" class="on">Конверсии</button><button data-o="amount">Сумма</button><button data-o="clicks">Клики</button><button data-o="hosts">Хосты</button></div></div><div id="osrc" style="color:var(--tx2);font-size:12px;margin:-4px 0 6px"></div><div id="obars"></div></div>
@@ -446,7 +468,7 @@ async function load(){lastLoad=Date.now();
  try{
   const {r,j}=await api('/api/stats',p,ctl.signal);
   if(!r.ok)throw Object.assign(new Error(j.message),{code:j.error});
-  if(!st.rows||st.rows.length!==j.rows.length)st.page=1;st.rows=j.rows;st.balance=j.balance;st.offToday=j.offersToday||null;st.today=j.today;st.offers=j.offers||[];st.osrc=j.offersSource;st.error=null;st.stale=false;$('#demo').hidden=!j.demo;
+  if(!st.rows||st.rows.length!==j.rows.length)st.page=1;st.rows=j.rows;st.geo=j.geo||null;st.balance=j.balance;st.offToday=j.offersToday||null;st.today=j.today;st.offers=j.offers||[];st.osrc=j.offersSource;st.error=null;st.stale=false;$('#demo').hidden=!j.demo;
   const t=new Date(j.updatedAt);$('#upd').textContent='Обновлено: '+t.toLocaleTimeString('ru-RU');$('#sync').textContent=t.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});$('#upd').className='upd';
  }catch(e){if(e.name==='AbortError')return;st.error=e;if(st.rows){st.stale=true;$('#upd').textContent='Данные не обновлены';$('#upd').className='upd stale'}}
  render();
@@ -465,7 +487,7 @@ function render(){
  <div class="card a"><div class="l">Кол-во офферов</div><div class="v">${fmtI(T.conversions)}</div><div class="s">Конверсии за период</div></div>
  <div class="card b"><div class="l">Заработано</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}. Все валюты уже в долларах: Affise пересчитывает выплаты по курсу на день конверсии, как «Итого» в кабинете.">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>`;
  if(!st.rows.length||(T.hosts+T.clicks+T.conversions===0&&false)){}
- chart();table(T);bars();countUp();
+ chart();geoRender();table(T);bars();countUp();
 }
 const SYM={USD:'$',EUR:'€',ZAR:'R'};
 const money=(v,c)=>fmtM(v,2)+' '+(SYM[c]||c);
@@ -578,10 +600,22 @@ const UPW={conversions:['конверсия','конверсии','конвер�
 const plural=(n,f)=>{const a=Math.abs(n)%100,b=a%10;return a>10&&a<20?f[2]:b>1&&b<5?f[1]:b===1?f[0]:f[2]};
 function upTitle(k,v){const d=st.today?dm(st.today):'сегодня';
  return k==='amount'?`Заработано сегодня (${d}): +${fmtM(v,2)} ${st.cur}`:`Сегодня (${d}): +${fmtI(v)} ${plural(v,UPW[k])}`}
+
+// ---------- Трафик по странам ----------
+function geoRender(){
+ const el=$('#geoList');if(!el)return;
+ const g=st.geo;
+ if(!g||!g.length){el.innerHTML='<p style="color:var(--tx2)">Нет данных по странам за период</p>';return}
+ const mx=Math.max(1,...g.map(x=>x.hosts)),tot=g.reduce((a,x)=>a+x.hosts,0)||1,narrowG=matchMedia('(max-width:1199px)').matches,lim=narrowG&&!st.geoAll?8:g.length;
+ el.innerHTML=g.slice(0,lim).map((x,i)=>`<div class="gr"><div class="gtop"><span class="gfl">${flagEmoji(x.code)}</span><span class="gnm" title="${cname(x.code)}">${cname(x.code)}</span><b class="ghs" title="Хосты">${fmtI(x.hosts)}</b><span class="gpc">${(x.hosts/tot*100).toFixed(0)}%</span></div>
+  <div class="gbar"><div style="width:${x.hosts/mx*100}%"></div></div>
+  ${x.offers.length?`<div class="goff">${x.offers.slice(0,3).map(o=>`<span title="${o.title}: ${fmtI(o.hosts)} хостов, ${fmtI(o.clicks)} кликов">${o.title.replace(/\s*\[.*$/,'')} <b>${fmtI(o.hosts)}</b></span>`).join('')}${x.offers.length>3?`<span class="gm" title="${x.offers.slice(3).map(o=>o.title+': '+fmtI(o.hosts)).join(', ')}">+${x.offers.length-3}</span>`:''}</div>`:''}</div>`).join('')+(narrowG&&g.length>8?`<button class="gmore" id="gmore">${st.geoAll?'Свернуть':'Показать все ('+g.length+')'}</button>`:'');
+ const gb=$('#gmore');if(gb)gb.onclick=()=>{st.geoAll=!st.geoAll;geoRender()}}
 // ---------- Флаги стран оффера ----------
 const RN=(()=>{try{return new Intl.DisplayNames(['ru'],{type:'region'})}catch{return null}})();
 const flagEmoji=c=>String.fromCodePoint(...[...c.toUpperCase()].map(ch=>0x1F1E6+ch.charCodeAt(0)-65));
-const cname=c=>{try{return(RN&&RN.of(c))||c}catch{return c}};
+const SHORTN={ZA:'ЮАР',US:'США',AE:'ОАЭ',GB:'Великобритания',CD:'ДР Конго',CG:'Конго',KR:'Южная Корея',KP:'КНДР',CZ:'Чехия',BA:'Босния и Герцеговина',MM:'Мьянма'};
+const cname=c=>{try{return SHORTN[c]||(RN&&RN.of(c))||c}catch{return c}};
 function flagsHtml(o){const cs=o.countries||[];if(!cs.length)return '';
  const show=cs.slice(0,3).map(c=>`<span class="fl" title="${cname(c)}">${flagEmoji(c)}</span>`).join('');
  const more=cs.length>3?`<span class="flm" title="${cs.slice(3).map(cname).join(', ')}">+${cs.length-3}</span>`:'';
