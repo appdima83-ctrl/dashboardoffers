@@ -5,6 +5,9 @@ const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const API = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/';
 // Пакеты приложений: PLAY_PACKAGES="com.a.b:Название,com.c.d:Другое"
 const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc,com.prestomin.dinerorapido:Prestomin Dinero Rápido,com.unifi.financecalc:Unifi finance - calc app,com.kwikloanguide.app:Kwik - Personal Loan Guide app,com.emergencyloanguide.app:Mpowa finance - loan guid app,com.naviosgaming.app:Navios - Gaming Betting Guide';
+// Ручные пометки статуса (Google не отдаёт отклонения по API): PLAY_FLAGS="пакет=rejected,пакет=blocked". Пустое значение PLAY_FLAGS= отключает все.
+const FLAG_TEXT = { rejected: 'Отклонено', blocked: 'Заблокировано', review: 'На проверке' };
+const flags = () => Object.fromEntries((process.env.PLAY_FLAGS !== undefined ? process.env.PLAY_FLAGS : 'com.naviosgaming.app=rejected').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && FLAG_TEXT[v]).map(([k, v]) => [k, { state: v, text: FLAG_TEXT[v] }]));
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
@@ -150,6 +153,7 @@ async function getPlay() {
   const token = await accessToken(undefined, SCOPE);
   let gcs = null; try { gcs = await accessToken(undefined, 'https://www.googleapis.com/auth/devstorage.read_only'); } catch {}
   const apps = await Promise.all(packages().map(p => oneApp(p, token, gcs)));
+  const fl = flags(); for (const a of apps) if (fl[a.id]) a.flag = fl[a.id];
   const v = { apps, installsAccess: apps.some(a => a.installs) ? true : instAccess, updatedAt: new Date().toISOString() }; cache = { t: Date.now(), v }; return v;
 }
 module.exports = { getPlay };
