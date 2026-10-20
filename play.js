@@ -70,16 +70,19 @@ async function versionDates(pkg) {
   let v = {};
   try {
     const m = (await gaStreams())[pkg];
+    if (!m) v = { _err: 'нет потока Analytics для пакета (или нет доступа к свойству)' };
     if (m) {
       const t = await accessToken(undefined);
       const r = await fetch('https://analyticsdata.googleapis.com/v1beta/properties/' + m.property + ':runReport', { method: 'POST', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(25000),
         body: JSON.stringify({ dateRanges: [{ startDate: '730daysAgo', endDate: 'today' }], dimensions: [{ name: 'appVersion' }, { name: 'date' }], metrics: [{ name: 'activeUsers' }], dimensionFilter: { filter: { fieldName: 'streamId', stringFilter: { matchType: 'EXACT', value: m.streamId } } }, limit: 100000 }) });
-      for (const row of (await r.json()).rows || []) {
+      const rep = await r.json();
+      if (!r.ok) v._err = 'Analytics: ' + (rep.error && rep.error.message || r.status);
+      for (const row of rep.rows || []) {
         const ver = row.dimensionValues[0].value, d = row.dimensionValues[1].value, iso = d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8);
         if (Number(row.metricValues[0].value) > 0 && (!v[ver] || iso < v[ver])) v[ver] = iso;
       }
     }
-  } catch {}
+  } catch (e) { v._err = 'Analytics: ' + e.message; }
   verDates.set(pkg, { t: Date.now(), v }); return v;
 }
 const dateFor = (name, dates) => { for (const c of String(name || '').match(/\d+(?:\.\d+)+/g) || []) if (dates[c]) return dates[c]; return ''; };
@@ -130,7 +133,7 @@ async function oneApp(p, token, gcsToken) {
     try { reviews = ((await pget(p.id, '/reviews?maxResults=5', token)).reviews || []).map(r => { const c = ((r.comments || [])[0] || {}).userComment || {}; return { author: r.authorName || '', stars: c.starRating || 0, text: c.text || '', date: c.lastModified ? Number(c.lastModified.seconds) * 1000 : 0, version: c.appVersionName || '', device: (c.deviceMetadata || {}).productName || '' }; }); } catch {}
     const [store, dates, inst] = await Promise.all([storeInfo(p.id), versionDates(p.id), gcsToken ? installsFor(p.id, gcsToken) : null]);
     for (const t of out) for (const r of t.releases) r.date = dateFor(r.name, dates);
-    return { id: p.id, title: storeTitle || p.title, ok: true, icon, tracks: out, reviews, status: derive(out, store), installs: inst };
+    return { id: p.id, title: storeTitle || p.title, ok: true, icon, tracks: out, reviews, status: derive(out, store), installs: inst, datesError: dates._err || null };
   } catch (e) {
     const denied = e.status === 403 || e.status === 404;
     return { id: p.id, title: p.title, ok: false, error: denied ? 'no_access' : 'upstream', message: e.status === 403 && /has not been used|disabled/i.test(e.message) ? 'Google Play Android Developer API не включён в проекте Cloud' : denied ? 'Нет доступа: добавьте служебный аккаунт в Play Console и выдайте права на это приложение (или проверьте имя пакета)' : e.message };
