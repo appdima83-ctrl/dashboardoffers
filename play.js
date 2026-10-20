@@ -138,7 +138,7 @@ async function oneApp(p, token, gcsToken) {
 }
 let cache = null;
 async function getPlay() {
-  if (cache && Date.now() - cache.t < 120000) return cache.v;
+  if (cache && Date.now() - cache.t < 10000) return cache.v;
   const token = await accessToken(undefined, SCOPE);
   let gcs = null; try { gcs = await accessToken(undefined, 'https://www.googleapis.com/auth/devstorage.read_only'); } catch {}
   const apps = await Promise.all(packages().map(p => oneApp(p, token, gcs)));
