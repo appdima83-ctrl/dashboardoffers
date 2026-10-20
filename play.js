@@ -88,12 +88,12 @@ async function versionDates(pkg) {
 const dateFor = (name, dates) => { for (const c of String(name || '').match(/\d+(?:\.\d+)+/g) || []) if (dates[c]) return dates[c]; return ''; };
 
 // ---- Установки: из массовых отчётов Play Console (хранилище pubsite_prod_<ID аккаунта>); нужно право «скачивание массовых отчётов» ----
-const DEV = process.env.PLAY_DEVELOPER_ID || '5403334729948184361';
+const DEVS = (process.env.PLAY_DEVELOPER_IDS || '5403334729948184361,8490837588749154483').split(',').map(x => x.trim()).filter(Boolean);
 const instCache = new Map(); let instAccess = null;
 const ym = d => d.getUTCFullYear() + String(d.getUTCMonth() + 1).padStart(2, '0');
-async function gcsCsv(token, pkg, month) {
+async function gcsCsv(token, pkg, month, dev) {
   const obj = 'stats/installs/installs_' + pkg + '_' + month + '_overview.csv';
-  const r = await fetch('https://storage.googleapis.com/storage/v1/b/pubsite_prod_' + DEV + '/o/' + encodeURIComponent(obj) + '?alt=media', { headers: { Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(20000) });
+  const r = await fetch('https://storage.googleapis.com/storage/v1/b/pubsite_prod_' + dev + '/o/' + encodeURIComponent(obj) + '?alt=media', { headers: { Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(20000) });
   if (r.status === 403) throw Object.assign(new Error('no_access'), { noAccess: true });
   if (!r.ok) return [];
   const buf = Buffer.from(await r.arrayBuffer()), txt = (buf[0] === 0xFF && buf[1] === 0xFE ? buf.toString('utf16le') : buf.toString('utf8')).replace(/^\uFEFF/, '');
@@ -102,13 +102,18 @@ async function gcsCsv(token, pkg, month) {
 }
 async function installsFor(pkg, token) {
   const hit = instCache.get(pkg); if (hit && Date.now() - hit.t < 3600000) return hit.v;
-  let v = null;
+  let v = null, denied = false;
   try {
     const now = new Date(), prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-    const rows = [...(await gcsCsv(token, pkg, ym(prev))), ...(await gcsCsv(token, pkg, ym(now)))].filter(r => r['Date']).sort((a, b) => a['Date'] < b['Date'] ? -1 : 1);
+    let rows = [];
+    for (const dev of DEVS) {
+      try { rows = [...(await gcsCsv(token, pkg, ym(prev), dev)), ...(await gcsCsv(token, pkg, ym(now), dev))]; } catch (e) { if (!e.noAccess) throw e; denied = true; }
+      if (rows.length) break;
+    }
+    rows = rows.filter(r => r['Date']).sort((a, b) => a['Date'] < b['Date'] ? -1 : 1);
     const col = rows.length ? (['Active Device Installs', 'Current Device Installs', 'Total User Installs'].find(c => rows[rows.length - 1][c] !== undefined) || null) : null;
     if (col) { const cur = Number(rows[rows.length - 1][col]), old = rows.length > 28 ? Number(rows[rows.length - 29][col]) : null; v = { installs: cur, change: old ? Math.round((cur - old) / old * 100) : null, column: col, date: rows[rows.length - 1]['Date'] }; }
-    instAccess = true;
+    instAccess = denied && !rows.length ? false : true;
   } catch (e) { if (e.noAccess) instAccess = false; }
   instCache.set(pkg, { t: Date.now(), v }); return v;
 }
