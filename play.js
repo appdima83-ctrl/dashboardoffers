@@ -4,7 +4,7 @@ const { accessToken, fail, listProperties } = require('./ga.js');
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const API = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/';
 // Пакеты приложений: PLAY_PACKAGES="com.a.b:Название,com.c.d:Другое"
-const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc,com.prestomin.dinerorapido:Prestomin Dinero Rápido';
+const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc,com.prestomin.dinerorapido:Prestomin Dinero Rápido,com.unifi.financecalc:Unifi finance - calc app,com.kwikloanguide.app:Kwik - Personal Loan Guide app,com.emergencyloanguide.app:Mpowa finance - loan guid app,com.naviosgaming.app:Navios - Gaming Betting Guide';
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
