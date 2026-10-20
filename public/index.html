@@ -475,6 +475,14 @@ nav#nav{margin-top:0}
 .pic{width:44px;height:44px;border-radius:12px;object-fit:cover;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 6px 14px rgba(0,0,0,.35)}
 .pic.pfb{display:grid;place-items:center;background:linear-gradient(160deg,#2a2a2a,#171717);color:#FF8A4C;font-weight:700;font-size:20px}
 .ph .pk{flex-basis:100%;margin:-4px 0 0 56px}
+
+.pmark{position:relative;display:inline-flex;align-items:center;border-radius:999px;border:1px solid #2a2a2a;background:rgba(255,255,255,.04);margin-left:auto}
+.pmark select{appearance:none;-webkit-appearance:none;background:transparent;border:0;color:inherit;font:inherit;font-size:12px;font-weight:600;padding:4px 12px;cursor:pointer;outline:none;color-scheme:dark}
+.pmark.m-none{color:var(--tx2)}
+.pmark.m-review{color:#FFA21F;background:rgba(255,162,31,.12);border-color:rgba(255,162,31,.35)}
+.pmark.m-rejected,.pmark.m-blocked{color:#F87171;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.35)}
+.pmark.m-live{color:#34D399;background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35)}
+.ph .pk{margin-left:56px}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a><a href="#play"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5v17l14-8.5z"/></svg><span>Google Play</span></a></nav>
@@ -787,7 +795,14 @@ async function loadPlay(){
  finally{b&&b.classList.remove('busy')}
  playRender()}
 const picHtml=a=>a.icon?`<img class="pic" src="${a.icon}=s96-rw" width="44" height="44" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=&quot;pic pfb&quot;>${(a.title||'?').charAt(0)}</span>'">`:`<span class="pic pfb">${(a.title||'?').charAt(0)}</span>`;
+
+// Пометка статуса проверки вручную (в API её нет), хранится в браузере
+const MARKS=[['','Пометить'],['review','На проверке'],['rejected','Отклонено'],['live','Опубликовано'],['blocked','Заблокировано']];
+const markGet=id=>{try{return localStorage.getItem('pm:'+id)||''}catch{return ''}};
+const markSet=(id,v)=>{try{v?localStorage.setItem('pm:'+id,v):localStorage.removeItem('pm:'+id)}catch{}};
+const markHtml=a=>{const v=markGet(a.id);return `<label class="pmark m-${v||'none'}" title="Статус проверки Google (отметьте вручную)"><select data-pm="${a.id}">${MARKS.map(([k,t])=>`<option value="${k}"${k===v?' selected':''}>${t}</option>`).join('')}</select></label>`};
 const PST={completed:'ok',inProgress:'prog',halted:'bad',draft:'idle'};
+const STIP='Статус выпуска из Google Play API. Проверка Google (на проверке / отклонено) в API недоступна — ориентируйтесь на пометку рядом с названием.';
 function playRender(){
  const d=stp.data,b=$('#playBody');
  if(!d){b.innerHTML=stp.error?`<div class="panel msg"><h3>Не удалось получить данные Google Play</h3><p>${stp.error.message}</p><button class="primary" onclick="loadPlay()">Повторить</button></div>`:'';return}
@@ -795,12 +810,13 @@ function playRender(){
  b.innerHTML=`<div class="pgrid">${d.apps.map(a=>{
   if(!a.ok)return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div><div class="pbad">${a.message}</div></div>`;
   const prod=(a.tracks.find(t=>t.track==='production')||{}).releases||[],pr=prod[0];
-  return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div>
-  <div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div></div>${pr?`<span class="pbadge ${PST[pr.status]||'idle'}">${pr.statusText}</span>`:'<span class="pbadge idle">Нет выпуска</span>'}</div>
-  <div class="ptracks">${a.tracks.filter(t=>!['beta','internal'].includes(t.track)).map(t=>{const r=(t.releases||[])[0];return `<div class="ptr"><span class="ptn">${t.name}</span><span class="ptv">${r?(r.name||('код '+r.versionCodes.join(', '))):'—'}</span>${r?`<span class="pbadge sm ${PST[r.status]||'idle'}">${r.statusText}</span>`:'<span class="pbadge sm idle">Пусто</span>'}</div>`}).join('')}</div>
+  return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2>${markHtml(a)}<span class="pk">${a.id}</span></div>
+  <div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div></div>${pr?`<span class="pbadge ${PST[pr.status]||'idle'}" title="${STIP}">${pr.statusText}</span>`:'<span class="pbadge idle">Нет выпуска</span>'}</div>
+  <div class="ptracks">${a.tracks.filter(t=>!['beta','internal'].includes(t.track)).map(t=>{const r=(t.releases||[])[0];return `<div class="ptr"><span class="ptn">${t.name}</span><span class="ptv">${r?(r.name||('код '+r.versionCodes.join(', '))):'—'}</span>${r?`<span class="pbadge sm ${PST[r.status]||'idle'}" title="${STIP}">${r.statusText}</span>`:'<span class="pbadge sm idle">Пусто</span>'}</div>`}).join('')}</div>
   ${a.reviews.length?`<div class="prh">Последние отзывы</div>${a.reviews.slice(0,3).map(v=>`<div class="prv"><div class="prs">${'★'.repeat(v.stars)}<i>${'★'.repeat(5-v.stars)}</i><span>${fmtD(v.date)}${v.version?' · v '+v.version:''}</span></div><div class="prt">${(v.text||'').replace(/</g,'&lt;')}</div></div>`).join('')}`:''}
   </div>`}).join('')}</div>`}
 $('#playRefresh').onclick=loadPlay;
+$('#playBody').addEventListener('change',e=>{const s=e.target.closest('select[data-pm]');if(!s)return;markSet(s.dataset.pm,s.value);const l=s.closest('.pmark');l.className='pmark m-'+(s.value||'none')});
 // ---------- Приложения (Firebase / GA4) ----------
 const APPN={wonga:'Wonga',mpowa:'Mpowa'};
 const st2={days:30,data:null,error:null,ctl:null};
