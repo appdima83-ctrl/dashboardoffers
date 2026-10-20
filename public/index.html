@@ -399,15 +399,6 @@ nav#nav{margin-top:0}
 .goff{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;color:var(--tx2);font-size:12px}
 .goff span{white-space:nowrap}.goff b{color:#d9d9d7;font-weight:600;font-variant-numeric:tabular-nums}.goff .gm{opacity:.8}
 .gmore{width:100%;margin-top:10px;justify-content:center}
-
-/* Пирог: крупнее, доли кликабельны */
-.dn{width:min(300px,88%);margin:10px auto 6px}
-.dseg{cursor:pointer;transition:opacity .25s,stroke-width .25s}.dseg.dim{opacity:.28}.dseg.on{stroke-width:21}
-.dn .ct{padding:0 18%}.dn .ct b{font-size:clamp(28px,3.2vw,38px)}
-.dn .ct>*{animation:fadein .25s ease both}
-.dn .ct .dname{color:#fff;font-weight:600;font-size:13px;line-height:1.25;margin-top:4px;max-width:100%;overflow-wrap:anywhere}
-.dn .ct .dpc{font-size:12px;color:var(--tx2);margin-top:2px}
-.dhint{text-align:center;color:var(--tx2);font-size:12px;margin:2px 0 6px}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a></nav>
@@ -517,15 +508,10 @@ function donut(L,k,tt){
  const cut=L.length<=7?7:6,top=L.slice(0,cut),rest=L.slice(cut).reduce((a,o)=>a+o[k],0);
  const items=top.map(o=>({n:o.title,v:o[k]}));if(rest>0)items.push({n:'Остальные ('+(L.length-cut)+')',v:rest});
  const fv=v=>k==='amount'?fmtM(v,2)+' '+st.cur:fmtI(v),R=70,C=2*Math.PI*R,gap=items.length>1?4:0;let cum=0;
- const seg=items.map((it,i)=>{const f=it.v/tt,len=Math.max(.01,f*C-gap-16),o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke="${DPAL[i]}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${len} ${C}" stroke-dashoffset="${-(cum*C+gap/2+8)}" transform="rotate(-90 100 100)" class="dseg" data-i="${i}"><title>${it.n}: ${fv(it.v)} (${(f*100).toFixed(1).replace('.',',')}%)</title></circle>`;cum+=f;return o}).join('');
+ const seg=items.map((it,i)=>{const f=it.v/tt,len=Math.max(.01,f*C-gap-16),o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke="${DPAL[i]}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${len} ${C}" stroke-dashoffset="${-(cum*C+gap/2+8)}" transform="rotate(-90 100 100)"><title>${it.n}: ${fv(it.v)} (${(f*100).toFixed(1).replace('.',',')}%)</title></circle>`;cum+=f;return o}).join('');
  const unit={conversions:'конверсий',amount:'заработано',clicks:'кликов',hosts:'хостов'}[k];
- el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div><div class="dhint">Нажмите на долю, чтобы увидеть оффер</div>`;
- const ct=el.querySelector('.ct'),base=ct.innerHTML,segs=[...el.querySelectorAll('.dseg')];
- const sel=i=>{st.dsel=i===null?null:items[i].n;segs.forEach((c,j)=>{c.classList.toggle('dim',i!==null&&j!==i);c.classList.toggle('on',j===i)});
-  ct.innerHTML=i===null?base:`<b>${fv(items[i].v)}</b><span class="dname">${items[i].n}</span><span class="dpc">${(items[i].v/tt*100).toFixed(0)}% от всех</span>`};
- segs.forEach((c,j)=>{c.onclick=e=>{e.stopPropagation();sel(st.dsel===items[j].n?null:j)}});
- el.querySelector('.dn svg').onclick=()=>sel(null);
- const keep=items.findIndex(it=>it.n===st.dsel);if(keep>=0)sel(keep);else st.dsel=null}
+ el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div>`+
+ items.map((it,i)=>`<div class="dl"><i style="background:${DPAL[i]}"></i><div class="nm" title="${it.n}">${it.n}</div><div class="vl">${fv(it.v)}</div><div class="pc">${(it.v/tt*100).toFixed(0)}%</div></div>`).join('')}
 function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период · ▲ — прирост за сегодня':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
  donut(L,k,tt);$('#obars').innerHTML=(L.length?`<div class="ohead"><span>Оффер</span><span></span><span>К выплате</span><span>${METRIC_LBL[k]}</span></div>`:'')+(L.length?L.map((o,i)=>{const tv=st.offToday&&st.offToday[o.id]?st.offToday[o.id][k]:0,hot=tv>0;return `<div class="orow${hot?' hot':''}"><div class="n"><b>${i+1}</b><span class="tt">${o.title}</span>${flagsHtml(o)}${hot?`<span class="up" title="${upTitle(k,tv)}">▲ +${k==='amount'?fmtM(tv,2)+' '+st.cur:fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%;opacity:${hot?1:(1-i/Math.max(L.length,1)*.55).toFixed(2)}"></div></div>${payHtml(o)}<div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`}).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
