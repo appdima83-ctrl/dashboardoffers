@@ -21,13 +21,20 @@ async function oneApp(p, token) {
   try {
     // Чтение дорожек требует временной «правки» (так устроен API): создаём, читаем, сразу удаляем. Ничего не публикуется.
     const edit = await pget(p.id, '/edits', token, { method: 'POST', body: '{}', headers: { 'Content-Type': 'application/json' } });
-    let tracks = [];
-    try { tracks = (await pget(p.id, '/edits/' + edit.id + '/tracks', token)).tracks || []; }
+    let tracks = [], icon = '';
+    try {
+      tracks = (await pget(p.id, '/edits/' + edit.id + '/tracks', token)).tracks || [];
+      // иконка приложения из страницы в Play (первый доступный язык, предпочтительно en-US)
+      try {
+        const langs = ((await pget(p.id, '/edits/' + edit.id + '/listings', token)).listings || []).map(x => x.language).sort((a, b) => (b === 'en-US') - (a === 'en-US'));
+        for (const lg of langs) { const im = ((await pget(p.id, '/edits/' + edit.id + '/listings/' + lg + '/icon', token)).images || [])[0]; if (im && im.url) { icon = im.url; break; } }
+      } catch {}
+    }
     finally { pget(p.id, '/edits/' + edit.id, token, { method: 'DELETE' }).catch(() => {}); }
     const out = tracks.map(t => ({ track: t.track, name: TRACK[t.track] || ('Закрытое тестирование: ' + t.track), releases: (t.releases || []).map(r => ({ name: r.name || '', status: r.status, statusText: r.status === 'inProgress' && r.userFraction ? 'Раскатка ' + Math.round(r.userFraction * 100) + '%' : (STAT[r.status] || r.status), fraction: r.userFraction || null, versionCodes: r.versionCodes || [], notes: ((r.releaseNotes || [])[0] || {}).text || '' })) }));
     let reviews = [];
     try { reviews = ((await pget(p.id, '/reviews?maxResults=5', token)).reviews || []).map(r => { const c = ((r.comments || [])[0] || {}).userComment || {}; return { author: r.authorName || '', stars: c.starRating || 0, text: c.text || '', date: c.lastModified ? Number(c.lastModified.seconds) * 1000 : 0, version: c.appVersionName || '', device: (c.deviceMetadata || {}).productName || '' }; }); } catch {}
-    return { id: p.id, title: p.title, ok: true, tracks: out, reviews };
+    return { id: p.id, title: p.title, ok: true, icon, tracks: out, reviews };
   } catch (e) {
     const denied = e.status === 403 || e.status === 404;
     return { id: p.id, title: p.title, ok: false, error: denied ? 'no_access' : 'upstream', message: e.status === 403 && /has not been used|disabled/i.test(e.message) ? 'Google Play Android Developer API не включён в проекте Cloud' : denied ? 'Нет доступа: добавьте служебный аккаунт в Play Console и выдайте права на это приложение (или проверьте имя пакета)' : e.message };
