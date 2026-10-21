@@ -492,19 +492,22 @@ nav#nav{margin-top:0}
 .pinst{display:flex;align-items:baseline;gap:10px;margin:10px 2px 0;color:var(--tx2);font-size:13px}.pinst b{color:var(--tx);font-size:20px}.pinst i{font-style:normal;font-size:12px}.pinst .up{color:#4ade80}.pinst .dn{color:#f87171}
 .pst{color:var(--tx2);font-size:12px;margin-top:3px}
 .ph .pk{margin-left:56px}
-/* Баланс: тёмная карточка, тёплый свет от нижнего края, контурная подсветка */
-.card.d{background:linear-gradient(180deg,#0b0a09 0%,#0d0b0a 55%,#140e09 100%)!important;border:1px solid rgba(255,190,130,.22)!important;border-radius:30px!important;
+/* Карточки показателей: тёмная карточка, тёплый свет от нижнего края, контурная подсветка */
+.card.d,#cards>.card{background:linear-gradient(180deg,#0b0a09 0%,#0d0b0a 55%,#140e09 100%)!important;border:1px solid rgba(255,190,130,.22)!important;border-radius:30px!important;
  box-shadow:inset 0 1px 0 rgba(255,214,170,.45),inset 0 0 34px rgba(255,150,70,.12),0 0 0 1px rgba(255,170,90,.06),0 22px 50px rgba(0,0,0,.5),0 0 40px rgba(255,120,40,.10)!important}
-.card.d::before{display:block!important;content:'';position:absolute;inset:auto -10% -62% -10%!important;width:auto!important;height:130%!important;border-radius:50%;filter:blur(22px);pointer-events:none;opacity:1;
+.card.d::before,#cards>.card::before{display:block!important;content:'';position:absolute;inset:auto -10% -62% -10%!important;width:auto!important;height:130%!important;border-radius:50%;filter:blur(22px);pointer-events:none;opacity:1;
  background:radial-gradient(ellipse 55% 52% at 50% 56%,#FFE9CF 0,#F6B777 22%,#E98A3E 46%,rgba(214,100,30,.42) 66%,transparent 84%)!important;animation:glowbreath 7s ease-in-out infinite alternate}
-.card.d::after{display:block!important;content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+.card.d::after,#cards>.card::after{display:block!important;content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
  background:linear-gradient(180deg,rgba(255,215,170,.10) 0,rgba(255,215,170,0) 38%),radial-gradient(ellipse 80% 40% at 50% 0,rgba(255,200,140,.16),transparent 70%);
  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.card.d>*{position:relative;z-index:1}
-.card.d .l{color:#E9A468!important;font-weight:500;letter-spacing:.01em;text-shadow:none}
-.card.d .v{background:linear-gradient(180deg,#fff 20%,#FFE3C4 100%);-webkit-background-clip:text;background-clip:text;color:transparent!important;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 2px 14px rgba(255,160,80,.28))}
-.card.d .br span{color:rgba(255,226,196,.82)!important;text-shadow:none}.card.d .br b{color:#fff;text-shadow:0 1px 10px rgba(120,50,0,.55)}
+.card.d>*,#cards>.card>*{position:relative;z-index:1}
+.card.d .l,#cards>.card .l{color:#E9A468!important;font-weight:500;letter-spacing:.01em;text-shadow:none}
+.card.d .v,#cards>.card .v{background:linear-gradient(180deg,#fff 20%,#FFE3C4 100%);-webkit-background-clip:text;background-clip:text;color:transparent!important;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 2px 14px rgba(255,160,80,.28))}
+.card.d .br span,#cards>.card .br span{color:rgba(255,226,196,.82)!important;text-shadow:none}.card.d,#cards>.card .br b{color:#fff;text-shadow:0 1px 10px rgba(120,50,0,.55)}
 @keyframes glowbreath{from{transform:translateY(0) scale(1);opacity:.88}to{transform:translateY(-6px) scale(1.05);opacity:1}}
+.card .s{color:rgba(255,226,196,.62)!important}
+#cards>.card .v{width:max-content;max-width:100%}
+@media(max-width:700px){#cards>.card .v{font-size:30px!important}}
 </style></head><body><div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a><a href="#play"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5v17l14-8.5z"/></svg><span>Google Play</span></a></nav>
