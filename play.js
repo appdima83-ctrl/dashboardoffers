@@ -10,6 +10,8 @@ const FLAG_TEXT = { rejected: 'Отклонено', blocked: 'Заблокиро
 const flags = () => Object.fromEntries((process.env.PLAY_FLAGS !== undefined ? process.env.PLAY_FLAGS : 'com.naviosgaming.app=rejected').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && FLAG_TEXT[v]).map(([k, v]) => [k, { state: v, text: FLAG_TEXT[v] }]));
 // Ручная дата последнего релиза (если версия на проверке и Google/Analytics её ещё не показывают): PLAY_RELEASED="пакет=ГГГГ-ММ-ДД,...". Используется, только если новее найденной даты.
 const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefined ? process.env.PLAY_RELEASED : 'com.unifi.financecalc=2026-10-20,com.kwikloanguide.app=2026-10-21,com.wonga.loanpointer=2026-10-20').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
+// Скрыть дорожки вручную (Google не отдаёт паузу тестирования по API): PLAY_HIDE="пакет=дорожка,..." (alpha — «Закрытое тестирование»)
+const hidden = () => new Set((process.env.PLAY_HIDE !== undefined ? process.env.PLAY_HIDE : 'com.prestomin.guia=alpha').split(',').map(x => x.trim()).filter(Boolean));
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
@@ -141,7 +143,7 @@ async function oneApp(p, token, gcsToken) {
       } catch {}
     }
     finally { pget(p.id, '/edits/' + edit.id, token, { method: 'DELETE' }).catch(() => {}); }
-    const out = tracks.map(t => ({ track: t.track, name: TRACK[t.track] || ('Закрытое тестирование: ' + t.track), releases: (t.releases || []).filter(r => t.track === 'production' || r.status !== 'halted').map(r => ({ name: r.name || '', status: r.status, statusText: r.status === 'inProgress' && r.userFraction ? 'Раскатка ' + Math.round(r.userFraction * 100) + '%' : (STAT[r.status] || r.status), fraction: r.userFraction || null, versionCodes: r.versionCodes || [], notes: ((r.releaseNotes || [])[0] || {}).text || '' })) }));
+    const out = tracks.map(t => ({ track: t.track, name: TRACK[t.track] || ('Закрытое тестирование: ' + t.track), releases: (t.releases || []).filter(r => !hidden().has(p.id + '=' + t.track) && (t.track === 'production' || r.status !== 'halted')).map(r => ({ name: r.name || '', status: r.status, statusText: r.status === 'inProgress' && r.userFraction ? 'Раскатка ' + Math.round(r.userFraction * 100) + '%' : (STAT[r.status] || r.status), fraction: r.userFraction || null, versionCodes: r.versionCodes || [], notes: ((r.releaseNotes || [])[0] || {}).text || '' })) }));
     let reviews = [];
     try { reviews = ((await pget(p.id, '/reviews?maxResults=5', token)).reviews || []).map(r => { const c = ((r.comments || [])[0] || {}).userComment || {}; return { author: r.authorName || '', stars: c.starRating || 0, text: c.text || '', date: c.lastModified ? Number(c.lastModified.seconds) * 1000 : 0, version: c.appVersionName || '', device: (c.deviceMetadata || {}).productName || '' }; }); } catch {}
     const [store, dates, inst] = await Promise.all([storeInfo(p.id), versionDates(p.id), gcsToken ? installsFor(p.id, gcsToken) : null]);
