@@ -507,6 +507,9 @@ nav#nav{margin-top:0}
 @keyframes glowbreath{from{transform:translateY(0) scale(1);opacity:.88}to{transform:translateY(-6px) scale(1.05);opacity:1}}
 .card .s{color:rgba(255,226,196,.62)!important}
 #cards>.card .v{width:max-content;max-width:100%}
+/* четыре малые карточки: без заливки, контур и подсветка остаются */
+#cards>.card:not(.d){background:#0d0c0b!important}
+#cards>.card:not(.d)::before{display:none!important}
 @media(max-width:700px){#cards>.card .v{font-size:30px!important}}
 </style></head><body><div class="wrap">
 <aside class="side">
