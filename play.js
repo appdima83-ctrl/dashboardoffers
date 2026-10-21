@@ -9,7 +9,7 @@ const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loa
 const FLAG_TEXT = { rejected: 'Отклонено', blocked: 'Заблокировано', review: 'На проверке' };
 const flags = () => Object.fromEntries((process.env.PLAY_FLAGS !== undefined ? process.env.PLAY_FLAGS : 'com.naviosgaming.app=rejected').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && FLAG_TEXT[v]).map(([k, v]) => [k, { state: v, text: FLAG_TEXT[v] }]));
 // Ручная дата последнего релиза (если версия на проверке и Google/Analytics её ещё не показывают): PLAY_RELEASED="пакет=ГГГГ-ММ-ДД,...". Используется, только если новее найденной даты.
-const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefined ? process.env.PLAY_RELEASED : 'com.unifi.financecalc=2026-10-20,com.kwikloanguide.app=2026-10-21').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
+const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefined ? process.env.PLAY_RELEASED : 'com.unifi.financecalc=2026-10-20,com.kwikloanguide.app=2026-10-21,com.wonga.loanpointer=2026-10-20').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
