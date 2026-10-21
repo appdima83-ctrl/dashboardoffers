@@ -522,7 +522,30 @@ nav#nav a.on svg{color:#F2A76A}
  box-shadow:inset 0 1px 0 rgba(255,214,170,.42),inset 0 0 34px rgba(255,150,70,.10),0 0 0 1px rgba(255,170,90,.05),0 22px 50px rgba(0,0,0,.5),0 0 34px rgba(255,120,40,.07)!important;
  -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .panel h2,.panel h3{color:#FFE3C4}
-</style></head><body><div class="wrap">
+/* Фон: тусклые тёплые волны и разводы */
+body{background:#0a0908!important;background-image:none!important}
+.bgw{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:.85}
+.bgw svg{position:absolute;inset:0;width:100%;height:100%}
+.bgw .bwa{animation:bwdrift1 26s ease-in-out infinite alternate}.bgw .bwb{animation:bwdrift2 31s ease-in-out infinite alternate}
+.bgw .bwc{animation:bwdrift3 22s ease-in-out infinite alternate}.bgw .bwd{animation:bwdrift2 28s ease-in-out infinite alternate-reverse}
+@keyframes bwdrift1{from{transform:translate(-30px,10px)}to{transform:translate(40px,-26px)}}
+@keyframes bwdrift2{from{transform:translate(30px,-6px)}to{transform:translate(-40px,22px)}}
+@keyframes bwdrift3{from{transform:translate(-20px,12px) scaleY(1)}to{transform:translate(26px,-14px) scaleY(1.08)}}
+.wrap{position:relative;z-index:1}
+@media(max-width:700px){.bgw g{animation:none!important}}
+</style></head><body><div class="bgw" aria-hidden="true"><svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="bw1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E8A36A" stop-opacity=".55"/><stop offset=".5" stop-color="#9A5A26" stop-opacity=".35"/><stop offset="1" stop-color="#3a200d" stop-opacity="0"/></linearGradient>
+<linearGradient id="bw2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6B777" stop-opacity=".45"/><stop offset=".6" stop-color="#7a4520" stop-opacity=".28"/><stop offset="1" stop-color="#2a170a" stop-opacity="0"/></linearGradient>
+<filter id="bwb" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="38"/></filter>
+<filter id="bwl" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<g class="bwa" filter="url(#bwb)"><path d="M-100 620 C 200 480, 420 760, 720 620 S 1250 470, 1560 640 L1560 1000 L-100 1000 Z" fill="url(#bw1)"/></g>
+<g class="bwb" filter="url(#bwb)"><path d="M-100 220 C 220 80, 520 330, 820 190 S 1280 60, 1560 230 L1560 -100 L-100 -100 Z" fill="url(#bw2)"/></g>
+<g class="bwc" filter="url(#bwl)" fill="none" stroke="#E8A36A" stroke-width="1.2" opacity=".16"><path d="M-80 520 C 220 400, 460 640, 760 520 S 1260 400, 1540 540"/><path d="M-80 560 C 220 440, 460 680, 760 560 S 1260 440, 1540 580"/><path d="M-80 600 C 220 480, 460 720, 760 600 S 1260 480, 1540 620"/></g>
+<g class="bwd" filter="url(#bwl)" fill="none" stroke="#F6B777" stroke-width="1" opacity=".12"><path d="M-80 160 C 240 60, 520 260, 820 150 S 1280 80, 1540 190"/><path d="M-80 200 C 240 100, 520 300, 820 190 S 1280 120, 1540 230"/></g>
+</svg></div>
+<div class="wrap">
 <aside class="side">
   <nav id="nav"><span class="ind"></span><a href="#" class="on"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Партнёрка</span></a><a href="#wonga"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Wonga</span></a><a href="#mpowa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/></svg><span>Mpowa</span></a><a href="#play"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5v17l14-8.5z"/></svg><span>Google Play</span></a></nav>
   <div class="sidefoot"><div class="sync"><i></i><span>Данные обновлены</span><b id="sync">—</b></div><button id="logout" title="Выйти">Выйти</button></div>
