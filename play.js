@@ -158,7 +158,12 @@ async function getPlay() {
   const token = await accessToken(undefined, SCOPE);
   let gcs = null; try { gcs = await accessToken(undefined, 'https://www.googleapis.com/auth/devstorage.read_only'); } catch {}
   const apps = await Promise.all(packages().map(p => oneApp(p, token, gcs)));
-  const fl = flags(), rl = released(); for (const a of apps) { if (fl[a.id]) a.flag = fl[a.id]; if (rl[a.id]) a.releasedManual = rl[a.id]; }
+  const fl = flags(), rl = released(); for (const a of apps) { if (fl[a.id]) a.flag = fl[a.id]; if (rl[a.id]) {
+      a.releasedManual = rl[a.id];
+      // имя версии может не меняться (1.0.0), а код растёт: ручная дата относится к релизу с наибольшим кодом версии
+      let top = null; for (const t of a.tracks || []) for (const r of t.releases || []) { const c = Math.max(0, ...r.versionCodes.map(Number)); if (!top || c > top.c) top = { c, r }; }
+      if (top && (!top.r.date || rl[a.id] > top.r.date)) top.r.date = rl[a.id];
+    } }
   const v = { apps, installsAccess: apps.some(a => a.installs) ? true : instAccess, updatedAt: new Date().toISOString() }; cache = { t: Date.now(), v }; return v;
 }
 module.exports = { getPlay };
