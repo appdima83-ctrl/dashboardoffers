@@ -8,6 +8,8 @@ const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loa
 // Ручные пометки статуса (Google не отдаёт отклонения по API): PLAY_FLAGS="пакет=rejected,пакет=blocked". Пустое значение PLAY_FLAGS= отключает все.
 const FLAG_TEXT = { rejected: 'Отклонено', blocked: 'Заблокировано', review: 'На проверке' };
 const flags = () => Object.fromEntries((process.env.PLAY_FLAGS !== undefined ? process.env.PLAY_FLAGS : 'com.naviosgaming.app=rejected').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && FLAG_TEXT[v]).map(([k, v]) => [k, { state: v, text: FLAG_TEXT[v] }]));
+// Ручная дата последнего релиза (если версия на проверке и Google/Analytics её ещё не показывают): PLAY_RELEASED="пакет=ГГГГ-ММ-ДД,...". Используется, только если новее найденной даты.
+const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefined ? process.env.PLAY_RELEASED : 'com.unifi.financecalc=2026-10-20').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
@@ -156,7 +158,7 @@ async function getPlay() {
   const token = await accessToken(undefined, SCOPE);
   let gcs = null; try { gcs = await accessToken(undefined, 'https://www.googleapis.com/auth/devstorage.read_only'); } catch {}
   const apps = await Promise.all(packages().map(p => oneApp(p, token, gcs)));
-  const fl = flags(); for (const a of apps) if (fl[a.id]) a.flag = fl[a.id];
+  const fl = flags(), rl = released(); for (const a of apps) { if (fl[a.id]) a.flag = fl[a.id]; if (rl[a.id]) a.releasedManual = rl[a.id]; }
   const v = { apps, installsAccess: apps.some(a => a.installs) ? true : instAccess, updatedAt: new Date().toISOString() }; cache = { t: Date.now(), v }; return v;
 }
 module.exports = { getPlay };

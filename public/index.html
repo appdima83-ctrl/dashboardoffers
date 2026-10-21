@@ -818,11 +818,12 @@ function playRender(){
  if(!d){b.innerHTML=stp.error?`<div class="panel msg"><h3>Не удалось получить данные Google Play</h3><p>${stp.error.message}</p><button class="primary" onclick="loadPlay()">Повторить</button></div>`:'';return}
  const fmtD=ms=>ms?new Date(ms).toLocaleDateString('ru-RU'):'';
  const REL_DAYS=5,remind=(a,pr)=>{if(a.flag)return `<span class="prem late" title="Статус задан вручную (PLAY_FLAGS): в API Google отклонения не видны">⛔ ${a.flag.text}</span>`;if(pr)return '';let best='';for(const t of a.tracks)if(t.track!=='production'&&!['beta','internal'].includes(t.track))for(const r of t.releases||[])if(r.date&&r.date>best)best=r.date;
+  let man='';if(a.releasedManual&&a.releasedManual>best){best=a.releasedManual;man=' (дата релиза задана вручную: PLAY_RELEASED)'}
   const cv=a.tracks.flatMap(t=>t.releases||[]).map(r=>(String(r.name).match(/\d+(?:\.\d+)+/)||[''])[0]).filter(Boolean),n=a.newest;let seen='';
   if(n&&cv.length&&cv.every(v=>v.split('.').map(Number).reduce((c,x,i)=>c||x-(+n.version.split('.')[i]||0),0)<0)){if(n.date>best)best=n.date;seen=' (в Analytics уже есть версия '+n.version+', в Play пока не видна — возможно на проверке)'}
   if(!best)return '';const today=new Date().toISOString().slice(0,10),passed=Math.round((Date.parse(today)-Date.parse(best))/864e5),left=REL_DAYS-passed;
   const [cls,txt]=left>1?['ok','Релиз через '+left+' дн.']:left===1?['soon','Релиз завтра']:left===0?['soon','Релиз сегодня']:['late','Релиз просрочен: '+(-left)+' дн.'];
-  return `<span class="prem ${cls}" title="Дата последней версии: ${best}${seen}. Правило: новая версия каждые ${REL_DAYS} дней (нужно выпускать новую версию)">⏰ ${txt}</span>`};
+  return `<span class="prem ${cls}" title="Дата последней версии: ${best}${man}${seen}. Правило: новая версия каждые ${REL_DAYS} дней (нужно выпускать новую версию)">⏰ ${txt}</span>`};
  const MON=['янв.','февр.','мар.','апр.','мая','июн.','июл.','авг.','сент.','окт.','нояб.','дек.'],vd=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return +d+' '+MON[m-1]+' '+y+' г.'};
  b.innerHTML=`<div class="pgrid">${d.apps.map(a=>{
   if(!a.ok)return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div><div class="pbad">${a.message}</div></div>`;
