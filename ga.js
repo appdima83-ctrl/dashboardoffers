@@ -8,6 +8,8 @@ const APPS = {
   wonga: { title: 'Wonga', propertyId: process.env.GA_PROPERTY_WONGA || '546879836' },
   // Mpowa — Firebase-проект in-emergency-loan-guide (Android: com.emergencyloanguide.app). ID свойства GA4 задаётся в GA_PROPERTY_MPOWA
   mpowa: { title: 'Mpowa', propertyId: process.env.GA_PROPERTY_MPOWA || '', findByName: 'in-emergency-loan-guide' },
+  // Navo Calculator — Firebase-проект navo-calculator (Android: com.navo.navo_calculator)
+  navo: { title: 'Navo', propertyId: process.env.GA_PROPERTY_NAVO || '555903500', findByName: 'navo-calculator' },
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
