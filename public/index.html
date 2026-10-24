@@ -896,7 +896,10 @@ function playRender(){
   const [cls,txt]=left>1?['ok','Релиз через '+left+' дн.']:left===1?['soon','Релиз завтра']:left===0?['soon','Релиз сегодня']:['late','Релиз просрочен: '+(-left)+' дн.'];
   return `<span class="prem ${cls}" title="Дата последней версии: ${best}${man}${seen}. Правило: новая версия каждые ${REL_DAYS} дней (нужно выпускать новую версию)">⏰ ${txt}</span>`};
  const MON=['янв.','февр.','мар.','апр.','мая','июн.','июл.','авг.','сент.','окт.','нояб.','дек.'],vd=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return +d+' '+MON[m-1]+' '+y+' г.'};
- b.innerHTML=`<div class="pgrid">${d.apps.map(a=>{
+ const rank=a=>{if(!a.ok)return 5;if(a.flag)return 4;const s=a.status&&a.status.state,hasProd=((a.tracks.find(t=>t.track==='production')||{}).releases||[]).length;
+  if(s==='live')return 0;if(s==='review'||hasProd)return 1;if(a.tracks.some(t=>!['production','beta','internal'].includes(t.track)&&(t.releases||[]).length))return 2;return 3};
+ const apps=d.apps.map((a,i)=>[a,i]).sort((x,y)=>rank(x[0])-rank(y[0])||x[1]-y[1]).map(x=>x[0]);
+ b.innerHTML=`<div class="pgrid">${apps.map(a=>{
   if(!a.ok)return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div><div class="pbad">${a.message}</div></div>`;
   const prod=(a.tracks.find(t=>t.track==='production')||{}).releases||[],pr=prod[0];
   return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2>${remind(a,pr)}<span class="pk">${a.id}</span></div>
