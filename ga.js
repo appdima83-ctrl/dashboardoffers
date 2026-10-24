@@ -10,14 +10,6 @@ const APPS = {
   mpowa: { title: 'Mpowa', propertyId: process.env.GA_PROPERTY_MPOWA || '', findByName: 'in-emergency-loan-guide' },
   // Navo Calculator — Firebase-проект navo-calculator (Android: com.navo.navo_calculator)
   navo: { title: 'Navo', propertyId: process.env.GA_PROPERTY_NAVO || '555903500', findByName: 'navo-calculator' },
-  // Остальные приложения (ID свойств GA4 можно переопределить переменной GA_PROPERTY_<КЛЮЧ>)
-  prestomin: { title: 'Prestomin', propertyId: process.env.GA_PROPERTY_PRESTOMIN || '553108662', findByName: 'prestomin-seguro-y-rapido' },
-  wongaloan: { title: 'Wonga Loan', propertyId: process.env.GA_PROPERTY_WONGALOAN || '553388964', findByName: 'wonga-loan-app-pointer' },
-  kwik: { title: 'Kwik', propertyId: process.env.GA_PROPERTY_KWIK || '555374177', findByName: 'kwik-personal-loan-guide' },
-  mepresta: { title: 'Mepresta', propertyId: process.env.GA_PROPERTY_MEPRESTA || '558797028', findByName: 'mepresta---dinero-rapido-calc' },
-  unifi: { title: 'Unifi', propertyId: process.env.GA_PROPERTY_UNIFI || '558594194', findByName: 'fasta-calculator' },
-  navios: { title: 'Navios', propertyId: process.env.GA_PROPERTY_NAVIOS || '554421670', findByName: 'casino-app-1-63830' },
-  dinero: { title: 'Prestomin Dinero Rápido', propertyId: process.env.GA_PROPERTY_DINERO || '559822697', findByName: 'car-loan-calc-54229509' },
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
