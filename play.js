@@ -94,6 +94,9 @@ async function versionDates(pkg) {
 }
 const cmpVer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
 // самая новая версия, замеченная в Analytics (если выше, чем в Play — релиз ещё на проверке или не виден через API)
+// старт закрытого теста: самый ранний день появления версии в Analytics (приближённо); вручную — PLAY_TEST_START="пакет=ГГГГ-ММ-ДД,..."
+const testStarts = () => Object.fromEntries((process.env.PLAY_TEST_START || '').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
+const firstSeen = dates => { let m = ''; for (const k of Object.keys(dates)) if (/^\d+(\.\d+)+$/.test(k) && dates[k] && (!m || dates[k] < m)) m = dates[k]; return m; };
 const newestSeen = dates => { let best = null; for (const k of Object.keys(dates)) if (/^\d+(\.\d+)+$/.test(k) && (!best || cmpVer(k, best.version) > 0)) best = { version: k, date: dates[k] }; return best; };
 const dateFor = (name, dates) => { for (const c of String(name || '').match(/\d+(?:\.\d+)+/g) || []) if (dates[c]) return dates[c]; return ''; };
 
@@ -148,7 +151,7 @@ async function oneApp(p, token, gcsToken) {
     try { reviews = ((await pget(p.id, '/reviews?maxResults=5', token)).reviews || []).map(r => { const c = ((r.comments || [])[0] || {}).userComment || {}; return { author: r.authorName || '', stars: c.starRating || 0, text: c.text || '', date: c.lastModified ? Number(c.lastModified.seconds) * 1000 : 0, version: c.appVersionName || '', device: (c.deviceMetadata || {}).productName || '' }; }); } catch {}
     const [store, dates, inst] = await Promise.all([storeInfo(p.id), versionDates(p.id), gcsToken ? installsFor(p.id, gcsToken) : null]);
     for (const t of out) for (const r of t.releases) r.date = dateFor(r.name, dates);
-    return { id: p.id, title: storeTitle || p.title, ok: true, icon, tracks: out, reviews, status: derive(out, store), installs: inst, datesError: dates._err || null, newest: newestSeen(dates) };
+    return { id: p.id, title: storeTitle || p.title, ok: true, icon, tracks: out, reviews, status: derive(out, store), installs: inst, datesError: dates._err || null, newest: newestSeen(dates), testStart: testStarts()[p.id] || firstSeen(dates) || '' };
   } catch (e) {
     const denied = e.status === 403 || e.status === 404;
     return { id: p.id, title: p.title, ok: false, error: denied ? 'no_access' : 'upstream', message: e.status === 403 && /has not been used|disabled/i.test(e.message) ? 'Google Play Android Developer API не включён в проекте Cloud' : denied ? 'Нет доступа: добавьте служебный аккаунт в Play Console и выдайте права на это приложение (или проверьте имя пакета)' : e.message };
