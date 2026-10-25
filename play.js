@@ -95,7 +95,7 @@ async function versionDates(pkg) {
 const cmpVer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
 // самая новая версия, замеченная в Analytics (если выше, чем в Play — релиз ещё на проверке или не виден через API)
 // старт закрытого теста: самый ранний день появления версии в Analytics (приближённо); вручную — PLAY_TEST_START="пакет=ГГГГ-ММ-ДД,..."
-const testStarts = () => Object.fromEntries((process.env.PLAY_TEST_START !== undefined ? process.env.PLAY_TEST_START : 'com.wonga.loanpointer=2026-10-17').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
+const testStarts = () => Object.fromEntries((process.env.PLAY_TEST_START !== undefined ? process.env.PLAY_TEST_START : 'com.wonga.loanpointer=2026-10-17,com.prestomin.guia=2026-10-17,com.mepresta.dinerorapidocalc=2026-10-17,com.kwikloanguide.app=2026-10-17,com.unifi.financecalc=2026-10-14').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
 const firstSeen = dates => { let m = ''; for (const k of Object.keys(dates)) if (/^\d+(\.\d+)+$/.test(k) && dates[k] && (!m || dates[k] < m)) m = dates[k]; return m; };
 const newestSeen = dates => { let best = null; for (const k of Object.keys(dates)) if (/^\d+(\.\d+)+$/.test(k) && (!best || cmpVer(k, best.version) > 0)) best = { version: k, date: dates[k] }; return best; };
 const dateFor = (name, dates) => { for (const c of String(name || '').match(/\d+(?:\.\d+)+/g) || []) if (dates[c]) return dates[c]; return ''; };
