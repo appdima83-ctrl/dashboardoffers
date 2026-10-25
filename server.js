@@ -109,6 +109,11 @@ async function affise(from, to, q) {
     return { demo: false, currency: 'USD', rows, offers, geo, offersSource: 'affise', updatedAt: new Date().toISOString() };
   });
   const cat = await catP, rates = await ratesP;
+  // Скрытые офферы (названия или ID через запятую, регистр не важен). HIDE_OFFERS= пусто — показывать все.
+  const hide = new Set((process.env.HIDE_OFFERS !== undefined ? process.env.HIDE_OFFERS : 'Finpug.co.za [CPL]').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+  const hidden = o => hide.has(String(o.id).toLowerCase()) || hide.has(String(o.title || '').toLowerCase());
+  data.offers = data.offers.filter(o => !hidden(o));
+  data.geo = (data.geo || []).map(g => ({ ...g, offers: (g.offers || []).filter(o => !hidden(o)) }));
   return { ...data, offers: data.offers.map(o => ({ ...o, countries: (cat[o.id] || {}).countries || [], payouts: ((cat[o.id] || {}).payouts || []).map(p => { if (p.type === 'percent' || p.currency === 'USD') return p; const u = toUsd(p.revenue, p.currency, rates); return u === null ? p : { ...p, usd: r4(u), rate: r4(u / p.revenue) }; }) })), balance: await balP, today, offersToday: await todayP };
 }
 // Каталог офферов: страны оффера = страны из тарифов (payments) + двухбуквенные категории (ZA, IN, PH…)
