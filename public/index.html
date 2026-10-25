@@ -889,7 +889,7 @@ function playRender(){
  const d=stp.data,b=$('#playBody');
  if(!d){b.innerHTML=stp.error?`<div class="panel msg"><h3>Не удалось получить данные Google Play</h3><p>${stp.error.message}</p><button class="primary" onclick="loadPlay()">Повторить</button></div>`:'';return}
  const fmtD=ms=>ms?new Date(ms).toLocaleDateString('ru-RU'):'';
- const TEST_DAYS=14,testLeft=a=>{if(!a.testStart)return '';const today=new Date().toISOString().slice(0,10),passed=Math.round((Date.parse(today)-Date.parse(a.testStart))/864e5),left=TEST_DAYS-passed;
+ const TEST_DAYS=14,testLeft=a=>{if(!a.testStart)return '';if(a.testStart==='wait')return '<div class="pst ptl soon" title="Отсчёт 14 дней начинается, когда в тесте не меньше 12 участников">⏳ Тест: ждём 12 участников</div>';const today=new Date().toISOString().slice(0,10),passed=Math.round((Date.parse(today)-Date.parse(a.testStart))/864e5),left=TEST_DAYS-passed;
   const [cls,txt]=left>1?['','осталось '+left+' дн. ('+passed+' из '+TEST_DAYS+')']:left===1?['soon','остался 1 день ('+passed+' из '+TEST_DAYS+')']:left===0?['soon','заканчивается сегодня']:['ok','14 дней прошли, можно подавать заявку'];
   return `<div class="pst ptl ${cls}" title="Закрытый тест Google Play: не менее ${TEST_DAYS} дней при 12+ участниках. Старт теста: ${a.testStart}">⏳ Тест: ${txt}</div>`};
  const REL_DAYS=5,remind=(a,pr)=>{if(a.flag)return `<span class="prem late" title="Статус задан вручную (PLAY_FLAGS): в API Google отклонения не видны">⛔ ${a.flag.text}</span>`;if(pr)return '';let best='';for(const t of a.tracks)if(t.track!=='production'&&!['beta','internal'].includes(t.track))for(const r of t.releases||[])if(r.date&&r.date>best)best=r.date;
