@@ -563,6 +563,12 @@ nav#nav a{transition:gap .3s cubic-bezier(.4,0,.2,1),padding .3s,background .28s
 }
 @media(max-width:480px){.ht .msync span{display:none}}
 @media(prefers-reduced-motion:reduce){body .side,.sidebd,.wrap,nav#nav a span{transition:none!important}}
+/* Прирост за сегодня в списках (страны, события) */
+.brow .nm{display:flex;align-items:center;gap:6px;min-width:0}.brow .nm .tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .up{flex:none;margin-left:0;font-size:10.5px;padding:1px 6px}
+.brow.hot .ofill{background:linear-gradient(90deg,rgba(52,211,153,.10),rgba(52,211,153,.55) 55%,#34D399)!important;box-shadow:0 0 12px rgba(52,211,153,.28)!important}
+.geo{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)!important}
+.clist .brow,.panel .brow{grid-template-columns:minmax(0,2.1fr) .7fr 44px!important}
 </style></head><body><div class="wrap"><div class="sidebd" id="sidebd"></div>
 <aside class="side">
   <div class="sidetop"><button id="sideToggle" class="sidetog" type="button" aria-label="Свернуть меню" title="Свернуть меню"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button></div>
@@ -965,8 +971,8 @@ function drawLines(box,dates,series){
   tip.style.left=Math.min(X(i)*(rc.width/W)+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top='6px'};
  hit.onmousemove=e=>mv(e.clientX);hit.ontouchstart=hit.ontouchmove=e=>mv(e.touches[0].clientX);
  hit.onmouseleave=()=>{tip.style.display='none';cur.setAttribute('opacity',0);dots.innerHTML=''}}
-function barList(items,fmt=fmtI){const mx=Math.max(1,...items.map(i=>i.value));
- return items.length?items.map(i=>`<div class="brow"><div class="nm" title="${i.name}">${i.name}</div><div class="otr"><div class="ofill" style="width:${i.value/mx*100}%"></div></div><div class="vl">${fmt(i.value)}</div></div>`).join(''):'<p style="color:var(--tx2)">Нет данных за период</p>'}
+function barList(items,fmt=fmtI,today){const mx=Math.max(1,...items.map(i=>i.value));
+ return items.length?items.map(i=>{const tv=today&&today[i.name]>0?today[i.name]:0;return `<div class="brow${tv?' hot':''}"><div class="nm" title="${i.name}${tv?' — за сегодня +'+fmtI(tv):''}"><span class="tt">${i.name}</span>${tv?`<span class="up">▲ +${fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${i.value/mx*100}%"></div></div><div class="vl">${fmt(i.value)}</div></div>`}).join(''):'<p style="color:var(--tx2)">Нет данных за период</p>'}
 function appRender(){
  const d=st2.data,b=$('#appBody');
  if(!d){b.innerHTML=st2.error?appErr():'';return}
@@ -987,8 +993,8 @@ function appRender(){
    <div class="legend2">${d.versions.series.map((s,i)=>`<span><i style="background:${PAL[i]}"></i>${s.name}</span>`).join('')}</div></div>
  </div>
  <div class="g2">
-  <div class="panel w"><h2>Активные пользователи по странам</h2><div class="geo"><div class="mapbox" id="gMap"></div><div class="clist">${barList(d.countries)}</div></div></div>
-  <div class="panel w"><h2>События по названию</h2>${barList(d.events)}</div>
+  <div class="panel w"><h2>Активные пользователи по странам</h2><div class="geo"><div class="mapbox" id="gMap"></div><div class="clist">${barList(d.countries,fmtI,d.countriesToday)}</div></div></div>
+  <div class="panel w"><h2>События по названию</h2>${barList(d.events,fmtI,d.eventsToday)}</div>
  </div>`;
  drawMap($('#gMap'),d.countries);
  drawLines($('#gAct'),d.activity.dates,[{name:'28 дней',color:'#FF6A1A',values:d.activity.d28},{name:'7 дней',color:'#FFC48A',values:d.activity.d7},{name:'1 день',color:'#F2F4F8',values:d.activity.d1}]);

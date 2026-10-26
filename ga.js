@@ -70,13 +70,16 @@ const isoDate = s => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
 
 async function report(propertyId, days, app) {
   const range = [{ startDate: days - 1 + 'daysAgo', endDate: 'today' }];
-  const [act, ver, cty, evt, rt, rtc] = await Promise.all([
+  const [act, ver, cty, evt, rt, rtc, ctyT, evtT] = await Promise.all([
     gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'date' }], metrics: [{ name: 'active1DayUsers' }, { name: 'active7DayUsers' }, { name: 'active28DayUsers' }], orderBys: [{ dimension: { dimensionName: 'date' } }], limit: 400 }, app),
     gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'date' }, { name: 'appVersion' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ dimension: { dimensionName: 'date' } }], limit: 10000 }, app),
     gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'country' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 15 }, app),
     gpost(propertyId, 'runReport', { dateRanges: range, dimensions: [{ name: 'eventName' }], metrics: [{ name: 'eventCount' }], orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }], limit: 15 }, app),
     gpost(propertyId, 'runRealtimeReport', { dimensions: [{ name: 'minutesAgo' }], metrics: [{ name: 'activeUsers' }], limit: 40 }, app),
     gpost(propertyId, 'runRealtimeReport', { dimensions: [{ name: 'country' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 5 }, app),
+    // прирост за сегодня (текущие сутки в часовом поясе свойства GA)
+    gpost(propertyId, 'runReport', { dateRanges: [{ startDate: 'today', endDate: 'today' }], dimensions: [{ name: 'country' }], metrics: [{ name: 'activeUsers' }], limit: 250 }, app).catch(() => ({})),
+    gpost(propertyId, 'runReport', { dateRanges: [{ startDate: 'today', endDate: 'today' }], dimensions: [{ name: 'eventName' }], metrics: [{ name: 'eventCount' }], limit: 250 }, app).catch(() => ({})),
   ]);
   const dates = rows(act).map(r => isoDate(r.d[0]));
   const activity = { dates, d1: rows(act).map(r => r.m[0]), d7: rows(act).map(r => r.m[1]), d28: rows(act).map(r => r.m[2]) };
@@ -87,7 +90,7 @@ async function report(propertyId, days, app) {
   const versions = { dates, series: top.map(v => ({ name: v, values: dates.map(d => vmap[v][d] || 0) })) };
   const perMin = Array(30).fill(0); for (const r of rows(rt)) { const i = Number(r.d[0]); if (i >= 0 && i < 30) perMin[i] = r.m[0]; }
   const realtime = { total: rows(rt).reduce((a, r) => a + r.m[0], 0), perMinute: perMin, countries: rows(rtc).map(r => ({ name: r.d[0], value: r.m[0] })) };
-  return { demo: false, days, activity, realtime, versions, countries: rows(cty).map(r => ({ name: r.d[0], value: r.m[0] })), events: rows(evt).map(r => ({ name: r.d[0], value: r.m[0] })), updatedAt: new Date().toISOString() };
+  return { demo: false, days, activity, realtime, versions, countries: rows(cty).map(r => ({ name: r.d[0], value: r.m[0] })), events: rows(evt).map(r => ({ name: r.d[0], value: r.m[0] })), countriesToday: Object.fromEntries(rows(ctyT).map(r => [r.d[0], r.m[0]])), eventsToday: Object.fromEntries(rows(evtT).map(r => [r.d[0], r.m[0]])), updatedAt: new Date().toISOString() };
 }
 
 // Демо для проверки интерфейса (GA_MOCK=1)
