@@ -999,10 +999,9 @@ function appRender(){
    <div class="legend2">${d.versions.series.map((s,i)=>`<span><i style="background:${PAL[i]}"></i>${s.name}</span>`).join('')}</div></div>
  </div>
  <div class="g2">
-  <div class="panel w"><h2>Активные пользователи по странам</h2><div class="geo"><div class="mapbox" id="gMap"></div><div class="clist">${barList(d.countries,fmtI,d.countriesToday)}</div></div></div>
+  <div class="panel w"><h2>Активные пользователи по странам</h2><div class="clist">${barList(d.countries,fmtI,d.countriesToday)}</div></div>
   <div class="panel w"><h2>События по названию</h2>${barList(d.events,fmtI,d.eventsToday)}</div>
  </div>`;
- drawMap($('#gMap'),d.countries);
  drawLines($('#gAct'),d.activity.dates,[{name:'28 дней',color:'#FF6A1A',values:d.activity.d28},{name:'7 дней',color:'#FFC48A',values:d.activity.d7},{name:'1 день',color:'#F2F4F8',values:d.activity.d1}]);
  drawLines($('#gVer'),d.versions.dates,d.versions.series.map((s,i)=>({...s,color:PAL[i]})));
 }
