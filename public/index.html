@@ -563,6 +563,8 @@ nav#nav a{transition:gap .3s cubic-bezier(.4,0,.2,1),padding .3s,background .28s
 }
 @media(max-width:480px){.ht .msync span{display:none}}
 @media(prefers-reduced-motion:reduce){body .side,.sidebd,.wrap,nav#nav a span{transition:none!important}}
+.pcty{white-space:nowrap}.pcty img{width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin:0 4px 0 2px}
+.pline{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.pline .pinst{margin:0}
 /* Прирост за сегодня в списках (страны, события) */
 .brow .nm{display:flex;align-items:center;gap:6px;min-width:0}.brow .nm .tt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .brow .up{flex:none;margin-left:0;font-size:10.5px;padding:1px 6px}
@@ -905,6 +907,7 @@ function playRender(){
   if(!best)return '';const today=new Date().toISOString().slice(0,10),passed=Math.round((Date.parse(today)-Date.parse(best))/864e5),left=REL_DAYS-passed;
   const [cls,txt]=left>1?['ok','Релиз через '+left+' дн.']:left===1?['soon','Релиз завтра']:left===0?['soon','Релиз сегодня']:['late','Релиз просрочен: '+(-left)+' дн.'];
   return `<span class="prem ${cls}" title="Дата последней версии: ${best}${man}${seen}. Правило: новая версия каждые ${REL_DAYS} дней (нужно выпускать новую версию)">⏰ ${txt}</span>`};
+ const CTYN={ZA:'ЮАР',IN:'Индия',MX:'Мексика',PH:'Филиппины'};
  const MON=['янв.','февр.','мар.','апр.','мая','июн.','июл.','авг.','сент.','окт.','нояб.','дек.'],vd=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return +d+' '+MON[m-1]+' '+y+' г.'};
  const rank=a=>{if(!a.ok)return 5;if(a.flag)return 4;const s=a.status&&a.status.state,hasProd=((a.tracks.find(t=>t.track==='production')||{}).releases||[]).length;
   if(s==='live')return 0;if(s==='review'||hasProd)return 1;if(a.tracks.some(t=>!['production','beta','internal'].includes(t.track)&&(t.releases||[]).length))return 2;return 3};
@@ -912,10 +915,13 @@ function playRender(){
  b.innerHTML=`<div class="pgrid">${apps.map(a=>{
   if(!a.ok)return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2><span class="pk">${a.id}</span></div><div class="pbad">${a.message}</div></div>`;
   const prod=(a.tracks.find(t=>t.track==='production')||{}).releases||[],pr=prod[0];
-  return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2>${remind(a,pr)}<span class="pk">${a.id}</span></div>
-  ${pr||(a.status&&!['none','idle'].includes(a.status.state))?`<div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div>${pr&&pr.date?`<div class="pst" title="По данным Google Analytics: первое появление версии у пользователей">Последнее обновление: ${vd(pr.date)}</div>`:''}${a.status&&a.status.storeVersion?`<div class="pst">В магазине: ${a.status.storeVersion}</div>`:''}</div><span class="pbadge st-${a.status?a.status.state:'idle'}" title="${a.status?a.status.hint:''}">${a.status?a.status.text:'—'}</span></div>`:''}
+  const live=a.status&&a.status.state==='live',cty=a.country?`<span class="pcty"> · <img src="flags/${a.country.toLowerCase()}.svg" width="14" height="14" alt="">${CTYN[a.country]||a.country}</span>`:'',
+  instH=a.installs?`<div class="pinst"><span>Число установок</span><b>${a.installs.installs.toLocaleString('ru-RU')}</b></div>`:'';
+  return `<div class="panel pcard"><div class="ph">${picHtml(a)}<h2>${a.title}</h2>${remind(a,pr)}<span class="pk">${a.id}${cty}</span></div>
+  ${live?`<div class="pline"><span class="pbadge st-live" title="${a.status.hint||''}">${a.status.text}</span>${instH}</div>`:''}
+  ${!live&&(pr||(a.status&&!['none','idle'].includes(a.status.state)))?`<div class="pmain"><div><div class="pl">Production</div><div class="pv">${pr?pr.name||('версия '+pr.versionCodes.join(', ')):'—'}</div>${pr&&pr.date?`<div class="pst" title="По данным Google Analytics: первое появление версии у пользователей">Последнее обновление: ${vd(pr.date)}</div>`:''}${a.status&&a.status.storeVersion?`<div class="pst">В магазине: ${a.status.storeVersion}</div>`:''}</div><span class="pbadge st-${a.status?a.status.state:'idle'}" title="${a.status?a.status.hint:''}">${a.status?a.status.text:'—'}</span></div>`:''}
   ${pr?'':a.tracks.filter(t=>!['production','beta','internal'].includes(t.track)&&(t.releases||[]).length).map(t=>{const r=t.releases[0];return `<div class="pmain"><div><div class="pl">${t.name}</div><div class="pv">${r.name||('версия '+r.versionCodes.join(', '))}</div>${r.date?`<div class="pst" title="По данным Google Analytics: первое появление версии у пользователей">Последнее обновление: ${vd(r.date)}</div>`:''}${testLeft(a)}</div><span class="pbadge ${a.flag?'bad':PST[r.status]||'idle'}" title="${STIP}">${a.flag?a.flag.text:r.statusText}</span></div>`}).join('')}
-  ${a.installs?`<div class="pinst"><span>Число установок</span><b>${a.installs.installs.toLocaleString('ru-RU')}</b></div>`:''}
+  ${live?'':instH}
   ${a.reviews.length?`<div class="prh">Последние отзывы</div>${a.reviews.slice(0,3).map(v=>`<div class="prv"><div class="prs">${'★'.repeat(v.stars)}<i>${'★'.repeat(5-v.stars)}</i><span>${fmtD(v.date)}${v.version?' · v '+v.version:''}</span></div><div class="prt">${(v.text||'').replace(/</g,'&lt;')}</div></div>`).join('')}`:''}
   </div>`}).join('')}</div>`}
 $('#playRefresh').onclick=loadPlay;

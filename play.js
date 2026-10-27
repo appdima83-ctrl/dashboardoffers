@@ -12,6 +12,9 @@ const flags = () => Object.fromEntries((process.env.PLAY_FLAGS !== undefined ? p
 const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefined ? process.env.PLAY_RELEASED : 'com.unifi.financecalc=2026-10-20,com.kwikloanguide.app=2026-10-21,com.wonga.loanpointer=2026-10-20,com.prestomin.dinerorapido=2026-10-15,com.prestomin.guia=2026-10-21').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
 // Скрыть дорожки вручную (Google не отдаёт паузу тестирования по API): PLAY_HIDE="пакет=дорожка,..." (alpha — «Закрытое тестирование»)
 const hidden = () => new Set((process.env.PLAY_HIDE !== undefined ? process.env.PLAY_HIDE : 'com.prestomin.guia=alpha').split(',').map(x => x.trim()).filter(Boolean));
+// Страна (ISO-2) приложения: PLAY_COUNTRIES="пакет=ZA,пакет=MX,..."
+const COUNTRY_DEFAULT = 'com.wonga.otpusk_planner=ZA,com.emergencyloanguide.app=ZA,com.navo.navo_calculator=MX,com.wonga.loanpointer=ZA,com.kwikloanguide.app=IN,com.prestomin.dinerorapido=MX,com.prestomin.guia=MX,com.unifi.financecalc=ZA,com.peranyo.pautang.app.calc=PH';
+const countries = () => Object.fromEntries((process.env.PLAY_COUNTRIES !== undefined ? process.env.PLAY_COUNTRIES : COUNTRY_DEFAULT).split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^[A-Za-z]{2}$/.test(v || '')).map(([k, v]) => [k, v.toUpperCase()]));
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
@@ -164,7 +167,7 @@ async function getPlay() {
   const token = await accessToken(undefined, SCOPE);
   let gcs = null; try { gcs = await accessToken(undefined, 'https://www.googleapis.com/auth/devstorage.read_only'); } catch {}
   const apps = await Promise.all(packages().map(p => oneApp(p, token, gcs)));
-  const fl = flags(), rl = released(); for (const a of apps) { if (fl[a.id]) a.flag = fl[a.id];
+  const fl = flags(), rl = released(), cc = countries(); for (const a of apps) { if (fl[a.id]) a.flag = fl[a.id]; if (cc[a.id]) a.country = cc[a.id];
     if (!a.tracks) continue;
     // релиз с наибольшим кодом версии (имя версии может не меняться, а код растёт)
     let top = null; for (const t of a.tracks) if (!['production', 'beta', 'internal'].includes(t.track)) for (const r of t.releases || []) { const c = Math.max(0, ...r.versionCodes.map(Number)); if (!top || c > top.c) top = { c, r }; }
