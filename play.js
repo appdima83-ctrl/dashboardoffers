@@ -13,7 +13,7 @@ const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefin
 // Скрыть дорожки вручную (Google не отдаёт паузу тестирования по API): PLAY_HIDE="пакет=дорожка,..." (alpha — «Закрытое тестирование»)
 const hidden = () => new Set((process.env.PLAY_HIDE !== undefined ? process.env.PLAY_HIDE : 'com.prestomin.guia=alpha').split(',').map(x => x.trim()).filter(Boolean));
 // Страна (ISO-2) приложения: PLAY_COUNTRIES="пакет=ZA,пакет=MX,..."
-const COUNTRY_DEFAULT = 'com.wonga.otpusk_planner=ZA,com.emergencyloanguide.app=ZA,com.navo.navo_calculator=MX,com.wonga.loanpointer=ZA,com.kwikloanguide.app=IN,com.prestomin.dinerorapido=MX,com.prestomin.guia=MX,com.unifi.financecalc=ZA,com.peranyo.pautang.app.calc=PH';
+const COUNTRY_DEFAULT = 'com.wonga.otpusk_planner=ZA,com.emergencyloanguide.app=ZA,com.navo.navo_calculator=MX,com.wonga.loanpointer=ZA,com.kwikloanguide.app=IN,com.prestomin.dinerorapido=MX,com.prestomin.guia=MX,com.unifi.financecalc=ZA,com.peranyo.pautang.app.calc=PH,com.mepresta.dinerorapidocalc=MX';
 const countries = () => Object.fromEntries((process.env.PLAY_COUNTRIES !== undefined ? process.env.PLAY_COUNTRIES : COUNTRY_DEFAULT).split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^[A-Za-z]{2}$/.test(v || '')).map(([k, v]) => [k, v.toUpperCase()]));
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
