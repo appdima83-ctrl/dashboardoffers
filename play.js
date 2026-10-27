@@ -4,10 +4,10 @@ const { accessToken, fail, listProperties } = require('./ga.js');
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const API = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/';
 // Пакеты приложений: PLAY_PACKAGES="com.a.b:Название,com.c.d:Другое"
-const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc,com.prestomin.dinerorapido:Prestomin Dinero Rápido,com.unifi.financecalc:Unifi finance - calc app,com.kwikloanguide.app:Kwik - Personal Loan Guide app,com.emergencyloanguide.app:Mpowa finance - loan guid app,com.naviosgaming.app:Navios - Gaming Betting Guide,com.peranyo.pautang.app.calc:Peranyo - Pautang Calc app';
+const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc,com.prestomin.dinerorapido:Prestomin Dinero Rápido,com.unifi.financecalc:Unifi finance - calc app,com.kwikloanguide.app:Kwik - Personal Loan Guide app,com.emergencyloanguide.app:Mpowa finance - loan guid app,com.peranyo.pautang.app.calc:Peranyo - Pautang Calc app';
 // Ручные пометки статуса (Google не отдаёт отклонения по API): PLAY_FLAGS="пакет=rejected,пакет=blocked". Пустое значение PLAY_FLAGS= отключает все.
 const FLAG_TEXT = { rejected: 'Отклонено', blocked: 'Заблокировано', review: 'На проверке' };
-const flags = () => Object.fromEntries((process.env.PLAY_FLAGS !== undefined ? process.env.PLAY_FLAGS : 'com.naviosgaming.app=rejected').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && FLAG_TEXT[v]).map(([k, v]) => [k, { state: v, text: FLAG_TEXT[v] }]));
+const flags = () => Object.fromEntries((process.env.PLAY_FLAGS !== undefined ? process.env.PLAY_FLAGS : '').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && FLAG_TEXT[v]).map(([k, v]) => [k, { state: v, text: FLAG_TEXT[v] }]));
 // Ручная дата последнего релиза (если версия на проверке и Google/Analytics её ещё не показывают): PLAY_RELEASED="пакет=ГГГГ-ММ-ДД,...". Используется, только если новее найденной даты.
 const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefined ? process.env.PLAY_RELEASED : 'com.unifi.financecalc=2026-10-20,com.kwikloanguide.app=2026-10-21,com.wonga.loanpointer=2026-10-20,com.prestomin.dinerorapido=2026-10-15,com.prestomin.guia=2026-10-21').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
 // Скрыть дорожки вручную (Google не отдаёт паузу тестирования по API): PLAY_HIDE="пакет=дорожка,..." (alpha — «Закрытое тестирование»)
@@ -15,7 +15,8 @@ const hidden = () => new Set((process.env.PLAY_HIDE !== undefined ? process.env.
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
 async function pget(pkg, path, token, init = {}) {
-  const r = await fetch(API + pkg + path, { ...init, headers: { Authorization: 'Bearer ' + token, ...(init.headers || {}) }, signal: AbortSignal.timeout(20000) });
+  const go = () => fetch(API + pkg + path, { ...init, headers: { Authorization: 'Bearer ' + token, ...(init.headers || {}) }, signal: AbortSignal.timeout(20000) });
+  let r; try { r = await go(); } catch { await new Promise(x => setTimeout(x, 500)); r = await go(); } // один повтор при сетевом сбое
   if (r.status === 204) return {};
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error((j.error && j.error.message) || ('Play API ' + r.status)), { status: r.status, gstatus: j.error && j.error.status });
