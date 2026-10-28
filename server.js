@@ -105,6 +105,8 @@ async function sources(from, to) {
     const sources = Object.values(map).filter(m => m.hosts || m.clicks || m.conversions || m.amount)
       .map(m => ({ ...m, offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
       .sort((a, b) => b.amount - a.amount || b.clicks - a.clicks);
+    const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pautang=com.prestomin.dinerorapido').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
+    for (const x of sources) if (sp[x.sub1]) x.pkg = sp[x.sub1];
     return { demo: false, currency: 'USD', sources, updatedAt: new Date().toISOString() };
   }, 30000);
 }

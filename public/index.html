@@ -573,6 +573,7 @@ nav#nav a{transition:gap .3s cubic-bezier(.4,0,.2,1),padding .3s,background .28s
 .clist .brow,.panel .brow{grid-template-columns:minmax(0,2.1fr) .7fr 44px!important}
 .srcsum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
 .srcsum .card{min-width:0}@media(max-width:700px){.srcsum{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.srch{display:flex;align-items:center;gap:12px;margin-bottom:14px}.srch .pic{flex:none}
 .srck{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .srck span{display:block;color:var(--tx2);font-size:12px}.srck b{font-size:17px}
 .srco{margin-top:14px;display:grid;gap:8px}.srco small{color:var(--tx2);margin-left:8px}
@@ -893,24 +894,27 @@ async function loadSrc(){
   $('#sync').textContent=new Date(j.updatedAt).toLocaleTimeString('ru-RU').slice(0,5)}
  catch(e){if(e.name==='AbortError')return;sts.error=e}
  finally{rb&&rb.classList.remove('busy')}
- srcRender()}
+ srcRender();
+ if(!sts.apps&&!sts.appsBusy){sts.appsBusy=1;fetch('/api/play',{credentials:'same-origin'}).then(r=>r.json()).then(j=>{if(j&&j.apps){sts.apps=j.apps;if(location.hash==='#sources')srcRender()}}).catch(()=>{}).finally(()=>{sts.appsBusy=0})}}
+const SRCCTY={ZA:'ЮАР',IN:'Индия',MX:'Мексика',PH:'Филиппины'};
+function srcHead(x){
+ const a=x.pkg?(sts.apps||[]).find(p=>p.id===x.pkg):null,nm=a?a.title:srcName(x.sub1),c=a&&a.country;
+ return `<div class="srch">${a?picHtml(a):''}<div><h2 style="margin:0">${nm}</h2>${c?`<div class="pcty" style="color:var(--tx2);font-size:12.5px;margin-top:2px"><img src="flags/${c.toLowerCase()}.svg" width="14" height="14" alt="" style="margin:0 6px 0 0;vertical-align:-2px">${SRCCTY[c]||c}</div>`:''}</div></div>`}
 function srcRender(){
  const b=$('#srcBody'),d=sts.data;
  if(sts.error&&!d){b.innerHTML='<div class="msg"><p>'+(sts.error.message||'Не удалось загрузить данные')+'</p></div>';return}
  if(!d)return;
- const L=d.sources,tag=L.filter(x=>x.sub1),tot=k=>L.reduce((a,x)=>a+x[k],0),T={hosts:tot('hosts'),clicks:tot('clicks'),conversions:tot('conversions'),amount:tot('amount')};
+ const L=d.sources.filter(x=>x.sub1),tag=L,T={amount:L.reduce((a,x)=>a+x.amount,0)};
  const mx=Math.max(1e-9,...L.map(x=>x.amount)),cur='$';
- const un=L.find(x=>!x.sub1),tagAmt=tag.reduce((a,x)=>a+x.amount,0);
- const hint=!tag.length?'<div class="banner show" style="display:block">Пока нет ни одной метки. Добавьте <b>&amp;sub1=имя_приложения</b> в ссылки офферов в приложении — после этого трафик появится здесь.</div>'
-  :(un&&T.amount>0?`<div style="color:var(--tx2);font-size:12.5px;margin:0 0 12px">С меткой: ${(tagAmt/T.amount*100).toFixed(0)}% дохода. Остальное — приложения, где метка ещё не добавлена.</div>`:'');
+ const hint=!tag.length?'<div class="msg"><p>Пока нет ни одной метки. Добавьте <b>&amp;sub1=имя_приложения</b> в ссылки офферов в приложении — после этого трафик появится здесь.</p></div>':'';
+ const pa=k=>{const x=stp.data&&stp.data.apps&&stp.data.apps.find(a=>a.id===k);return x||null};
  const card=x=>{const cr=x.clicks?x.conversions/x.clicks*100:0,ofs=x.offers.slice(0,8),om=Math.max(1e-9,...ofs.map(o=>o.amount));
-  return `<div class="panel w srcc${x.sub1?'':' un'}"><h2>${srcName(x.sub1)}${x.sub1?` <small style="color:var(--tx2);font-weight:400">sub1=${x.sub1}</small>`:''}</h2>
+  return `<div class="panel w srcc">${srcHead(x)}
   <div class="srck"><div><span>Хосты</span><b>${fmtI(x.hosts)}</b></div><div><span>Клики</span><b>${fmtI(x.clicks)}</b></div><div><span>Конверсии</span><b>${fmtI(x.conversions)}</b></div><div><span>Заработано</span><b>${fmtM(x.amount,2)} ${cur}</b></div></div>
   <div class="otr" style="margin:10px 0 6px"><div class="ofill" style="width:${x.amount/mx*100}%"></div></div>
   <div style="color:var(--tx2);font-size:12px">${(T.amount?x.amount/T.amount*100:0).toFixed(1).replace('.',',')}% дохода · CR ${cr.toFixed(1).replace('.',',')}%</div>
   ${ofs.length?`<div class="srco">${ofs.map(o=>`<div class="gdrow"><div class="gdn1"><span class="gdnm" title="${o.title}">${o.title.replace(/\s*\[.*$/,'')}</span><b>${fmtM(o.amount,2)} ${cur}</b><small>${fmtI(o.clicks)} кл.</small></div><div class="gdbar"><div style="width:${o.amount/om*100}%"></div></div></div>`).join('')}</div>`:''}</div>`};
- b.innerHTML=hint+`<div class="srcsum"><div class="card"><div class="l">Хосты</div><div class="v">${fmtI(T.hosts)}</div></div><div class="card"><div class="l">Клики</div><div class="v">${fmtI(T.clicks)}</div></div><div class="card"><div class="l">Конверсии</div><div class="v">${fmtI(T.conversions)}</div></div><div class="card"><div class="l">Заработано</div><div class="v">${fmtM(T.amount,2)} ${cur}</div></div></div>`
-  +(L.length?`<div class="g2">${L.map(card).join('')}</div>`:'<div class="msg"><p>Нет данных за период</p></div>')}
+ b.innerHTML=hint  +(L.length?`<div class="g2">${L.map(card).join('')}</div>`:'')}
 
 // ---------- Google Play ----------
 const stp={data:null,error:null,ctl:null};
