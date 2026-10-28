@@ -79,6 +79,36 @@ async function fetchBalance() {
   const t = conv(b.balance), a = conv(b.available), h = conv(b.hold);
   return { total: { USD: t.usd }, available: { USD: a.usd }, hold: h.usd ? { USD: h.usd } : {}, parts: t.parts };
 }
+// Трафик по приложениям: приложения передают своё имя в sub1 ссылки оффера
+async function sources(from, to) {
+  const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ]];
+  return cached(['src', from, to].join('|'), async () => {
+    const [bySrc, bySO] = await Promise.all([
+      allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1']]),
+      allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1'], ['slice[]', 'offer']]).catch(() => []),
+    ]);
+    const hide = new Set((process.env.HIDE_OFFERS !== undefined ? process.env.HIDE_OFFERS : 'Finpug.co.za [CPL]').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+    const inner = {};
+    for (const x of bySO) {
+      const k = String(x.slice.sub1 || '').trim().toLowerCase(), n = norm(x);
+      if (!x.slice.offer || !(n.hosts || n.clicks || n.conversions)) continue;
+      const ot = x.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']').toLowerCase();
+      if (hide.has(String(x.slice.offer.id).toLowerCase()) || hide.has(ot)) continue;
+      (inner[k] ||= []).push({ id: String(x.slice.offer.id), title: x.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...n });
+    }
+    const map = {};
+    for (const x of bySrc) {
+      const k = String(x.slice.sub1 || '').trim().toLowerCase(), n = norm(x);
+      const m = map[k] ||= { sub1: k, hosts: 0, clicks: 0, conversions: 0, amount: 0 };
+      m.hosts += n.hosts; m.clicks += n.clicks; m.conversions += n.conversions; m.amount = r4(m.amount + n.amount);
+    }
+    const sources = Object.values(map).filter(m => m.hosts || m.clicks || m.conversions || m.amount)
+      .map(m => ({ ...m, offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
+      .sort((a, b) => b.amount - a.amount || b.clicks - a.clicks);
+    return { demo: false, currency: 'USD', sources, updatedAt: new Date().toISOString() };
+  }, 30000);
+}
+
 async function affise(from, to, q) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) throw Object.assign(new Error('Некорректные даты'), { code: 'bad_request' });
   const offer = q.get('offer');
@@ -174,6 +204,12 @@ http.createServer(async (req, res) => {
   if (u.pathname === '/api/config') {
     if (!KEY) return send(res, 200, { ...CONFIG, hasKey: false });
     try { return send(res, 200, { ...CONFIG, hasKey: true, offers: await offersList() }); } catch (e) { return send(res, 200, { ...CONFIG, hasKey: true }); }
+  }
+  if (u.pathname === '/api/sources') {
+    const from = u.searchParams.get('from'), to = u.searchParams.get('to');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) return send(res, 400, { error: 'bad_request', message: 'Некорректные даты' });
+    if (!KEY) return send(res, 200, { demo: true, sources: [], updatedAt: new Date().toISOString() });
+    try { return send(res, 200, await sources(from, to)); } catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
   }
   if (u.pathname === '/api/play') {
     try { return send(res, 200, await require('./play.js').getPlay()); }
