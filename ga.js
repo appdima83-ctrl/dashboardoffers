@@ -93,6 +93,12 @@ async function report(propertyId, days, app) {
   return { demo: false, days, activity, realtime, versions, countries: rows(cty).map(r => ({ name: r.d[0], value: r.m[0] })), events: rows(evt).map(r => ({ name: r.d[0], value: r.m[0] })), countriesToday: Object.fromEntries(rows(ctyT).map(r => [r.d[0], r.m[0]])), eventsToday: Object.fromEntries(rows(evtT).map(r => [r.d[0], r.m[0]])), updatedAt: new Date().toISOString() };
 }
 
+// Страны пользователей (ISO-2) за период по свойству GA4 — для вкладки «По приложениям»
+async function countriesBetween(propertyId, from, to, app = 'wonga') {
+  const j = await gpost(propertyId, 'runReport', { dateRanges: [{ startDate: from, endDate: to }], dimensions: [{ name: 'countryId' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 25 }, app);
+  return rows(j).filter(r => /^[A-Za-z]{2}$/.test(r.d[0])).map(r => ({ code: r.d[0].toUpperCase(), users: r.m[0] }));
+}
+
 // Демо для проверки интерфейса (GA_MOCK=1)
 function mock(days) {
   const end = new Date(); const dates = [...Array(days)].map((_, i) => { const d = new Date(end); d.setDate(d.getDate() - (days - 1 - i)); return d.toISOString().slice(0, 10); });
@@ -134,4 +140,4 @@ async function getApp(app, days) {
   if (c && Date.now() - c.t < 20000) return c.v;
   const v = await report(pid, days, app); cache.set(k, { t: Date.now(), v }); return v;
 }
-module.exports = { getApp, APPS, listProperties, accessToken, fail };
+module.exports = { countriesBetween, getApp, APPS, listProperties, accessToken, fail };
