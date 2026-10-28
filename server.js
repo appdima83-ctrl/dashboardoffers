@@ -122,7 +122,7 @@ async function sources(from, to) {
     const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pautang=com.navo.navo_calculator').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
     for (const x of sources) if (sp[x.sub1]) x.pkg = sp[x.sub1];
     // Название и страна для меток без приложения в Google Play: метка=Название|ISO2
-    const sm = Object.fromEntries((process.env.SRC_META !== undefined ? process.env.SRC_META : 'pautang=Pautang Prestamos linea calc|MX|555903500').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]).map(([k, v]) => [k, v.split('|')]));
+    const sm = Object.fromEntries((process.env.SRC_META !== undefined ? process.env.SRC_META : 'pautang=Mepresta Dinero rapido calc|MX|555903500').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]).map(([k, v]) => [k, v.split('|')]));
     for (const x of sources) if (sm[x.sub1]) { x.title = sm[x.sub1][0]; x.country = (sm[x.sub1][1] || '').toUpperCase(); x.gaProperty = sm[x.sub1][2] || ''; }
     await Promise.all(sources.filter(x => x.gaProperty).map(async x => { try { x.gaCountries = await ga.countriesBetween(x.gaProperty, from, to); } catch (e) { x.gaCountries = []; x.gaError = e.message; } }));
     return { demo: false, currency: 'USD', sources, updatedAt: new Date().toISOString() };
