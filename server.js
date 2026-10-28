@@ -83,10 +83,17 @@ async function fetchBalance() {
 async function sources(from, to) {
   const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ]];
   return cached(['src', from, to].join('|'), async () => {
-    const [bySrc, bySO] = await Promise.all([
+    const [bySrc, bySO, bySC] = await Promise.all([
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1']]),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1'], ['slice[]', 'offer']]).catch(() => []),
+      allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1'], ['slice[]', 'country']]).catch(() => []),
     ]);
+    const cty = {};
+    for (const x of bySC) {
+      const k = String(x.slice.sub1 || '').trim().toLowerCase(), c = String(x.slice.country || '').toUpperCase(), n = norm(x);
+      if (!/^[A-Z]{2}$/.test(c) || !(n.hosts || n.clicks)) continue;
+      (cty[k] ||= []).push({ code: c, hosts: n.hosts, clicks: n.clicks, conversions: n.conversions, amount: n.amount });
+    }
     const hide = new Set((process.env.HIDE_OFFERS !== undefined ? process.env.HIDE_OFFERS : 'Finpug.co.za [CPL]').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
     const inner = {};
     for (const x of bySO) {
@@ -103,7 +110,7 @@ async function sources(from, to) {
       m.hosts += n.hosts; m.clicks += n.clicks; m.conversions += n.conversions; m.amount = r4(m.amount + n.amount);
     }
     const sources = Object.values(map).filter(m => m.hosts || m.clicks || m.conversions || m.amount)
-      .map(m => ({ ...m, offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
+      .map(m => ({ ...m, countries: (cty[m.sub1] || []).sort((a, b) => b.clicks - a.clicks || b.hosts - a.hosts), offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
       .sort((a, b) => b.amount - a.amount || b.clicks - a.clicks);
     const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pautang=com.prestomin.dinerorapido').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
     for (const x of sources) if (sp[x.sub1]) x.pkg = sp[x.sub1];
