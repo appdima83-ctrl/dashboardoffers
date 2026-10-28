@@ -83,11 +83,18 @@ async function fetchBalance() {
 async function sources(from, to) {
   const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ]];
   return cached(['src', from, to].join('|'), async () => {
-    const [bySrc, bySO, bySC] = await Promise.all([
+    const [bySrc, bySO, bySC, bySOC] = await Promise.all([
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1']]),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1'], ['slice[]', 'offer']]).catch(() => []),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1'], ['slice[]', 'country']]).catch(() => []),
+      allPages('/3.0/stats/custom', [...base, ['slice[]', 'sub1'], ['slice[]', 'offer'], ['slice[]', 'country']]).catch(() => []),
     ]);
+    const oc = {};
+    for (const x of bySOC) {
+      const c = String(x.slice.country || '').toUpperCase(), n = norm(x);
+      if (!x.slice.offer || !/^[A-Z]{2}$/.test(c) || !(n.hosts || n.clicks)) continue;
+      ((oc[String(x.slice.sub1 || '').trim().toLowerCase() + '|' + x.slice.offer.id] ||= [])).push({ code: c, hosts: n.hosts, clicks: n.clicks });
+    }
     const cty = {};
     for (const x of bySC) {
       const k = String(x.slice.sub1 || '').trim().toLowerCase(), c = String(x.slice.country || '').toUpperCase(), n = norm(x);
@@ -101,7 +108,7 @@ async function sources(from, to) {
       if (!x.slice.offer || !(n.hosts || n.clicks || n.conversions)) continue;
       const ot = x.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']').toLowerCase();
       if (hide.has(String(x.slice.offer.id).toLowerCase()) || hide.has(ot)) continue;
-      (inner[k] ||= []).push({ id: String(x.slice.offer.id), title: x.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...n });
+      (inner[k] ||= []).push({ id: String(x.slice.offer.id), title: x.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...n, countries: (oc[k + '|' + x.slice.offer.id] || []).sort((a, b) => b.clicks - a.clicks) });
     }
     const map = {};
     for (const x of bySrc) {

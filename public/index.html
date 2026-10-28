@@ -575,6 +575,7 @@ nav#nav a{transition:gap .3s cubic-bezier(.4,0,.2,1),padding .3s,background .28s
 .srcsum .card{min-width:0}@media(max-width:700px){.srcsum{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .srch{display:flex;align-items:center;gap:12px;margin-bottom:14px}.srch .pic{flex:none}
 .srcg2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin:14px 0 4px}@media(max-width:600px){.srcg2{grid-template-columns:minmax(0,1fr)}}.srcgt b{color:var(--tx);font-weight:600}.srcgn{color:var(--tx2);font-size:13px;padding:3px 0}
+.ocs{display:inline-flex;gap:8px;margin-left:10px;font-weight:400;color:var(--tx2);font-size:12px;vertical-align:1px}.ocs i{font-style:normal;display:inline-flex;align-items:center;gap:4px}
 .srcg{margin:14px 0 4px}.srcgt{color:var(--tx2);font-size:12px;margin-bottom:6px}
 .srcgi{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13.5px}.srcgi span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.srcgi small{color:var(--tx2);min-width:62px;text-align:right}
 .srck{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -922,7 +923,7 @@ function srcRender(){
   ${srcGeo(x)}
   <div class="otr" style="margin:10px 0 6px"><div class="ofill" style="width:${x.amount/mx*100}%"></div></div>
   <div style="color:var(--tx2);font-size:12px">${(T.amount?x.amount/T.amount*100:0).toFixed(1).replace('.',',')}% дохода · CR ${cr.toFixed(1).replace('.',',')}%</div>
-  ${ofs.length?`<div class="srco">${ofs.map(o=>`<div class="gdrow"><div class="gdn1"><span class="gdnm" title="${o.title}">${o.title.replace(/\s*\[.*$/,'')}</span><b>${fmtM(o.amount,2)} ${cur}</b><small>${fmtI(o.clicks)} кл.</small></div><div class="gdbar"><div style="width:${o.amount/om*100}%"></div></div></div>`).join('')}</div>`:''}</div>`};
+  ${ofs.length?`<div class="srco">${ofs.map(o=>`<div class="gdrow"><div class="gdn1"><span class="gdnm" title="${o.title}">${o.title.replace(/\s*\[.*$/,'')}${(o.countries||[]).length?`<span class="ocs">${o.countries.slice(0,4).map(c=>`<i title="${cname(c.code)}: ${fmtI(c.clicks)} кл.">${flagImg(c.code,14)}${fmtI(c.clicks)}</i>`).join('')}${o.countries.length>4?`<i>+${o.countries.length-4}</i>`:''}</span>`:''}</span><b>${fmtM(o.amount,2)} ${cur}</b><small>${fmtI(o.clicks)} кл.</small></div><div class="gdbar"><div style="width:${o.amount/om*100}%"></div></div></div>`).join('')}</div>`:''}</div>`};
  b.innerHTML=hint  +(L.length?`<div class="g2">${L.map(card).join('')}</div>`:'')}
 
 // ---------- Google Play ----------
