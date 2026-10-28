@@ -900,7 +900,7 @@ async function loadSrc(){
  if(!sts.apps&&!sts.appsBusy){sts.appsBusy=1;fetch('/api/play',{credentials:'same-origin'}).then(r=>r.json()).then(j=>{if(j&&j.apps){sts.apps=j.apps;if(location.hash==='#sources')srcRender()}}).catch(()=>{}).finally(()=>{sts.appsBusy=0})}}
 const SRCCTY={ZA:'ЮАР',IN:'Индия',MX:'Мексика',PH:'Филиппины'};
 function srcHead(x){
- const a=x.pkg?(sts.apps||[]).find(p=>p.id===x.pkg):null,nm=a?a.title:srcName(x.sub1),c=a&&a.country;
+ const pa=x.pkg?(sts.apps||[]).find(p=>p.id===x.pkg):null,a=pa||(x.title?{title:x.title,country:x.country}:null),nm=a?a.title:srcName(x.sub1),c=a&&a.country;
  return `<div class="srch">${a?picHtml(a):''}<div><h2 style="margin:0">${nm}</h2>${c?`<div class="pcty" style="color:var(--tx2);font-size:12.5px;margin-top:2px"><img src="flags/${c.toLowerCase()}.svg" width="14" height="14" alt="" style="margin:0 6px 0 0;vertical-align:-2px">${SRCCTY[c]||c}</div>`:''}</div></div>`}
 function srcRender(){
  const b=$('#srcBody'),d=sts.data;
