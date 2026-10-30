@@ -5,6 +5,8 @@
 const crypto = require('crypto'), fs = require('fs');
 
 const APPS = {
+  // Unifi shares a GA4 property with Capfin; scope every report to its Android/iOS streams.
+  unifi: { title: 'Unifi finance - calc app', propertyId: process.env.GA_PROPERTY_UNIFI || '558594194', streamIds: (process.env.GA_STREAM_IDS_UNIFI || '16117378377,16117379924').split(',').map(x => x.trim()).filter(Boolean) },
   wonga: { title: 'Wonga', propertyId: process.env.GA_PROPERTY_WONGA || '546879836' },
   // Mpowa — Firebase-проект in-emergency-loan-guide (Android: com.emergencyloanguide.app). ID свойства GA4 задаётся в GA_PROPERTY_MPOWA
   mpowa: { title: 'Mpowa', propertyId: process.env.GA_PROPERTY_MPOWA || '', findByName: 'in-emergency-loan-guide' },
@@ -52,6 +54,11 @@ async function accessToken(app, scope = 'https://www.googleapis.com/auth/analyti
 }
 
 async function gpost(propertyId, method, body, app) {
+  const streamIds = APPS[app]?.streamIds;
+  if (streamIds?.length) {
+    const filter = { filter: { fieldName: 'streamId', inListFilter: { values: streamIds } } };
+    body = { ...body, dimensionFilter: body.dimensionFilter ? { andGroup: { expressions: [body.dimensionFilter, filter] } } : filter };
+  }
   const t = await accessToken(app);
   let last;
   for (let i = 0; i < 3; i++) {
