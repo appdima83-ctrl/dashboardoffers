@@ -155,7 +155,7 @@ async function affise(from, to, q) {
     const inner = {};
     for (const x of byCO) { const c = String(x.slice.country || '').toUpperCase(), n = norm(x); if (!c || !x.slice.offer || !(n.hosts || n.clicks)) continue; (inner[c] ||= []).push({ id: String(x.slice.offer.id), title: cl(x.slice.offer.title), hosts: n.hosts, clicks: n.clicks }); }
     const geo = byCountry.map(x => ({ code: String(x.slice.country || '').toUpperCase(), ...norm(x) })).filter(g => /^[A-Z]{2}$/.test(g.code) && (g.hosts || g.clicks))
-      .sort((a, b) => b.hosts - a.hosts || b.clicks - a.clicks).slice(0, 25).map(g => ({ ...g, offers: (inner[g.code] || []).sort((a, b) => b.hosts - a.hosts || b.clicks - a.clicks).slice(0, 4) }));
+      .sort((a, b) => b.hosts - a.hosts || b.clicks - a.clicks).map(g => ({ ...g, offers: (inner[g.code] || []).sort((a, b) => b.hosts - a.hosts || b.clicks - a.clicks).slice(0, 4) }));
     return { demo: false, currency: 'USD', rows, offers, geo, offersSource: 'affise', updatedAt: new Date().toISOString() };
   });
   const cat = await catP, rates = await ratesP;
