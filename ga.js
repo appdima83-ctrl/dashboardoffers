@@ -12,6 +12,8 @@ const APPS = {
   mpowa: { title: 'Mpowa', propertyId: process.env.GA_PROPERTY_MPOWA || '', findByName: 'in-emergency-loan-guide' },
   // Navo Calculator — Firebase-проект navo-calculator (Android: com.navo.navo_calculator)
   navo: { title: 'Mepresta', propertyId: process.env.GA_PROPERTY_NAVO || '555903500', findByName: 'navo-calculator' },
+  // Kwik — Firebase-проект kwik-personal-loan-guide (Android: com.kwikloanguide.app)
+  kwik: { title: 'Kwik', propertyId: process.env.GA_PROPERTY_KWIK || '', findByName: 'kwik-personal-loan-guide' },
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
