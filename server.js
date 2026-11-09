@@ -113,13 +113,13 @@ async function sources(from, to) {
     const map = {};
     for (const x of bySrc) {
       const k = String(x.slice.sub1 || '').trim().toLowerCase(), n = norm(x);
-      const m = map[k] ||= { sub1: k, hosts: 0, clicks: 0, conversions: 0, amount: 0 };
-      m.hosts += n.hosts; m.clicks += n.clicks; m.conversions += n.conversions; m.amount = r4(m.amount + n.amount);
+      const m = map[k] ||= { sub1: k, hosts: 0, clicks: 0, conversions: 0, declined: 0, amount: 0 };
+      m.hosts += n.hosts; m.clicks += n.clicks; m.conversions += n.conversions; m.declined += n.declined; m.amount = r4(m.amount + n.amount);
     }
     const sources = Object.values(map).filter(m => m.hosts || m.clicks || m.conversions || m.amount)
       .map(m => ({ ...m, countries: (cty[m.sub1] || []).sort((a, b) => b.clicks - a.clicks || b.hosts - a.hosts), offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
       .sort((a, b) => b.amount - a.amount || b.clicks - a.clicks);
-    const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pautang=com.navo.navo_calculator,prestomin=com.prestomin.dinerorapido,mpowa=com.emergencyloanguide.app,wonga=com.wonga.otpusk_planner').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
+    const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pautang=com.navo.navo_calculator,prestomin=com.prestomin.dinerorapido,mpowa=com.emergencyloanguide.app,wonga=com.wonga.otpusk_planner,unifi=com.unifi.financecalc,kwik=com.kwikloanguide.app').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
     // Размеченные приложения показываем и без трафика (нулевые карточки)
     for (const k of Object.keys(sp)) if (!sources.some(x => x.sub1 === k)) sources.push({ sub1: k, hosts: 0, clicks: 0, conversions: 0, amount: 0, countries: [], offers: [] });
     for (const x of sources) if (sp[x.sub1]) x.pkg = sp[x.sub1];
@@ -134,14 +134,15 @@ async function sources(from, to) {
 async function affise(from, to, q) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) throw Object.assign(new Error('Некорректные даты'), { code: 'bad_request' });
   const offer = q.get('offer');
-  const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ]];
+  const cty = /^[A-Za-z]{2}$/.test(q.get('country') || '') ? q.get('country').toUpperCase() : '';
+  const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ], ...(cty ? [['filter[country]', cty]] : [])];
   const balP = cached('bal', fetchBalance, 5000).catch(() => null);
   const catP = offersCatalog().catch(() => ({}));
   const ratesP = getRates().catch(() => ({ USD: 1 }));
   const today = new Date().toLocaleDateString('en-CA', { timeZone: TZ }); // сегодняшняя дата в часовом поясе кабинета
-  const todayP = cached('today|' + today, () => allPages('/3.0/stats/custom', [['filter[date_from]', today], ['filter[date_to]', today], ['timezone', TZ], ['slice[]', 'offer']]), 15000)
+  const todayP = cached('today|' + today + '|' + cty, () => allPages('/3.0/stats/custom', [['filter[date_from]', today], ['filter[date_to]', today], ['timezone', TZ], ...(cty ? [['filter[country]', cty]] : []), ['slice[]', 'offer']]), 15000)
     .then(st => Object.fromEntries(st.map(x => [String(x.slice.offer.id), norm(x)]))).catch(() => null);
-  const data = await cached(['s', from, to, offer].join('|'), async () => {
+  const data = await cached(['s', from, to, offer, cty].join('|'), async () => {
     const [daily, byOff, byCountry, byCO] = await Promise.all([
       allPages('/3.0/stats/getbydate', offer && offer !== 'all' ? [...base, ['filter[offer]', offer]] : base),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'offer']]),
@@ -231,7 +232,7 @@ http.createServer(async (req, res) => {
     const from = u.searchParams.get('from'), to = u.searchParams.get('to');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) return send(res, 400, { error: 'bad_request', message: 'Некорректные даты' });
     if (!KEY) return send(res, 200, { demo: true, sources: [], updatedAt: new Date().toISOString() });
-    try { return send(res, 200, await sources(from, to)); } catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
+    try { return send(res, 200, { ...(await sources(from, to)), today: new Date().toLocaleDateString('en-CA', { timeZone: TZ }) }); } catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
   }
   if (u.pathname === '/api/play') {
     try { return send(res, 200, await require('./play.js').getPlay()); }
