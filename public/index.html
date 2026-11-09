@@ -618,6 +618,46 @@ nav#nav .gsub a svg{width:16px!important;height:16px!important}
 .srck>div{display:flex;flex-direction:column;align-items:flex-start}
 .srck .srcb{display:flex;flex-wrap:nowrap;gap:4px;min-height:22px;margin-top:8px;align-items:center}
 .srck .up{margin:0;padding:2px 5px;font-size:11px;line-height:14px;animation:none;white-space:nowrap}
+/* Мои карты: картинка пользователя + суммы поверх */
+#bwp{position:relative;overflow:hidden;border-radius:30px!important;padding:22px 22px 18px!important;
+ background:linear-gradient(180deg,#0b0a09 0%,#0d0b0a 55%,#140e09 100%)!important;border:1px solid rgba(255,190,130,.22)!important;
+ box-shadow:inset 0 1px 0 rgba(255,214,170,.45),inset 0 0 34px rgba(255,150,70,.12),0 0 0 1px rgba(255,170,90,.06),0 22px 50px rgba(0,0,0,.5),0 0 40px rgba(255,120,40,.10)!important}
+#bwp::before{content:'';position:absolute;inset:auto -10% -62% -10%;height:130%;border-radius:50%;filter:blur(22px);pointer-events:none;z-index:0;opacity:1;
+ background:radial-gradient(ellipse 55% 52% at 50% 56%,#FFE9CF 0,#F6B777 22%,#E98A3E 46%,rgba(214,100,30,.42) 66%,transparent 84%);animation:glowbreath 7s ease-in-out infinite alternate}
+#bwp::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;display:block!important;
+ background:linear-gradient(180deg,rgba(255,215,170,.10) 0,rgba(255,215,170,0) 38%),radial-gradient(ellipse 80% 40% at 50% 0,rgba(255,200,140,.16),transparent 70%)}
+#bwp>*{position:relative;z-index:1}
+#bwp h2{color:#E9A468;font-weight:500;font-size:15px;letter-spacing:.01em;margin:0 0 12px!important}
+.bimg{position:relative;aspect-ratio:1380/1140;width:100%}
+.bimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;user-select:none;pointer-events:none}
+.bimg .bcur{font-size:clamp(16px,1.6vw,22px);font-weight:800;letter-spacing:.02em;font-style:italic;color:#F4EBE2}
+.bc1{position:absolute;left:7%;right:7%;top:41%;bottom:18%;display:flex;flex-direction:column}
+.bc1 .bl{margin-top:auto;color:rgba(255,255,255,.6);font-size:13px}
+.bc1 .bv{font-size:clamp(24px,2.3vw,32px);font-weight:700;color:#fff;margin:2px 0 0;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bf{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.bsub{color:rgba(255,226,196,.7);font-size:12px}
+.btot{font-size:12px;font-weight:600;color:#34D399;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.35);border-radius:8px;padding:3px 8px;white-space:nowrap}
+.bc2{position:absolute;left:9%;right:9%;top:22.5%;display:flex;justify-content:space-between;align-items:center}
+.bc2 .bcur{font-size:clamp(14px,1.3vw,17px);font-style:normal}
+.bc2 .bam{font-weight:600;color:rgba(255,240,225,.95);font-variant-numeric:tabular-nums}
+.binfo{margin-top:14px}
+.binfo .bil{color:#E9A468;font-weight:500;font-size:15px}
+.binfo .biv{font-size:clamp(26px,2.4vw,34px);font-weight:700;margin:4px 0 8px;font-variant-numeric:tabular-nums;white-space:nowrap;width:max-content;max-width:100%;background:linear-gradient(180deg,#fff 20%,#FFE3C4 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.binfo .bir{display:grid;grid-template-columns:78px 1fr;gap:8px;font-size:14px;line-height:1.7;font-variant-numeric:tabular-nums}
+.binfo .bir span{color:rgba(255,226,196,.82)}.binfo .bir b{color:#fff;font-weight:700}
+/* верхняя карточка «Баланс» скрыта: суммы по валютам — в блоке «Заработано» */
+.cards{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.cards>.card:first-child{grid-column:auto!important}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+/* свёрнутая боковая панель: группа «Приложения» — только иконка */
+body.sc nav#nav .gh{gap:0;justify-content:center;padding-left:0;padding-right:0;min-width:0}
+body.sc nav#nav .gh span{flex:0;max-width:0;opacity:0;overflow:hidden;white-space:nowrap}
+body.sc nav#nav .gh .chev{display:none}
+body.sc nav#nav .gsub>div{padding-left:0}
+body.sc nav#nav .gsub a{padding-left:0!important;padding-right:0!important;justify-content:center}
+/* единое скругление блоков */
+.panel,.card,#bwp,#cards>.card{border-radius:30px!important}
+.panel{padding:22px 24px!important}
 </style></head><body><div class="wrap"><div class="sidebd" id="sidebd"></div>
 <aside class="side">
   <div class="sidetop"><button id="sideToggle" class="sidetog" type="button" aria-label="Свернуть меню" title="Свернуть меню"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button></div>
@@ -650,11 +690,11 @@ nav#nav .gsub a svg{width:16px!important;height:16px!important}
   <div class="tabs" id="modes"><div class="legend" id="legend"></div></div>
   <div class="chartbox" id="chartbox"></div>
 </div>
-<div class="panel w" id="geoPanel"><h2>Трафик по странам</h2><div class="geolist" id="geoList"></div></div>
+<div class="panel w" id="bwp"><div id="bw"></div></div>
 </div>
 <div class="g2o">
 <div class="panel"><div class="tabs"><h2 style="margin:0 12px 0 0;align-self:center">Офферы по результату</h2><div id="omodes" style="display:flex;gap:6px"><button data-o="conversions" class="on">Конверсии</button><button data-o="amount">Сумма</button><button data-o="clicks">Клики</button><button data-o="hosts">Хосты</button></div></div><div id="osrc" style="color:var(--tx2);font-size:12px;margin:-4px 0 6px"></div><div id="obars"></div></div>
-<div class="panel w" id="dpanel"><h2>Доля по офферам</h2><div id="donut"></div></div>
+<div class="panel w" id="geoPanel"><h2>Трафик по странам</h2><div class="geolist" id="geoList"></div></div>
 </div>
 <div class="panel tblwrap" id="tbl"></div>
 </div>
@@ -724,16 +764,26 @@ function render(){
  if(!st.rows){b.style.display='none';for(const id of['#cards','#chartbox','#tbl'])$(id).innerHTML=id==='#cards'?'':'';$('#cards').innerHTML='';$('#chartbox').innerHTML=errBox();$('#tbl').innerHTML='';$('#obars').innerHTML='';$('#donut').innerHTML='';return}
  b.style.display=st.stale?'block':'none';if(st.stale)b.textContent='Не удалось обновить данные — показаны предыдущие значения.';
  const T=tot(st.rows);
- $('#cards').innerHTML=`${balCard()}
+ $('#cards').innerHTML=`
  <div class="card c"><div class="l">Хосты</div><div class="v" title="Сумма дневных уникальных посетителей">${fmtI(T.hosts)}</div><div class="s">Уникальные по дням</div></div>
  <div class="card c"><div class="l">Клики</div><div class="v">${fmtI(T.clicks)}</div><div class="s">Всего за период</div></div>
  <div class="card a"><div class="l">Кол-во офферов</div><div class="v">${fmtI(T.conversions)}</div><div class="s">Конверсии за период</div></div>
  <div class="card b"><div class="l">Заработано</div><div class="v" title="Точное значение: ${fmtM(T.amount)} ${st.cur}. Все валюты уже в долларах: Affise пересчитывает выплаты по курсу на день конверсии, как «Итого» в кабинете.">${fmtM(T.amount,2)} ${st.cur}</div><div class="s">Финансы → Итого</div></div>`;
  if(!st.rows.length||(T.hosts+T.clicks+T.conversions===0&&false)){}
- chart();geoRender();table(T);bars();countUp();
+ chart();geoRender();table(T);bars();balWidget();countUp();
 }
 const SYM={USD:'$',EUR:'€',ZAR:'R'};
 const money=(v,c)=>fmtM(v,2)+' '+(SYM[c]||c);
+function balWidget(){
+ const el=$('#bw');if(!el)return;const b=st.balance;
+ if(!b){el.innerHTML='<p style="color:var(--tx2)">Нет данных о балансе</p>';return}
+ const parts=b.parts||[],usd=parts.find(p=>p.code==='USD'),eur=parts.find(p=>p.code==='EUR');
+ el.innerHTML=`<div class="bimg"><img src="cards.webp" alt="" draggable="false">
+  <div class="bc1"><b class="bcur">USD</b><div class="bl">Баланс</div><div class="bv">${money(usd?usd.amount:0,'USD')}</div></div>
+  <div class="bc2" title="${eur?'Курс Affise: 1 € = '+fmtM(eur.rate,4)+' $ · ≈ '+money(eur.usd,'USD'):'Нет средств в евро'}"><b class="bcur">EUR</b><span class="bam">${money(eur?eur.amount:0,'EUR')}</span></div></div>
+  <div class="binfo"><div class="bil">Итого</div><div class="biv" title="Точное значение: ${fmtM(b.total.USD||0)} $">${money(b.total.USD||0,'USD')}</div>
+   <div class="bir"><span>Доллары:</span><b>${money(usd?usd.amount:0,'USD')}</b></div>
+   <div class="bir" title="${eur?'Курс Affise: 1 € = '+fmtM(eur.rate,4)+' $':''}"><span>Евро:</span><b>${eur?`${money(eur.amount,'EUR')} × ${fmtM(eur.rate,4)} = ${money(eur.usd,'USD')}`:'—'}</b></div></div>`}
 function balCard(){
  const b=st.balance;
  if(!b)return '<div class="card d"><div class="l">Баланс</div><div class="v">—</div><div class="s">Нет данных, не удалось получить</div></div>';
