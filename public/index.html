@@ -614,7 +614,7 @@ nav#nav .gsub a svg{width:16px!important;height:16px!important}
 .srct{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:12px;padding:8px;border-radius:10px;color:var(--tx2);font-size:13px;cursor:pointer}
 .srct:hover{color:var(--tx);background:rgba(255,255,255,.04)}.srct:focus-visible{outline:2px solid rgba(255,255,255,.35)}
 .srct .chev{transition:transform .25s}.srcc.open .srct .chev{transform:rotate(180deg)}
-#srcBody .g2{align-items:start;grid-template-columns:repeat(2,minmax(0,1fr))}
+#srcBody .g2{align-items:start}
 .srck>div{display:flex;flex-direction:column;align-items:flex-start}
 .srck .srcb{display:flex;flex-wrap:nowrap;gap:4px;min-height:22px;margin-top:8px;align-items:center}
 .srck .up{margin:0;padding:2px 5px;font-size:11px;line-height:14px;animation:none;white-space:nowrap}
@@ -646,9 +646,6 @@ nav#nav .gsub a svg{width:16px!important;height:16px!important}
 .binfo .bir{display:grid;grid-template-columns:78px 1fr;gap:8px;font-size:14px;line-height:1.7;font-variant-numeric:tabular-nums}
 .binfo .bir span{color:rgba(255,226,196,.82)}.binfo .bir b{color:#fff;font-weight:700}
 /* верхняя карточка «Баланс» скрыта: суммы по валютам — в блоке «Заработано» */
-.cards{grid-template-columns:repeat(4,minmax(0,1fr))!important}
-.cards>.card:first-child{grid-column:auto!important}
-@media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 /* свёрнутая боковая панель: группа «Приложения» — только иконка */
 body.sc nav#nav .gh{gap:0;justify-content:center;padding-left:0;padding-right:0;min-width:0}
 body.sc nav#nav .gh span{flex:0;max-width:0;opacity:0;overflow:hidden;white-space:nowrap}
@@ -658,6 +655,28 @@ body.sc nav#nav .gsub a{padding-left:0!important;padding-right:0!important;justi
 /* единое скругление блоков */
 .panel,.card,#bwp,#cards>.card{border-radius:30px!important}
 .panel{padding:22px 24px!important}
+.bgain{position:absolute;right:0;bottom:2px;font-size:13px;font-weight:700;color:#34D399;background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.4);border-radius:10px;padding:5px 11px;white-space:nowrap}
+#bw{width:100%;margin:0 auto}
+/* адаптивная перекомпоновка: блоки сохраняют размер и переносятся, а не растягиваются */
+.cards{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:420px){.cards{grid-template-columns:minmax(0,1fr)!important}}
+.cards>.card:first-child{grid-column:auto!important}
+.chartrow,.g2o{display:flex!important;flex-wrap:wrap;gap:16px;align-items:stretch;grid-template-columns:none!important}
+.chartrow>:first-child,.g2o>:first-child{flex:2 1 560px;min-width:0}
+.g2o>#geoPanel{flex:1 1 340px;min-width:min(100%,300px);max-width:460px;margin-inline:auto}
+/* блок с картами — фиксированной ширины; график занимает остаток ряда */
+.chartrow>:first-child{flex:1 1 0!important;min-width:min(100%,420px)}
+.chartrow>#bwp{flex:0 0 400px!important;width:400px;max-width:100%;min-width:0;margin-inline:auto}
+#srcBody .g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))!important}
+/* график: светлая плашка-тултип, легенда внизу квадратиками */
+.tip{background:#fff!important;color:#1b1b1d!important;border:0!important;border-radius:18px!important;padding:12px 16px!important;box-shadow:0 14px 32px rgba(0,0,0,.45);-webkit-backdrop-filter:none!important;backdrop-filter:none!important;font-size:13px!important}
+.tip .tdt{color:#6b6b70;font-size:13px;margin-bottom:4px}.tip .tdt span{margin-left:4px;color:#1b1b1d}
+.tip .tr{line-height:1.6}.tip b{color:#1b1b1d}
+#modes{margin-top:14px}
+#modes .legend{justify-content:flex-end}
+#modes .legend i{width:14px;height:14px;border-radius:4px}
+#modes .legend label{color:#E6D9CC}
 </style></head><body><div class="wrap"><div class="sidebd" id="sidebd"></div>
 <aside class="side">
   <div class="sidetop"><button id="sideToggle" class="sidetog" type="button" aria-label="Свернуть меню" title="Свернуть меню"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button></div>
@@ -687,8 +706,8 @@ body.sc nav#nav .gsub a{padding-left:0!important;padding-right:0!important;justi
 <div class="chartrow">
 <div class="panel">
   <h2>Динамика по дням</h2>
-  <div class="tabs" id="modes"><div class="legend" id="legend"></div></div>
   <div class="chartbox" id="chartbox"></div>
+  <div class="tabs" id="modes"><div class="legend" id="legend"></div></div>
 </div>
 <div class="panel w" id="bwp"><div id="bw"></div></div>
 </div>
@@ -778,8 +797,10 @@ function balWidget(){
  const el=$('#bw');if(!el)return;const b=st.balance;
  if(!b){el.innerHTML='<p style="color:var(--tx2)">Нет данных о балансе</p>';return}
  const parts=b.parts||[],usd=parts.find(p=>p.code==='USD'),eur=parts.find(p=>p.code==='EUR');
+ const td=Object.values(st.offToday||{}).reduce((q,o)=>q+(o.amount||0),0),tot=b.total.USD||0,pc=tot-td>0?td/(tot-td)*100:0,
+  gain=td>0?`<span class="bgain" title="Прирост за сегодня: +${fmtM(td,2)} $ (${fmtM(pc,2)} % к балансу)">↑ +${fmtM(td,2)} $</span>`:'';
  el.innerHTML=`<div class="bimg"><img src="cards.webp" alt="" draggable="false">
-  <div class="bc1"><b class="bcur">USD</b><div class="bl">Баланс</div><div class="bv">${money(usd?usd.amount:0,'USD')}</div></div>
+  <div class="bc1"><b class="bcur">USD</b><div class="bl">Баланс</div><div class="bv">${money(usd?usd.amount:0,'USD')}</div>${gain}</div>
   <div class="bc2" title="${eur?'Курс Affise: 1 € = '+fmtM(eur.rate,4)+' $ · ≈ '+money(eur.usd,'USD'):'Нет средств в евро'}"><b class="bcur">EUR</b><span class="bam">${money(eur?eur.amount:0,'EUR')}</span></div></div>
   <div class="binfo"><div class="bil">Итого</div><div class="biv" title="Точное значение: ${fmtM(b.total.USD||0)} $">${money(b.total.USD||0,'USD')}</div>
    <div class="bir"><span>Доллары:</span><b>${money(usd?usd.amount:0,'USD')}</b></div>
@@ -829,7 +850,7 @@ function mono(px,py){const n=px.length,dx=[],m=[],t=[];for(let i=0;i<n-1;i++){dx
  let d=`M${px[0]},${py[0]}`;for(let i=0;i<n-1;i++)d+=` C${px[i]+dx[i]/3},${py[i]+t[i]*dx[i]/3} ${px[i+1]-dx[i]/3},${py[i+1]-t[i+1]*dx[i]/3} ${px[i+1]},${py[i+1]}`;return d}
 // Один график: клики и хосты (левая шкала), заработано в $ (правая шкала), конверсии (своя шкала) — всё плавными линиями разных оттенков оранжевого
 const SERIES=[
- {k:'clicks',name:'Клики',color:'#FF6A1A',axis:'L'},
+ {k:'clicks',name:'Клики',color:'#FFFFFF',area:'#E0680C',axis:'L'},
  {k:'hosts',name:'Хосты',color:'#FFB27A',axis:'L'},
  {k:'amount',name:'Заработано',color:'#FFA21F',axis:'R',money:1},
  {k:'conversions',name:'Конверсии',color:'#FFE0C2',axis:'C'}];
@@ -846,7 +867,7 @@ function chart(){
  const lMax=niceMax(Math.max(1,...SERIES.filter(s=>s.axis==='L'&&on(s)).flatMap(s=>rows.map(r=>r[s.k])))),
   rMax=niceMax(Math.max(.01,...rows.map(r=>r.amount))),cMax=Math.max(1,...rows.map(r=>r.conversions));
  const X=i=>m.l+(n<2?pw/2:i*pw/(n-1)),Y=v=>m.t+ph-v/lMax*ph,YR=v=>m.t+ph-v/rMax*ph,YC=v=>m.t+ph-v/cMax*ph,F=s=>s.axis==='R'?YR:s.axis==='C'?YC:Y;
- let g='<defs>'+SERIES.map(s=>`<linearGradient id="g${s.k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity="${s.k==='clicks'?.62:s.k==='hosts'?.46:.34}"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
+ let g='<defs>'+SERIES.map(s=>`<linearGradient id="g${s.k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.area||s.color}" stop-opacity="${s.k==='clicks'?.85:s.k==='hosts'?.46:.34}"/><stop offset="1" stop-color="${s.area||s.color}" stop-opacity="0"/></linearGradient>`).join('')+'</defs>';
  for(let i=0;i<=4;i++){const y=m.t+ph-i*ph/4;g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.10)" stroke-dasharray="2 6"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" fill="#9BAAC0" font-size="${FS}">${fmtI(lMax*i/4)}</text>`;
   if(showR)g+=`<text x="${W-m.r+(narrow?5:8)}" y="${y+4}" text-anchor="start" fill="#FFA21F" fill-opacity=".95" font-size="${FS}">${rMax<10?fmtM(rMax*i/4,2):fmtI(rMax*i/4)}</text>`}
  if(showR)g+=`<text x="${W-m.r+(narrow?5:8)}" y="${m.t-14}" fill="#FFA21F" fill-opacity=".95" font-size="${FS}">${st.cur}</text>`;
@@ -857,13 +878,13 @@ function chart(){
   P.forEach(o=>{g+=`<path class="ar" d="${o.d} L${o.px[n-1]},${o.f(0)} L${o.px[0]},${o.f(0)}Z" fill="url(#g${o.s.k})"/>`});
   P.forEach(o=>{g+=`<path class="ln" pathLength="1" d="${o.d}" fill="none" stroke="${o.s.color}" stroke-width="1.8" stroke-linecap="round" style="filter:drop-shadow(0 0 3px ${o.s.color}66)"/>`})}
  else lines.forEach(s=>g+=`<circle cx="${X(0)}" cy="${F(s)(rows[0][s.k])}" r="4" fill="${s.color}"/>`);
- g+=`<line id="cur" y1="${m.t}" y2="${m.t+ph}" stroke="#fff" stroke-opacity=".35" opacity="0"/><g id="dots"></g><rect id="hit" x="${m.l}" y="0" width="${pw}" height="${Hh}" fill="transparent"/>`;
+ g+=`<line id="cur" y1="${m.t}" y2="${m.t+ph}" stroke="#fff" stroke-opacity=".25" stroke-dasharray="2 4" opacity="0"/><g id="dots"></g><rect id="hit" x="${m.l}" y="0" width="${pw}" height="${Hh}" fill="transparent"/>`;
  box.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none">${g}</svg><div class="tip" id="tip"></div>`;
  const hit=$('#hit'),tip=$('#tip');
  hit.onmousemove=e=>{const rc=box.getBoundingClientRect(),x=(e.clientX-rc.left)*(W/rc.width);const i=Math.max(0,Math.min(n-1,Math.round((x-m.l)/(pw/Math.max(1,n-1)))));const r=rows[i];
   $('#cur').setAttribute('x1',X(i));$('#cur').setAttribute('x2',X(i));$('#cur').setAttribute('opacity',1);
-  $('#dots').innerHTML=lines.map(s=>`<circle cx="${X(i)}" cy="${F(s)(SM[s.k][i])}" r="5" fill="#fff" stroke="${s.color}" stroke-width="2.6"/>`).join('');
-  tip.style.display='block';tip.innerHTML=`<b>${dm(r.date)}</b><br>`+vis.map(s=>`<span style="color:${s.color}">●</span> ${s.name}: <b>${s.money?fmtM(r[s.k])+' '+st.cur:fmtI(r[s.k])}</b>`).join('<br>');
+  $('#dots').innerHTML=lines.map(s=>`<circle cx="${X(i)}" cy="${F(s)(SM[s.k][i])}" r="6" fill="#fff" stroke="${s.area||s.color}" stroke-width="2.4" style="filter:drop-shadow(0 0 8px rgba(255,255,255,.9))"/>`).join('');
+  tip.style.display='block';tip.innerHTML=`<div class="tdt">${dm(r.date)} <span>↗</span></div>`+vis.map(s=>`<div class="tr"><span style="color:${s.area||s.color}">●</span> ${s.name}: <b>${s.money?fmtM(r[s.k])+' '+st.cur:fmtI(r[s.k])}</b></div>`).join('');
   const px=X(i)*(rc.width/W);tip.style.left=Math.min(px+12,rc.width-tip.offsetWidth-4)+'px';tip.style.top='10px'};
  hit.ontouchmove=hit.ontouchstart=e=>{const t=e.touches[0];hit.onmousemove({clientX:t.clientX})};
  hit.onmouseleave=()=>{tip.style.display='none';$('#cur').setAttribute('opacity',0);$('#dots').innerHTML=''};
