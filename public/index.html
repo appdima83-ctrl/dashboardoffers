@@ -914,7 +914,7 @@ function countUp(){
 
 // ---------- Трафик по приложениям (sub1) ----------
 const sts={data:null,error:null,ctl:null};
-const SRCN={pautang:'Pautang Prestamos (MX)',prestomin:'Prestomin - Dinero Rapido',mpowa:'Mpowa'};
+const SRCN={pautang:'Pautang Prestamos (MX)',prestomin:'Prestomin - Dinero Rapido',mpowa:'Mpowa',wonga:'Wonga'};
 const srcName=k=>k?(SRCN[k]||k):'Без метки';
 async function loadSrc(){
  lastLoad=Date.now();sts.ctl&&sts.ctl.abort();const ctl=sts.ctl=new AbortController();
