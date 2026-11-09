@@ -14,6 +14,8 @@ const APPS = {
   navo: { title: 'Mepresta', propertyId: process.env.GA_PROPERTY_NAVO || '555903500', findByName: 'navo-calculator' },
   // Kwik — Firebase-проект kwik-personal-loan-guide (Android: com.kwikloanguide.app)
   kwik: { title: 'Kwik', propertyId: process.env.GA_PROPERTY_KWIK || '', findByName: 'kwik-personal-loan-guide' },
+  // Prestomin - Dinero Rapido — Firebase-проект car-loan-calc-54229509 (Android: com.toolxone.carloancalculator)
+  prestomin: { title: 'Prestomin - Dinero Rapido', propertyId: process.env.GA_PROPERTY_PRESTOMIN || '', findByName: 'car-loan-calc-54229509' },
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
