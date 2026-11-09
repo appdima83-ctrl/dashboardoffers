@@ -51,7 +51,7 @@ async function allPages(pathname, params) {
   }
 }
 const num = x => Number(x) || 0, r4 = x => Math.round(x * 1e4) / 1e4;
-const norm = s => ({ hosts: num(s.traffic?.uniq), clicks: num(s.traffic?.raw), conversions: num(s.actions?.total?.count), amount: r4(num(s.actions?.total?.revenue)) });
+const norm = s => ({ hosts: num(s.traffic?.uniq), clicks: num(s.traffic?.raw), conversions: num(s.actions?.total?.count), declined: num(s.actions?.declined?.count), amount: r4(num(s.actions?.total?.revenue)) });
 const cache = new Map();
 async function cached(key, fn, ttl = 15000) {
   const c = cache.get(key); if (c && Date.now() - c.t < ttl) return c.v;
