@@ -330,6 +330,9 @@ nav#nav{margin-top:0}
 }
 
 .fls{display:inline-flex;align-items:center;gap:3px;flex:none;margin-left:8px}
+.aps{display:inline-flex;align-items:center;gap:4px;flex:none;margin-left:8px}
+.ap{width:20px;height:20px;border-radius:6px;object-fit:cover;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+.ap.pfb{display:grid;place-items:center;background:linear-gradient(160deg,#2a2a2a,#171717);color:#FF8A4C;font-weight:700;font-size:11px}
 .fl{font-size:15px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;cursor:default}
 .flm{font-size:11px;color:var(--tx2);font-weight:600;padding-left:1px}
 .orow .n .tt{flex:0 1 auto}
@@ -663,8 +666,27 @@ async function load(){lastLoad=Date.now();
   if(!st.rows||st.rows.length!==j.rows.length)st.page=1;st.rows=j.rows;st.geo=j.geo||null;st.balance=j.balance;st.offToday=j.offersToday||null;st.today=j.today;st.offers=j.offers||[];st.osrc=j.offersSource;st.error=null;st.stale=false;$('#demo').hidden=!j.demo;
   const t=new Date(j.updatedAt);$('#upd').textContent='Обновлено: '+t.toLocaleTimeString('ru-RU');$('#sync').textContent=t.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});$('#upd').className='upd';
  }catch(e){if(e.name==='AbortError')return;st.error=e;if(st.rows){st.stale=true;$('#upd').textContent='Данные не обновлены';$('#upd').className='upd stale'}}
- render();
+ render();loadAppMap();
 }
+// Иконки приложений у оффера: откуда пришли клики и хосты (по метке sub1)
+const stApps={byOffer:null,busy:null};
+async function loadAppMap(){
+ const from=$('#from').value,to=$('#to').value,key=from+'|'+to;
+ if(stApps.busy===key)return;stApps.busy=key;
+ try{
+  const [sr,pr]=await Promise.all([fetch('/api/sources?'+new URLSearchParams({from,to}),{credentials:'same-origin'}).then(r=>r.ok?r.json():null),sts.apps?null:fetch('/api/play',{credentials:'same-origin'}).then(r=>r.json()).catch(()=>null)]);
+  if(pr&&pr.apps)sts.apps=pr.apps;
+  if(sr&&sr.sources){const m={};for(const s of sr.sources){if(!s.sub1)continue;for(const o of s.offers||[])(m[o.id]||=[]).push({s,clicks:o.clicks,hosts:o.hosts})}stApps.byOffer=m}
+ }catch{}finally{stApps.busy=null}
+ if(st.rows&&!location.hash.slice(1))bars()
+}
+function appsHtml(o){
+ const l=stApps.byOffer&&stApps.byOffer[o.id];if(!l||!l.length)return '';
+ const show=[...l].sort((a,b)=>b.clicks-a.clicks||b.hosts-a.hosts).slice(0,4).map(({s,clicks,hosts})=>{
+  const pa=s.pkg?(sts.apps||[]).find(p=>p.id===s.pkg):null,nm=(s.title||(pa&&pa.title)||srcName(s.sub1)).replace(/"/g,'&quot;'),ic=pa&&pa.icon,fb=`<span class=&quot;ap pfb&quot;>${nm.charAt(0)}</span>`,
+   tip=`${nm}: ${fmtI(clicks)} кл. · ${fmtI(hosts)} хостов`;
+  return ic?`<img class="ap" src="${ic}=s64-rw" width="20" height="20" alt="${nm}" title="${tip}" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='${fb}'">`:`<span class="ap pfb" title="${tip}">${nm.charAt(0)}</span>`}).join('');
+ return `<span class="aps">${show}${l.length>4?`<span class="flm" title="${l.slice(4).map(x=>x.s.title||srcName(x.s.sub1)).join(', ')}">+${l.length-4}</span>`:''}</span>`}
 function renderSkeleton(){$('#cards').innerHTML='<div class="sk" style="height:130px"></div><div class="sk" style="height:130px"></div>';$('#chartbox').innerHTML='<div class="sk" style="height:100%"></div>';$('#tbl').innerHTML='<div class="sk" style="height:260px"></div>'}
 function errBox(){const e=st.error,k=e.code;const t=k==='no_key'?['Не задан API-ключ','Задайте переменную окружения AFFISE_API_KEY на сервере и перезапустите его.']:k==='network'?['Сетевая ошибка','Не удалось получить данные. Это не нулевая статистика.']:['Ошибка доступа к API',e.message];
  return `<div class="msg"><h3>${t[0]}</h3><p>${t[1]}</p><button class="primary" onclick="load()">Повторить</button></div>`}
@@ -705,7 +727,7 @@ function donut(L,k,tt){
  el.innerHTML=`<div class="dn"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="16"/>${seg}</svg><div class="ct"><b>${fv(tt)}</b><span>${unit}</span></div></div>`+
  items.map((it,i)=>`<div class="dl"><i style="background:${DPAL[i]}"></i><div class="nm" title="${it.n}">${it.n}</div><div class="vl">${fv(it.v)}</div><div class="pc">${(it.v/tt*100).toFixed(0)}%</div></div>`).join('')}
 function bars(){$('#osrc').textContent=st.osrc==='affise'?'Данные из кабинета (Affise), все офферы за период · ▲ — прирост за сегодня':st.osrc==='cabinet'?'Данные из кабинета (снимок таблицы «Офферы», 01–30.09.2026)':'Демо-распределение по офферам';const k=st.om||'conversions',all=st.offers,L=all.filter(o=>o[k]>0).sort((a,b)=>b[k]-a[k]),hid=all.length-L.length,mx=Math.max(1e-9,...L.map(o=>o[k])),tt=L.reduce((a,o)=>a+o[k],0)||1;
- donut(L,k,tt);$('#obars').innerHTML=(L.length?`<div class="ohead"><span>Оффер</span><span></span><span>К выплате</span><span>${METRIC_LBL[k]}</span></div>`:'')+(L.length?L.map((o,i)=>{const tv=st.offToday&&st.offToday[o.id]?st.offToday[o.id][k]:0,hot=tv>0;return `<div class="orow${hot?' hot':''}"><div class="n"><b>${i+1}</b><span class="tt">${o.title}</span>${flagsHtml(o)}${hot?`<span class="up" title="${upTitle(k,tv)}">▲ +${k==='amount'?fmtM(tv,2)+' '+st.cur:fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%;opacity:${hot?1:(1-i/Math.max(L.length,1)*.55).toFixed(2)}"></div></div>${payHtml(o)}<div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`}).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
+ donut(L,k,tt);$('#obars').innerHTML=(L.length?`<div class="ohead"><span>Оффер</span><span></span><span>К выплате</span><span>${METRIC_LBL[k]}</span></div>`:'')+(L.length?L.map((o,i)=>{const tv=st.offToday&&st.offToday[o.id]?st.offToday[o.id][k]:0,hot=tv>0;return `<div class="orow${hot?' hot':''}"><div class="n"><b>${i+1}</b><span class="tt">${o.title}</span>${flagsHtml(o)}${appsHtml(o)}${hot?`<span class="up" title="${upTitle(k,tv)}">▲ +${k==='amount'?fmtM(tv,2)+' '+st.cur:fmtI(tv)}</span>`:''}</div><div class="otr"><div class="ofill" style="width:${o[k]/mx*100}%;opacity:${hot?1:(1-i/Math.max(L.length,1)*.55).toFixed(2)}"></div></div>${payHtml(o)}<div class="val">${k==='amount'?fmtM(o[k])+' '+st.cur:fmtI(o[k])}<small>${(o[k]/tt*100).toFixed(1).replace('.',',')}% от всех</small></div></div>`}).join(''):'<div class="msg"><p>Нет офферов со значениями за период</p></div>')+(hid&&L.length?`<div style="color:var(--tx2);font-size:12px;margin-top:6px">Скрыто офферов без значений: ${hid}</div>`:'')}
 document.querySelectorAll('#omodes button').forEach(b=>b.onclick=()=>{st.om=b.dataset.o;document.querySelectorAll('#omodes button').forEach(x=>x.classList.toggle('on',x===b));st.rows&&bars()});
 const PER=7;
 function table(T){
