@@ -119,7 +119,9 @@ async function sources(from, to) {
     const sources = Object.values(map).filter(m => m.hosts || m.clicks || m.conversions || m.amount)
       .map(m => ({ ...m, countries: (cty[m.sub1] || []).sort((a, b) => b.clicks - a.clicks || b.hosts - a.hosts), offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
       .sort((a, b) => b.amount - a.amount || b.clicks - a.clicks);
-    const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pautang=com.navo.navo_calculator,prestomin=com.prestomin.dinerorapido').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
+    const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pautang=com.navo.navo_calculator,prestomin=com.prestomin.dinerorapido,mpowa=com.emergencyloanguide.app').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
+    // Размеченные приложения показываем и без трафика (нулевые карточки)
+    for (const k of Object.keys(sp)) if (!sources.some(x => x.sub1 === k)) sources.push({ sub1: k, hosts: 0, clicks: 0, conversions: 0, amount: 0, countries: [], offers: [] });
     for (const x of sources) if (sp[x.sub1]) x.pkg = sp[x.sub1];
     // Название и страна для меток без приложения в Google Play: метка=Название|ISO2
     const sm = Object.fromEntries((process.env.SRC_META !== undefined ? process.env.SRC_META : 'pautang=Mepresta Dinero rapido calc|MX|555903500').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]).map(([k, v]) => [k, v.split('|')]));
