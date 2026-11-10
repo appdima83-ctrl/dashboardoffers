@@ -76,7 +76,7 @@ async function fetchBalance() {
   const [j, rates] = await Promise.all([aget('/3.0/balance', []), getRates()]);
   const b = j.balance || {};
   const conv = o => { let usd = 0; const parts = []; for (const [c, v] of Object.entries(o || {})) { const n = num(v); if (!n) continue; const u = toUsd(n, c, rates); if (u === null) continue; usd += u; parts.push({ code: c.toUpperCase(), amount: r4(n), usd: r4(u), rate: c.toUpperCase() === 'USD' ? 1 : r4(u / n) }); } return { usd: r4(usd), parts }; };
-  const t = conv(b.balance), a = conv(b.available), h = conv(b.hold);
+  const a = conv(b.available), t = a.parts.length ? a : conv(b.balance), h = conv(b.hold); // «Баланс» = доступно к выводу (поле balance Affise расходится с кабинетом)
   return { total: { USD: t.usd }, available: { USD: a.usd }, hold: h.usd ? { USD: h.usd } : {}, parts: t.parts };
 }
 // Трафик по приложениям: приложения передают своё имя в sub1 ссылки оффера
