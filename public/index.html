@@ -787,6 +787,15 @@ body{background-image:none!important}
 /* плашки прироста за день на верхних карточках */
 #cards .vr{display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0}
 #cards .kg{flex:none;font-size:13px;font-weight:600;color:#6fdc9c;background:rgba(46,125,75,.22);border-radius:8px;padding:3px 9px;line-height:1.2;white-space:nowrap}
+/* плитки метрик: цифры и плашки масштабируются под ширину карточки */
+#srcBody .srcc{container-type:inline-size}
+#srcBody .srck{grid-template-columns:repeat(4,minmax(0,1fr))}
+#srcBody .srck>div{padding:12px 12px!important;min-width:0}
+#srcBody .srck>div>span:first-child{font-size:clamp(11px,2.1cqw,13px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#srcBody .srck b{font-size:clamp(15px,4cqw,24px)}
+#srcBody .srck .srcb{flex-wrap:wrap;gap:4px;min-height:22px}
+#srcBody .srck .srcb .up{font-size:clamp(10px,1.9cqw,12px);padding:2px 6px;white-space:nowrap}
+@container (max-width:480px){#srcBody .srck{grid-template-columns:repeat(2,minmax(0,1fr))}#srcBody .srck b{font-size:clamp(18px,6cqw,24px)}#srcBody .srck>div>span:first-child{font-size:13px}#srcBody .srck .srcb .up{font-size:12px}}
 </style></head><body><div class="wrap"><div class="sidebd" id="sidebd"></div>
 <aside class="side">
   <div class="sidetop"><button id="sideToggle" class="sidetog" type="button" aria-label="Свернуть меню" title="Свернуть меню"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button></div>
