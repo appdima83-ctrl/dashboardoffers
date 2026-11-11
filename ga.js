@@ -5,17 +5,12 @@
 const crypto = require('crypto'), fs = require('fs');
 
 const APPS = {
-  // Unifi shares a GA4 property with Capfin; scope every report to its Android/iOS streams.
-  unifi: { title: 'Unifi finance - calc app', propertyId: process.env.GA_PROPERTY_UNIFI || '558594194', streamIds: (process.env.GA_STREAM_IDS_UNIFI || '16117378377,16117379924').split(',').map(x => x.trim()).filter(Boolean) },
-  wonga: { title: 'Wonga', propertyId: process.env.GA_PROPERTY_WONGA || '546879836' },
-  // Mpowa — Firebase-проект in-emergency-loan-guide (Android: com.emergencyloanguide.app). ID свойства GA4 задаётся в GA_PROPERTY_MPOWA
-  mpowa: { title: 'Mpowa', propertyId: process.env.GA_PROPERTY_MPOWA || '', findByName: 'in-emergency-loan-guide' },
-  // Navo Calculator — Firebase-проект navo-calculator (Android: com.navo.navo_calculator)
-  navo: { title: 'Mepresta', propertyId: process.env.GA_PROPERTY_NAVO || '555903500', findByName: 'navo-calculator' },
-  // Kwik — Firebase-проект kwik-personal-loan-guide (Android: com.kwikloanguide.app)
-  kwik: { title: 'Kwik', propertyId: process.env.GA_PROPERTY_KWIK || '', findByName: 'kwik-personal-loan-guide' },
-  // Prestomin - Dinero Rapido — Firebase-проект car-loan-calc-54229509 (Android: com.toolxone.carloancalculator)
-  prestomin: { title: 'Prestomin - Dinero Rapido', propertyId: process.env.GA_PROPERTY_PRESTOMIN || '', findByName: 'car-loan-calc-54229509' },
+  // PesoMatch fast loan — Firebase-проект car-loan-advisor-b1dc6 (Android: com.pesomatch.fastloan)
+  pesomatch: { title: 'PesoMatch fast loan', propertyId: process.env.GA_PROPERTY_PESOMATCH || '', findByName: ['car-loan-advisor-b1dc6', 'Peso Match Fast Loan', 'PesoMatch fast loan'] },
+  // Axis Finance — Firebase-проект app-2-loan (Android: com.axisfinance.loanguideapp)
+  axis: { title: 'Axis Finance', propertyId: process.env.GA_PROPERTY_AXIS || '', findByName: ['app-2-loan', 'Axis - Emergency Loan Guide', 'Axis Finance'] },
+  // Kita Peso — Firebase-проект app3-5fa38 (Android: com.kitapeso.budgettracker)
+  kitapeso: { title: 'Kita Peso', propertyId: process.env.GA_PROPERTY_KITAPESO || '', findByName: ['app3-5fa38', 'Kita - Peso Budget Tracker', 'Kita Peso'] },
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
@@ -105,7 +100,7 @@ async function report(propertyId, days, app) {
 }
 
 // Страны пользователей (ISO-2) за период по свойству GA4 — для вкладки «По приложениям»
-async function countriesBetween(propertyId, from, to, app = 'wonga') {
+async function countriesBetween(propertyId, from, to, app = '') {
   const j = await gpost(propertyId, 'runReport', { dateRanges: [{ startDate: from, endDate: to }], dimensions: [{ name: 'countryId' }], metrics: [{ name: 'activeUsers' }], orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 25 }, app);
   return rows(j).filter(r => /^[A-Za-z]{2}$/.test(r.d[0])).map(r => ({ code: r.d[0].toUpperCase(), users: r.m[0] }));
 }
@@ -136,8 +131,9 @@ async function resolveProperty(app, a) {
   if (a.propertyId) return a.propertyId;
   if (!a.findByName) return '';
   const hit = found.get(app); if (hit && Date.now() - hit.t < 600000) return hit.id;
-  const list = await listProperties(app), p = list.find(x => x.name.toLowerCase() === a.findByName.toLowerCase());
-  if (!p) throw fail('ga_access', 'Сервисный аккаунт ' + loadCreds(app).client_email + ' не видит свойство «' + a.findByName + '»');
+  const names = [].concat(a.findByName).map(x => String(x).toLowerCase());
+  const list = await listProperties(app), p = list.find(x => names.includes(x.name.toLowerCase()));
+  if (!p) throw fail('ga_access', 'Сервисный аккаунт ' + loadCreds(app).client_email + ' не видит свойство «' + names.join('» / «') + '». Доступно: ' + (list.map(x => x.name).join(', ') || 'ничего'));
   found.set(app, { id: p.property, t: Date.now() }); return p.property;
 }
 const cache = new Map();

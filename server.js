@@ -101,7 +101,7 @@ async function sources(from, to) {
       if (!/^[A-Z]{2}$/.test(c) || !(n.hosts || n.clicks)) continue;
       (cty[k] ||= []).push({ code: c, hosts: n.hosts, clicks: n.clicks, conversions: n.conversions, amount: n.amount });
     }
-    const hide = new Set((process.env.HIDE_OFFERS !== undefined ? process.env.HIDE_OFFERS : 'Finpug.co.za [CPL]').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+    const hide = new Set((process.env.HIDE_OFFERS !== undefined ? process.env.HIDE_OFFERS : '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
     const inner = {};
     for (const x of bySO) {
       const k = String(x.slice.sub1 || '').trim().toLowerCase(), n = norm(x);
@@ -119,12 +119,12 @@ async function sources(from, to) {
     const sources = Object.values(map).filter(m => m.hosts || m.clicks || m.conversions || m.amount)
       .map(m => ({ ...m, countries: (cty[m.sub1] || []).sort((a, b) => b.clicks - a.clicks || b.hosts - a.hosts), offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
       .sort((a, b) => b.amount - a.amount || b.clicks - a.clicks);
-    const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pautang=com.navo.navo_calculator,prestomin=com.prestomin.dinerorapido,mpowa=com.emergencyloanguide.app,wonga=com.wonga.otpusk_planner,unifi=com.unifi.financecalc,kwik=com.kwikloanguide.app').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
+    const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pesomatch=com.pesomatch.fastloan,axis=com.axisfinance.loanguideapp,kitapeso=com.kitapeso.budgettracker').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
     // Размеченные приложения показываем и без трафика (нулевые карточки)
     for (const k of Object.keys(sp)) if (!sources.some(x => x.sub1 === k)) sources.push({ sub1: k, hosts: 0, clicks: 0, conversions: 0, amount: 0, countries: [], offers: [] });
     for (const x of sources) if (sp[x.sub1]) x.pkg = sp[x.sub1];
     // Название и страна для меток без приложения в Google Play: метка=Название|ISO2
-    const sm = Object.fromEntries((process.env.SRC_META !== undefined ? process.env.SRC_META : 'pautang=Mepresta Dinero rapido calc|MX|555903500').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]).map(([k, v]) => [k, v.split('|')]));
+    const sm = Object.fromEntries((process.env.SRC_META !== undefined ? process.env.SRC_META : 'pesomatch=PesoMatch fast loan|PH|,axis=Axis Finance||,kitapeso=Kita Peso|PH|').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]).map(([k, v]) => [k, v.split('|')]));
     for (const x of sources) if (sm[x.sub1]) { x.title = sm[x.sub1][0]; x.country = (sm[x.sub1][1] || '').toUpperCase(); x.gaProperty = sm[x.sub1][2] || ''; }
     await Promise.all(sources.filter(x => x.gaProperty).map(async x => { try { x.gaCountries = await ga.countriesBetween(x.gaProperty, from, to); } catch (e) { x.gaCountries = []; x.gaError = e.message; } }));
     return { demo: false, currency: 'USD', sources, updatedAt: new Date().toISOString() };
@@ -163,7 +163,7 @@ async function affise(from, to, q) {
   });
   const cat = await catP, rates = await ratesP;
   // Скрытые офферы (названия или ID через запятую, регистр не важен). HIDE_OFFERS= пусто — показывать все.
-  const hide = new Set((process.env.HIDE_OFFERS !== undefined ? process.env.HIDE_OFFERS : 'Finpug.co.za [CPL]').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+  const hide = new Set((process.env.HIDE_OFFERS !== undefined ? process.env.HIDE_OFFERS : '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
   const hidden = o => hide.has(String(o.id).toLowerCase()) || hide.has(String(o.title || '').toLowerCase());
   data.offers = data.offers.filter(o => !hidden(o));
   data.geo = (data.geo || []).map(g => ({ ...g, offers: (g.offers || []).filter(o => !hidden(o)) }));

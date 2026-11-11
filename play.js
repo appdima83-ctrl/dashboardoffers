@@ -4,16 +4,16 @@ const { accessToken, fail, listProperties } = require('./ga.js');
 const SCOPE = 'https://www.googleapis.com/auth/androidpublisher';
 const API = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/';
 // Пакеты приложений: PLAY_PACKAGES="com.a.b:Название,com.c.d:Другое"
-const DEFAULTS = 'com.wonga.otpusk_planner:Wonga,com.wonga.loanpointer:Wonga Loan Pointer,com.prestomin.guia:Prestomin,com.navo.navo_calculator:Navo Calculator,com.mepresta.dinerorapidocalc:Mepresta Calc,com.prestomin.dinerorapido:Prestomin Dinero Rápido,com.unifi.financecalc:Unifi finance - calc app,com.kwikloanguide.app:Kwik - Personal Loan Guide app,com.emergencyloanguide.app:Mpowa finance - loan guid app,com.peranyo.pautang.app.calc:Peranyo - Pautang Calc app';
+const DEFAULTS = 'com.pesomatch.fastloan:PesoMatch fast loan,com.axisfinance.loanguideapp:Axis Finance,com.kitapeso.budgettracker:Kita Peso';
 // Ручные пометки статуса (Google не отдаёт отклонения по API): PLAY_FLAGS="пакет=rejected,пакет=blocked". Пустое значение PLAY_FLAGS= отключает все.
 const FLAG_TEXT = { rejected: 'Отклонено', blocked: 'Заблокировано', review: 'На проверке' };
 const flags = () => Object.fromEntries((process.env.PLAY_FLAGS !== undefined ? process.env.PLAY_FLAGS : '').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && FLAG_TEXT[v]).map(([k, v]) => [k, { state: v, text: FLAG_TEXT[v] }]));
 // Ручная дата последнего релиза (если версия на проверке и Google/Analytics её ещё не показывают): PLAY_RELEASED="пакет=ГГГГ-ММ-ДД,...". Используется, только если новее найденной даты.
-const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefined ? process.env.PLAY_RELEASED : 'com.unifi.financecalc=2026-10-20,com.kwikloanguide.app=2026-10-21,com.wonga.loanpointer=2026-10-20,com.prestomin.dinerorapido=2026-10-15,com.prestomin.guia=2026-10-21').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
+const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefined ? process.env.PLAY_RELEASED : '').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^\d{4}-\d{2}-\d{2}$/.test(v || '')));
 // Скрыть дорожки вручную (Google не отдаёт паузу тестирования по API): PLAY_HIDE="пакет=дорожка,..." (alpha — «Закрытое тестирование»)
-const hidden = () => new Set((process.env.PLAY_HIDE !== undefined ? process.env.PLAY_HIDE : 'com.prestomin.guia=alpha').split(',').map(x => x.trim()).filter(Boolean));
+const hidden = () => new Set((process.env.PLAY_HIDE !== undefined ? process.env.PLAY_HIDE : '').split(',').map(x => x.trim()).filter(Boolean));
 // Страна (ISO-2) приложения: PLAY_COUNTRIES="пакет=ZA,пакет=MX,..."
-const COUNTRY_DEFAULT = 'com.wonga.otpusk_planner=ZA,com.emergencyloanguide.app=ZA,com.navo.navo_calculator=MX,com.wonga.loanpointer=ZA,com.kwikloanguide.app=IN,com.prestomin.dinerorapido=MX,com.prestomin.guia=MX,com.unifi.financecalc=ZA,com.peranyo.pautang.app.calc=PH,com.mepresta.dinerorapidocalc=MX';
+const COUNTRY_DEFAULT = 'com.pesomatch.fastloan=PH,com.kitapeso.budgettracker=PH';
 const countries = () => Object.fromEntries((process.env.PLAY_COUNTRIES !== undefined ? process.env.PLAY_COUNTRIES : COUNTRY_DEFAULT).split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^[A-Za-z]{2}$/.test(v || '')).map(([k, v]) => [k, v.toUpperCase()]));
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
@@ -99,7 +99,7 @@ async function versionDates(pkg) {
 const cmpVer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
 // самая новая версия, замеченная в Analytics (если выше, чем в Play — релиз ещё на проверке или не виден через API)
 // старт закрытого теста: самый ранний день появления версии в Analytics (приближённо); вручную — PLAY_TEST_START="пакет=ГГГГ-ММ-ДД,..."
-const testStarts = () => Object.fromEntries((process.env.PLAY_TEST_START !== undefined ? process.env.PLAY_TEST_START : 'com.peranyo.pautang.app.calc=2026-10-27,com.wonga.loanpointer=2026-10-17,com.prestomin.guia=2026-10-17,com.mepresta.dinerorapidocalc=2026-10-17,com.kwikloanguide.app=2026-10-17,com.unifi.financecalc=2026-10-14').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && (v === 'wait' || /^\d{4}-\d{2}-\d{2}$/.test(v || ''))));
+const testStarts = () => Object.fromEntries((process.env.PLAY_TEST_START !== undefined ? process.env.PLAY_TEST_START : '').split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && (v === 'wait' || /^\d{4}-\d{2}-\d{2}$/.test(v || ''))));
 const firstSeen = dates => { let m = ''; for (const k of Object.keys(dates)) if (/^\d+(\.\d+)+$/.test(k) && dates[k] && (!m || dates[k] < m)) m = dates[k]; return m; };
 const newestSeen = dates => { let best = null; for (const k of Object.keys(dates)) if (/^\d+(\.\d+)+$/.test(k) && (!best || cmpVer(k, best.version) > 0)) best = { version: k, date: dates[k] }; return best; };
 const dateFor = (name, dates) => { for (const c of String(name || '').match(/\d+(?:\.\d+)+/g) || []) if (dates[c]) return dates[c]; return ''; };

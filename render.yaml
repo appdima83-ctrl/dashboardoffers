@@ -13,3 +13,6 @@ services:
         generateValue: true
       - key: AFFISE_API_KEY
         sync: false
+      # Ключ сервисного аккаунта Google одной строкой: всё содержимое JSON-файла
+      - key: GA_SERVICE_ACCOUNT_JSON
+        sync: false
