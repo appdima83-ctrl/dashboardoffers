@@ -21,6 +21,9 @@ const ga = require('./ga.js');
 // конверсии = actions.total.count, «Итого» = actions.total.revenue) ---
 const BASE = process.env.AFFISE_BASE || 'https://api-profitcash.affise.com';
 const TZ = process.env.TIMEZONE || 'Indian/Kerguelen';
+// Приложения опубликованы 24.11.2026; всё, что раньше, — тестовый трафик, поэтому начало периода обрезается снизу
+const START = process.env.STATS_START || '2026-11-24';
+const fromFloor = f => (f && f < START ? START : f);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function aget(pathname, params) {
   const url = BASE + pathname + '?' + params.map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
@@ -150,6 +153,7 @@ async function appInstalls(from, to) {
 
 async function affise(from, to, q) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) throw Object.assign(new Error('Некорректные даты'), { code: 'bad_request' });
+  from = fromFloor(from);
   const offer = q.get('offer');
   const cty = /^[A-Za-z]{2}$/.test(q.get('country') || '') ? q.get('country').toUpperCase() : '';
   const base = [['filter[date_from]', from], ['filter[date_to]', to], ['timezone', TZ], ...(cty ? [['filter[country]', cty]] : [])];
@@ -242,14 +246,14 @@ http.createServer(async (req, res) => {
     res.writeHead(303, { Location: '/login' }); return res.end();
   }
   if (u.pathname === '/api/config') {
-    if (!KEY) return send(res, 200, { ...CONFIG, hasKey: false });
-    try { return send(res, 200, { ...CONFIG, hasKey: true, offers: await offersList() }); } catch (e) { return send(res, 200, { ...CONFIG, hasKey: true }); }
+    if (!KEY) return send(res, 200, { ...CONFIG, start: START, hasKey: false });
+    try { return send(res, 200, { ...CONFIG, start: START, hasKey: true, offers: await offersList() }); } catch (e) { return send(res, 200, { ...CONFIG, start: START, hasKey: true }); }
   }
   if (u.pathname === '/api/sources') {
     const from = u.searchParams.get('from'), to = u.searchParams.get('to');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) return send(res, 400, { error: 'bad_request', message: 'Некорректные даты' });
     if (!KEY) return send(res, 200, { demo: true, sources: [], updatedAt: new Date().toISOString() });
-    try { return send(res, 200, { ...(await sources(from, to)), today: new Date().toLocaleDateString('en-CA', { timeZone: TZ }) }); } catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
+    try { return send(res, 200, { ...(await sources(fromFloor(from), to)), today: new Date().toLocaleDateString('en-CA', { timeZone: TZ }) }); } catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
   }
   if (u.pathname === '/api/play') {
     try { return send(res, 200, await require('./play.js').getPlay()); }
@@ -262,7 +266,7 @@ http.createServer(async (req, res) => {
   if (u.pathname === '/api/installs') {
     const from = u.searchParams.get('from'), to = u.searchParams.get('to');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) return send(res, 400, { error: 'bad_request', message: 'Некорректные даты' });
-    try { return send(res, 200, await appInstalls(from, to)); }
+    try { return send(res, 200, await appInstalls(fromFloor(from), to)); }
     catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
   }
   if (u.pathname === '/api/stats') {

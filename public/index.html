@@ -851,7 +851,7 @@ const fmtI=n=>Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const fmtM=(n,d=4)=>{const [a,b]=n.toFixed(d).split('.');return a.replace(/\B(?=(\d{3})+(?!\d))/g,' ')+','+b};
 const pad=n=>String(n).padStart(2,'0'),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const dm=s=>s.split('-').reverse().join('.');
-const START='2026-09-01'; // начало доступных данных
+let START='2026-11-24'; // приложения опубликованы 24.11.2026, раньше — тестовый трафик; сервер отдаёт эту дату в /api/config
 function quick(q){const t=new Date(),d=new Date(t);let f=t,e=t;
  if(q==='7'){d.setDate(d.getDate()-6);f=d}
  $('#from').value=q==='all'?START:ymd(f);$('#to').value=ymd(e);syncDates();document.querySelectorAll('#quick button').forEach(b=>b.classList.toggle('on',b.dataset.q===q))}
@@ -1403,6 +1403,7 @@ addEventListener('resize',()=>{isApp()&&st2.data&&appRender()});
 // крутилка на кнопке «Обновить» во время загрузки
 for(const [fn,id] of [['load','#refresh'],['loadApp','#appRefresh']]){const orig=eval(fn);const w=async function(...a){const b=$(id);b&&b.classList.add('busy');try{return await orig.apply(this,a)}finally{b&&b.classList.remove('busy')}};if(fn==='load')load=w;else loadApp=w}
 (async()=>{const c=(await api('/api/config')).j;st.cfg=c;
+ if(c.start)START=c.start;['from','to'].forEach(id=>$('#'+id).min=START);
  if(c.currencies.length>1){$('#cur').hidden=false;$('#cur').innerHTML=c.currencies.map(x=>`<option>${x}</option>`).join('')}
  // ---- боковое меню: сворачивание (десктоп) и выдвижная панель (телефон) ----
 (function(){
