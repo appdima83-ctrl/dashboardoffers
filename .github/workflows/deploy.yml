@@ -1,0 +1,26 @@
+# Автодеплой на Render: сервис подключён как публичный репозиторий, поэтому сам
+# за пушами он не следит. Этот workflow дёргает его deploy hook после пуша в main.
+# Секрет RENDER_DEPLOY_HOOK — адрес из Render: сервис → Settings → Deploy Hook.
+name: Deploy to Render
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "Секрет RENDER_DEPLOY_HOOK не задан в настройках репозитория"
+            exit 1
+          fi
+          code=$(curl -sS -o body.txt -w '%{http_code}' -X POST "$HOOK")
+          echo "Render ответил HTTP $code"
+          cat body.txt
+          test "$code" -ge 200 -a "$code" -lt 300
