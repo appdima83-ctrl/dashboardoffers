@@ -119,7 +119,7 @@ async function sources(from, to) {
     const sources = Object.values(map).filter(m => m.hosts || m.clicks || m.conversions || m.amount)
       .map(m => ({ ...m, countries: (cty[m.sub1] || []).sort((a, b) => b.clicks - a.clicks || b.hosts - a.hosts), offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
       .sort((a, b) => b.amount - a.amount || b.clicks - a.clicks);
-    const sp = Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pesomatch=com.pesomatch.fastloan,axis=com.axisfinance.loanguideapp,kitapeso=com.kitapeso.budgettracker').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
+    const sp = srcApps();
     // Размеченные приложения показываем и без трафика (нулевые карточки)
     for (const k of Object.keys(sp)) if (!sources.some(x => x.sub1 === k)) sources.push({ sub1: k, hosts: 0, clicks: 0, conversions: 0, amount: 0, countries: [], offers: [] });
     for (const x of sources) if (sp[x.sub1]) x.pkg = sp[x.sub1];
@@ -129,6 +129,23 @@ async function sources(from, to) {
     await Promise.all(sources.filter(x => x.gaProperty).map(async x => { try { x.gaCountries = await ga.countriesBetween(x.gaProperty, from, to); } catch (e) { x.gaCountries = []; x.gaError = e.message; } }));
     return { demo: false, currency: 'USD', sources, updatedAt: new Date().toISOString() };
   }, 30000);
+}
+
+// Метка sub1 -> пакет в Google Play
+const srcApps = () => Object.fromEntries((process.env.SRC_APPS !== undefined ? process.env.SRC_APPS : 'pesomatch=com.pesomatch.fastloan,axis=com.axisfinance.loanguideapp,kitapeso=com.kitapeso.budgettracker').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]));
+
+// Установки приложений по странам: первые запуски (first_open) из GA4 по каждому приложению
+async function appInstalls(from, to) {
+  return cached('inst|' + from + '|' + to, async () => {
+    const pkg = srcApps();
+    const apps = await Promise.all(Object.keys(ga.APPS).map(async k => {
+      const row = { key: k, title: ga.APPS[k].title, pkg: pkg[k] || '' };
+      try { row.countries = await ga.installsBetween(k, from, to); }
+      catch (e) { row.countries = []; row.error = e.message; }
+      return row;
+    }));
+    return { apps, updatedAt: new Date().toISOString() };
+  }, 60000);
 }
 
 async function affise(from, to, q) {
@@ -241,6 +258,12 @@ http.createServer(async (req, res) => {
   if (u.pathname.startsWith('/api/ga/')) {
     try { return send(res, 200, await ga.getApp(u.pathname.slice(8), +u.searchParams.get('days'))); }
     catch (e) { return send(res, e.code === 'not_found' ? 404 : 502, { error: e.code || 'upstream', message: e.message }); }
+  }
+  if (u.pathname === '/api/installs') {
+    const from = u.searchParams.get('from'), to = u.searchParams.get('to');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) return send(res, 400, { error: 'bad_request', message: 'Некорректные даты' });
+    try { return send(res, 200, await appInstalls(from, to)); }
+    catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
   }
   if (u.pathname === '/api/stats') {
     const q = u.searchParams, from = q.get('from'), to = q.get('to');

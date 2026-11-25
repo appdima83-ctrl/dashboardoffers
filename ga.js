@@ -105,6 +105,17 @@ async function countriesBetween(propertyId, from, to, app = '') {
   return rows(j).filter(r => /^[A-Za-z]{2}$/.test(r.d[0])).map(r => ({ code: r.d[0].toUpperCase(), users: r.m[0] }));
 }
 
+// Установки по странам за период: событие first_open в разрезе стран (для виджета на главной)
+async function installsBetween(app, from, to) {
+  const a = APPS[app]; if (!a) throw fail('not_found', 'Неизвестное приложение');
+  const pid = await resolveProperty(app, a);
+  if (!pid) throw fail('ga_no_property', 'Для приложения ' + a.title + ' не задан ID свойства GA4 (переменная GA_PROPERTY_' + app.toUpperCase() + ')');
+  const j = await gpost(pid, 'runReport', { dateRanges: [{ startDate: from, endDate: to }], dimensions: [{ name: 'countryId' }], metrics: [{ name: 'eventCount' }],
+    dimensionFilter: { filter: { fieldName: 'eventName', stringFilter: { value: 'first_open' } } },
+    orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }], limit: 100 }, app);
+  return rows(j).filter(r => /^[A-Za-z]{2}$/.test(r.d[0])).map(r => ({ code: r.d[0].toUpperCase(), installs: r.m[0] }));
+}
+
 // Демо для проверки интерфейса (GA_MOCK=1)
 function mock(days) {
   const end = new Date(); const dates = [...Array(days)].map((_, i) => { const d = new Date(end); d.setDate(d.getDate() - (days - 1 - i)); return d.toISOString().slice(0, 10); });
@@ -147,4 +158,4 @@ async function getApp(app, days) {
   if (c && Date.now() - c.t < 20000) return c.v;
   const v = await report(pid, days, app); cache.set(k, { t: Date.now(), v }); return v;
 }
-module.exports = { countriesBetween, getApp, APPS, listProperties, accessToken, fail };
+module.exports = { countriesBetween, installsBetween, getApp, APPS, listProperties, accessToken, fail };
