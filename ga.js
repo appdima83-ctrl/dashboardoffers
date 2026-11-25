@@ -14,6 +14,9 @@ const APPS = {
 };
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
+// Приложения опубликованы 24.11.2026 — окно отчёта не начинается раньше этой даты
+const START = process.env.STATS_START || '2026-11-24';
+const maxDays = () => Math.max(1, Math.floor((Date.now() - Date.parse(START + 'T00:00:00Z')) / 864e5) + 1);
 
 // Приводит ключ к корректному PEM: убирает кавычки/запятые/пробелы, понимает «\n» текстом и настоящие переносы
 function normalizePem(v) {
@@ -151,6 +154,7 @@ const cache = new Map();
 async function getApp(app, days) {
   const a = APPS[app]; if (!a) throw fail('not_found', 'Неизвестное приложение');
   days = [7, 30, 90].includes(days) ? days : 30;
+  days = Math.min(days, maxDays());
   if (process.env.GA_MOCK === '1') return mock(days);
   const pid = await resolveProperty(app, a);
   if (!pid) throw fail('ga_no_property', 'Для приложения ' + a.title + ' не задан ID свойства GA4 (переменная GA_PROPERTY_' + app.toUpperCase() + ')');

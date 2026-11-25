@@ -119,7 +119,7 @@ async function sources(from, to) {
       const m = map[k] ||= { sub1: k, hosts: 0, clicks: 0, conversions: 0, declined: 0, amount: 0 };
       m.hosts += n.hosts; m.clicks += n.clicks; m.conversions += n.conversions; m.declined += n.declined; m.amount = r4(m.amount + n.amount);
     }
-    const sources = Object.values(map).filter(m => m.hosts || m.clicks || m.conversions || m.amount)
+    const sources = Object.values(map).filter(m => m.sub1 && (m.hosts || m.clicks || m.conversions || m.amount))
       .map(m => ({ ...m, countries: (cty[m.sub1] || []).sort((a, b) => b.clicks - a.clicks || b.hosts - a.hosts), offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
       .sort((a, b) => b.amount - a.amount || b.clicks - a.clicks);
     const sp = srcApps();
@@ -127,7 +127,7 @@ async function sources(from, to) {
     for (const k of Object.keys(sp)) if (!sources.some(x => x.sub1 === k)) sources.push({ sub1: k, hosts: 0, clicks: 0, conversions: 0, amount: 0, countries: [], offers: [] });
     for (const x of sources) if (sp[x.sub1]) x.pkg = sp[x.sub1];
     // Название и страна для меток без приложения в Google Play: метка=Название|ISO2
-    const sm = Object.fromEntries((process.env.SRC_META !== undefined ? process.env.SRC_META : 'pesomatch=PesoMatch fast loan|PH|,axis=Axis Finance||,kitapeso=Kita Peso|PH|').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]).map(([k, v]) => [k, v.split('|')]));
+    const sm = Object.fromEntries((process.env.SRC_META !== undefined ? process.env.SRC_META : 'pesomatch=PesoMatch fast loan|PH|,axis=Axis Finance|ZA|,kitapeso=Kita Peso|PH|').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]).map(([k, v]) => [k, v.split('|')]));
     for (const x of sources) if (sm[x.sub1]) { x.title = sm[x.sub1][0]; x.country = (sm[x.sub1][1] || '').toUpperCase(); x.gaProperty = sm[x.sub1][2] || ''; }
     await Promise.all(sources.filter(x => x.gaProperty).map(async x => { try { x.gaCountries = await ga.countriesBetween(x.gaProperty, from, to); } catch (e) { x.gaCountries = []; x.gaError = e.message; } }));
     return { demo: false, currency: 'USD', sources, updatedAt: new Date().toISOString() };

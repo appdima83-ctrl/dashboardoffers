@@ -13,7 +13,7 @@ const released = () => Object.fromEntries((process.env.PLAY_RELEASED !== undefin
 // Скрыть дорожки вручную (Google не отдаёт паузу тестирования по API): PLAY_HIDE="пакет=дорожка,..." (alpha — «Закрытое тестирование»)
 const hidden = () => new Set((process.env.PLAY_HIDE !== undefined ? process.env.PLAY_HIDE : '').split(',').map(x => x.trim()).filter(Boolean));
 // Страна (ISO-2) приложения: PLAY_COUNTRIES="пакет=ZA,пакет=MX,..."
-const COUNTRY_DEFAULT = 'com.pesomatch.fastloan=PH,com.kitapeso.budgettracker=PH';
+const COUNTRY_DEFAULT = 'com.pesomatch.fastloan=PH,com.kitapeso.budgettracker=PH,com.axisfinance.loanguideapp=ZA';
 const countries = () => Object.fromEntries((process.env.PLAY_COUNTRIES !== undefined ? process.env.PLAY_COUNTRIES : COUNTRY_DEFAULT).split(',').map(x => x.trim().split('=')).filter(([k, v]) => k && /^[A-Za-z]{2}$/.test(v || '')).map(([k, v]) => [k, v.toUpperCase()]));
 const packages = () => (process.env.PLAY_PACKAGES || DEFAULTS).split(',').map(x => x.trim()).filter(Boolean).map(x => { const [id, ...n] = x.split(':'); return { id: id.trim(), title: (n.join(':') || id).trim() }; });
 
