@@ -24,6 +24,9 @@ const TZ = process.env.TIMEZONE || 'Indian/Kerguelen';
 // Приложения опубликованы 24.11.2026; всё, что раньше, — тестовый трафик, поэтому начало периода обрезается снизу
 const START = process.env.STATS_START || '2026-11-24';
 const fromFloor = f => (f && f < START ? START : f);
+// Скачивания считаем с того дня, когда приложения реально появились в магазине
+const INSTALLS_START = process.env.INSTALLS_START || '2026-11-25';
+const instFloor = f => { const x = fromFloor(f); return x && x < INSTALLS_START ? INSTALLS_START : x; };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function aget(pathname, params) {
   const url = BASE + pathname + '?' + params.map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
@@ -130,7 +133,12 @@ async function sources(from, to) {
     const sm = Object.fromEntries((process.env.SRC_META !== undefined ? process.env.SRC_META : 'pesomatch=PesoMatch fast loan|PH|,axis=Axis Finance|ZA|,kitapeso=Kita Peso|PH|').split(',').map(x => x.trim().split('=')).filter(x => x[0] && x[1]).map(([k, v]) => [k, v.split('|')]));
     for (const x of sources) if (sm[x.sub1]) { x.title = sm[x.sub1][0]; x.country = (sm[x.sub1][1] || '').toUpperCase(); x.gaProperty = sm[x.sub1][2] || ''; }
     await Promise.all(sources.filter(x => x.gaProperty).map(async x => { try { x.gaCountries = await ga.countriesBetween(x.gaProperty, from, to); } catch (e) { x.gaCountries = []; x.gaError = e.message; } }));
-    return { demo: false, currency: 'USD', sources, updatedAt: new Date().toISOString() };
+    const inst = await appInstalls(instFloor(from), to).catch(() => null);
+    if (inst) for (const x of sources) {
+      const a = (inst.apps || []).find(p => p.key === x.sub1);
+      if (a) { x.installs = (a.countries || []).reduce((s, c) => s + c.installs, 0); x.installsCountries = a.countries || []; }
+    }
+    return { demo: false, currency: 'USD', sources, installsFrom: instFloor(from), updatedAt: new Date().toISOString() };
   }, 30000);
 }
 
@@ -266,7 +274,7 @@ http.createServer(async (req, res) => {
   if (u.pathname === '/api/installs') {
     const from = u.searchParams.get('from'), to = u.searchParams.get('to');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '')) return send(res, 400, { error: 'bad_request', message: 'Некорректные даты' });
-    try { return send(res, 200, await appInstalls(fromFloor(from), to)); }
+    try { return send(res, 200, await appInstalls(instFloor(from), to)); }
     catch (e) { return send(res, 502, { error: e.code || 'upstream', message: e.message }); }
   }
   if (u.pathname === '/api/stats') {
