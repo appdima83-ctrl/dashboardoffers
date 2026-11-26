@@ -25,7 +25,7 @@ const TZ = process.env.TIMEZONE || 'Indian/Kerguelen';
 const START = process.env.STATS_START || '2026-11-24';
 const fromFloor = f => (f && f < START ? START : f);
 // Скачивания считаем с того дня, когда приложения реально появились в магазине
-const INSTALLS_START = process.env.INSTALLS_START || '2026-11-25';
+const INSTALLS_START = process.env.INSTALLS_START || '2026-11-24';
 const instFloor = f => { const x = fromFloor(f); return x && x < INSTALLS_START ? INSTALLS_START : x; };
 // Страны, которые не учитываем вообще (эмулятор разработчика). EXCLUDE_COUNTRIES= пусто — считать все.
 const EXCL = new Set((process.env.EXCLUDE_COUNTRIES !== undefined ? process.env.EXCLUDE_COUNTRIES : 'LK').split(',').map(x => x.trim().toUpperCase()).filter(Boolean));
