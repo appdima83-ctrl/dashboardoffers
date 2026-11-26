@@ -27,6 +27,11 @@ const fromFloor = f => (f && f < START ? START : f);
 // Скачивания считаем с того дня, когда приложения реально появились в магазине
 const INSTALLS_START = process.env.INSTALLS_START || '2026-11-25';
 const instFloor = f => { const x = fromFloor(f); return x && x < INSTALLS_START ? INSTALLS_START : x; };
+// Страны, которые не учитываем вообще (эмулятор разработчика). EXCLUDE_COUNTRIES= пусто — считать все.
+const EXCL = new Set((process.env.EXCLUDE_COUNTRIES !== undefined ? process.env.EXCLUDE_COUNTRIES : 'LK').split(',').map(x => x.trim().toUpperCase()).filter(Boolean));
+const skipC = c => EXCL.has(String(c || '').toUpperCase());
+const ZERO = { hosts: 0, clicks: 0, conversions: 0, declined: 0, amount: 0 };
+const addS = (a, b) => ({ hosts: a.hosts + b.hosts, clicks: a.clicks + b.clicks, conversions: a.conversions + b.conversions, declined: a.declined + b.declined, amount: r4(a.amount + b.amount) });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function aget(pathname, params) {
   const url = BASE + pathname + '?' + params.map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&');
@@ -98,29 +103,36 @@ async function sources(from, to) {
     const oc = {};
     for (const x of bySOC) {
       const c = String(x.slice.country || '').toUpperCase(), n = norm(x);
-      if (!x.slice.offer || !/^[A-Z]{2}$/.test(c) || !(n.hosts || n.clicks)) continue;
+      if (!x.slice.offer || !/^[A-Z]{2}$/.test(c) || skipC(c) || !(n.hosts || n.clicks)) continue;
       ((oc[String(x.slice.sub1 || '').trim().toLowerCase() + '|' + x.slice.offer.id] ||= [])).push({ code: c, hosts: n.hosts, clicks: n.clicks });
     }
     const cty = {};
     for (const x of bySC) {
       const k = String(x.slice.sub1 || '').trim().toLowerCase(), c = String(x.slice.country || '').toUpperCase(), n = norm(x);
-      if (!/^[A-Z]{2}$/.test(c) || !(n.hosts || n.clicks)) continue;
+      if (!/^[A-Z]{2}$/.test(c) || skipC(c) || !(n.hosts || n.clicks)) continue;
       (cty[k] ||= []).push({ code: c, hosts: n.hosts, clicks: n.clicks, conversions: n.conversions, amount: n.amount });
     }
     const hide = new Set((process.env.HIDE_OFFERS !== undefined ? process.env.HIDE_OFFERS : '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
     const inner = {};
-    for (const x of bySO) {
+    const innerAgg = {};
+    for (const x of (EXCL.size && bySOC.length ? bySOC : bySO)) {
       const k = String(x.slice.sub1 || '').trim().toLowerCase(), n = norm(x);
-      if (!x.slice.offer || !(n.hosts || n.clicks || n.conversions)) continue;
-      const ot = x.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']').toLowerCase();
-      if (hide.has(String(x.slice.offer.id).toLowerCase()) || hide.has(ot)) continue;
-      (inner[k] ||= []).push({ id: String(x.slice.offer.id), title: x.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...n, countries: (oc[k + '|' + x.slice.offer.id] || []).sort((a, b) => b.clicks - a.clicks) });
+      if (!x.slice.offer || skipC(x.slice.country)) continue;
+      const ot = x.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']');
+      if (hide.has(String(x.slice.offer.id).toLowerCase()) || hide.has(ot.toLowerCase())) continue;
+      const key = k + '|' + x.slice.offer.id, cur = innerAgg[key] || { k, id: String(x.slice.offer.id), title: ot, ...ZERO };
+      innerAgg[key] = { ...cur, ...addS(cur, n) };
+    }
+    for (const v of Object.values(innerAgg)) {
+      if (!(v.hosts || v.clicks || v.conversions)) continue;
+      (inner[v.k] ||= []).push({ id: v.id, title: v.title, hosts: v.hosts, clicks: v.clicks, conversions: v.conversions, declined: v.declined, amount: v.amount, countries: (oc[v.k + '|' + v.id] || []).sort((a, b) => b.clicks - a.clicks) });
     }
     const map = {};
-    for (const x of bySrc) {
+    for (const x of (EXCL.size && bySC.length ? bySC : bySrc)) {
       const k = String(x.slice.sub1 || '').trim().toLowerCase(), n = norm(x);
-      const m = map[k] ||= { sub1: k, hosts: 0, clicks: 0, conversions: 0, declined: 0, amount: 0 };
-      m.hosts += n.hosts; m.clicks += n.clicks; m.conversions += n.conversions; m.declined += n.declined; m.amount = r4(m.amount + n.amount);
+      if (skipC(x.slice.country)) continue;
+      const m = map[k] ||= { sub1: k, ...ZERO };
+      Object.assign(m, addS(m, n));
     }
     const sources = Object.values(map).filter(m => m.sub1 && (m.hosts || m.clicks || m.conversions || m.amount))
       .map(m => ({ ...m, countries: (cty[m.sub1] || []).sort((a, b) => b.clicks - a.clicks || b.hosts - a.hosts), offers: (inner[m.sub1] || []).sort((a, b) => b.amount - a.amount || b.clicks - a.clicks) }))
@@ -151,7 +163,7 @@ async function appInstalls(from, to) {
     const pkg = srcApps();
     const apps = await Promise.all(Object.keys(ga.APPS).map(async k => {
       const row = { key: k, title: ga.APPS[k].title, pkg: pkg[k] || '' };
-      try { row.countries = await ga.installsBetween(k, from, to); }
+      try { row.countries = (await ga.installsBetween(k, from, to)).filter(c => !skipC(c.code)); }
       catch (e) { row.countries = []; row.error = e.message; }
       return row;
     }));
@@ -169,24 +181,30 @@ async function affise(from, to, q) {
   const catP = offersCatalog().catch(() => ({}));
   const ratesP = getRates().catch(() => ({ USD: 1 }));
   const today = new Date().toLocaleDateString('en-CA', { timeZone: TZ }); // сегодняшняя дата в часовом поясе кабинета
-  const todayP = cached('today|' + today + '|' + cty, () => allPages('/3.0/stats/custom', [['filter[date_from]', today], ['filter[date_to]', today], ['timezone', TZ], ...(cty ? [['filter[country]', cty]] : []), ['slice[]', 'offer']]), 15000)
-    .then(st => Object.fromEntries(st.map(x => [String(x.slice.offer.id), norm(x)]))).catch(() => null);
+  const todayP = cached('today|' + today + '|' + cty, () => allPages('/3.0/stats/custom', [['filter[date_from]', today], ['filter[date_to]', today], ['timezone', TZ], ...(cty ? [['filter[country]', cty]] : []), ['slice[]', 'offer'], ...(EXCL.size ? [['slice[]', 'country']] : [])]), 15000)
+    .then(st => { const m = {}; for (const x of st) { if (!x.slice.offer || skipC(x.slice.country)) continue; const id = String(x.slice.offer.id); m[id] = addS(m[id] || ZERO, norm(x)); } return m; }).catch(() => null);
   const data = await cached(['s', from, to, offer, cty].join('|'), async () => {
     const [daily, byOff, byCountry, byCO] = await Promise.all([
-      allPages('/3.0/stats/getbydate', offer && offer !== 'all' ? [...base, ['filter[offer]', offer]] : base),
+      allPages(EXCL.size ? '/3.0/stats/custom' : '/3.0/stats/getbydate', [...(offer && offer !== 'all' ? [...base, ['filter[offer]', offer]] : base), ...(EXCL.size ? [['slice[]', 'year'], ['slice[]', 'month'], ['slice[]', 'day'], ['slice[]', 'country']] : [])]),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'offer']]),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'country']]).catch(() => []),
       allPages('/3.0/stats/custom', [...base, ['slice[]', 'country'], ['slice[]', 'offer']]).catch(() => []),
     ]);
     const map = {};
-    for (const s of daily) { const d = s.slice; map[`${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`] = norm(s); }
+    for (const s of daily) { const d = s.slice; if (skipC(d.country)) continue; const k = `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`; map[k] = addS(map[k] || ZERO, norm(s)); }
     const rows = days(from, to).map(date => ({ date, ...(map[date] || { hosts: 0, clicks: 0, conversions: 0, amount: 0 }) }));
-    const offers = byOff.map(s => ({ id: String(s.slice.offer.id), title: s.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...norm(s) }));
+    const offAgg = {};
+    for (const s of (EXCL.size && byCO.length ? byCO : byOff)) {
+      if (!s.slice.offer || skipC(s.slice.country)) continue;
+      const id = String(s.slice.offer.id), cur = offAgg[id] || { id, title: s.slice.offer.title.replace(/\[ /g, '[').replace(/ \]/g, ']'), ...ZERO };
+      offAgg[id] = { ...cur, ...addS(cur, norm(s)) };
+    }
+    const offers = Object.values(offAgg);
     // Трафик по странам: хосты/клики по стране + топ офферов внутри страны
     const cl = t => String(t || '').replace(/\[ /g, '[').replace(/ \]/g, ']');
     const inner = {};
     for (const x of byCO) { const c = String(x.slice.country || '').toUpperCase(), n = norm(x); if (!c || !x.slice.offer || !(n.hosts || n.clicks)) continue; (inner[c] ||= []).push({ id: String(x.slice.offer.id), title: cl(x.slice.offer.title), hosts: n.hosts, clicks: n.clicks }); }
-    const geo = byCountry.map(x => ({ code: String(x.slice.country || '').toUpperCase(), ...norm(x) })).filter(g => /^[A-Z]{2}$/.test(g.code) && (g.hosts || g.clicks))
+    const geo = byCountry.map(x => ({ code: String(x.slice.country || '').toUpperCase(), ...norm(x) })).filter(g => /^[A-Z]{2}$/.test(g.code) && !skipC(g.code) && (g.hosts || g.clicks))
       .sort((a, b) => b.hosts - a.hosts || b.clicks - a.clicks).map(g => ({ ...g, offers: (inner[g.code] || []).sort((a, b) => b.hosts - a.hosts || b.clicks - a.clicks).slice(0, 4) }));
     return { demo: false, currency: 'USD', rows, offers, geo, offersSource: 'affise', updatedAt: new Date().toISOString() };
   });
