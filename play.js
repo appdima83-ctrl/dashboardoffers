@@ -105,14 +105,14 @@ const newestSeen = dates => { let best = null; for (const k of Object.keys(dates
 const dateFor = (name, dates) => { for (const c of String(name || '').match(/\d+(?:\.\d+)+/g) || []) if (dates[c]) return dates[c]; return ''; };
 
 // ---- Установки: из массовых отчётов Play Console (хранилище pubsite_prod_<ID аккаунта>); нужно право «скачивание массовых отчётов» ----
-const DEVS = (process.env.PLAY_DEVELOPER_IDS || '5403334729948184361,8490837588749154483').split(',').map(x => x.trim()).filter(Boolean);
-const instCache = new Map(); let instAccess = null;
+const DEVS = (process.env.PLAY_DEVELOPER_IDS || '9138419510909669287').split(',').map(x => x.trim()).filter(Boolean);
+const instCache = new Map(); let instAccess = null, instError = null;
 const ym = d => d.getUTCFullYear() + String(d.getUTCMonth() + 1).padStart(2, '0');
 async function gcsCsv(token, pkg, month, dev) {
   const obj = 'stats/installs/installs_' + pkg + '_' + month + '_overview.csv';
   const r = await fetch('https://storage.googleapis.com/storage/v1/b/pubsite_prod_' + dev + '/o/' + encodeURIComponent(obj) + '?alt=media', { headers: { Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(20000) });
-  if (r.status === 403) throw Object.assign(new Error('no_access'), { noAccess: true });
-  if (!r.ok) return [];
+  if (r.status === 403 || r.status === 401) throw Object.assign(new Error('no_access'), { noAccess: true, status: r.status, body: (await r.text().catch(() => '')).slice(0, 300) });
+  if (!r.ok) { if (r.status !== 404) instError = 'HTTP ' + r.status + ': ' + (await r.text().catch(() => '')).slice(0, 300); return []; }
   const buf = Buffer.from(await r.arrayBuffer()), txt = (buf[0] === 0xFF && buf[1] === 0xFE ? buf.toString('utf16le') : buf.toString('utf8')).replace(/^\uFEFF/, '');
   const lines = txt.split(/\r?\n/).filter(Boolean), head = lines[0].split(',').map(x => x.replace(/"/g, '').trim());
   return lines.slice(1).map(l => { const c = l.split(',').map(x => x.replace(/"/g, '').trim()); return Object.fromEntries(head.map((h, i) => [h, c[i]])); });
@@ -124,14 +124,14 @@ async function installsFor(pkg, token) {
     const now = new Date(), prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
     let rows = [];
     for (const dev of DEVS) {
-      try { rows = [...(await gcsCsv(token, pkg, ym(prev), dev)), ...(await gcsCsv(token, pkg, ym(now), dev))]; } catch (e) { if (!e.noAccess) throw e; denied = true; }
+      try { rows = [...(await gcsCsv(token, pkg, ym(prev), dev)), ...(await gcsCsv(token, pkg, ym(now), dev))]; } catch (e) { if (!e.noAccess) throw e; denied = true; instError = 'HTTP ' + (e.status || 403) + ': ' + (e.body || ''); }
       if (rows.length) break;
     }
     rows = rows.filter(r => r['Date']).sort((a, b) => a['Date'] < b['Date'] ? -1 : 1);
     const col = rows.length ? (['Active Device Installs', 'Current Device Installs', 'Total User Installs'].find(c => rows[rows.length - 1][c] !== undefined) || null) : null;
     if (col) { const cur = Number(rows[rows.length - 1][col]), old = rows.length > 28 ? Number(rows[rows.length - 29][col]) : null; v = { installs: cur, change: old ? Math.round((cur - old) / old * 100) : null, column: col, date: rows[rows.length - 1]['Date'] }; }
     instAccess = denied && !rows.length ? false : true;
-  } catch (e) { if (e.noAccess) instAccess = false; }
+  } catch (e) { if (e.noAccess) { instAccess = false; instError = 'HTTP ' + (e.status || 403) + ': ' + (e.body || ''); } else instError = e.message; }
   instCache.set(pkg, { t: Date.now(), v }); return v;
 }
 
@@ -178,6 +178,6 @@ async function getPlay() {
     if (!hasProd && a.newest && cur && cmpVer(a.newest.version, cur) > 0) { top.r.name = a.newest.version; top.r.date = a.newest.date; top.r.pending = true; }
     if (rl[a.id]) { a.releasedManual = rl[a.id]; if (!top.r.date || rl[a.id] > top.r.date) top.r.date = rl[a.id]; }
   }
-  const v = { apps, installsAccess: apps.some(a => a.installs) ? true : instAccess, updatedAt: new Date().toISOString() }; cache = { t: Date.now(), v }; return v;
+  const v = { apps, installsAccess: apps.some(a => a.installs) ? true : instAccess, installsError: instError, updatedAt: new Date().toISOString() }; cache = { t: Date.now(), v }; return v;
 }
 module.exports = { getPlay };
